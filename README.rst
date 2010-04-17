@@ -65,9 +65,45 @@ Second example with multiple API versions
 
 handlers.py::
 
+    from simpleapi import Namespace
+    
+    class JobNamespace(Namespace):
+        __ip_restriction__ = ["127.0.0.*", "78.47.135.*"] # only allow specific ip-addresses
+        __authentication__ = "91d9f7763572c7ebcce49b183454aeb0" # you can either use a callable here (for dynamic authentication) or provide a static key for authentication
+    
+        def status(self, job_id):
+            # get the job by job_id ...
+            return job.get_status()
+        status.published = True # make the method available via API
+
+    class OldSMSNamespace(JobNamespace):
+        __version__ = 1
+    
+        def new(self, to, msg):
+            # send sms ...
+        status.published = True # make the method available via API
+        status.methods = ('POST', ) # limit access to POST
+    
+    class NewSMSNamespace(JobNamespace):
+        __version__ = 2
+
+        def new(self, phonenumber, message, sender='my website', priority=5):
+            # send sms ...
+        status.published = True # make the method available via API
+        status.methods = ('POST', ) # limit access to POST
+        status.types = {'priority': int} # ensure that priority argument is of type int
 
 urls.py::
 
+    from simpleapi import Route
+    from handlers import OldSMSNamespace, NewSMSNamespace, FaxNamespace
+
+    urlpatterns = patterns('',
+    	(r'^job/fax/$', Route(FaxNamespace)), # Route with exact one API-version
+    	(r'^job/sms/$', Route(OldSMSNamespace, NewSMSNamespace)), # Route can hold different versions of one API
+    )
+
+The namespace with the highest version is the default one which will be used when the client doesn't provide a version.
 
 HTTP call and parameters
 ------------------------
@@ -87,17 +123,36 @@ The following parameters are used by simpleapi:
 Client example
 ==============
 
-This is how you can access your published methods within any python application::
+This is how you can access your published methods from any python application::
+
+First example
+-------------
 
     from simpleapi import Client
 
     SMS = Client(ns='http://yourdomain.tld/api/job/sms/')
     new_sms = SMS.new(
+    	to="+49 123 456789",
+    	msg="Short test"
+    )
+
+Second example (with version change)
+------------------------------------
+
+    from simpleapi import Client
+
+    SMS = Client(ns='http://yourdomain.tld/api/job/sms/', version=2)
+    new_sms = SMS.new(
     	phonenumber="+49 123 456789",
     	message="Short test"
     )
-
-new_sms contains the returned function value.
+    
+    SMS.set_version(1) # back to the old API-version (which takes different named arguments)
+    
+    new_sms = SMS.new(
+	    to="+49 123 456789",
+	    msg="Short test"    
+    )
 
 How to run the demo
 ===================
