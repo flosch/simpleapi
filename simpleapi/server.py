@@ -36,7 +36,8 @@ class Route(object):
 	
 	def __init__(self, namespace):
 		self.namespace = namespace()
-		self.functions = filter(lambda fn: getattr(fn[1], 'published', False) is True, namespace.__dict__.iteritems())
+		functions = filter(lambda fn: '__' not in fn[0], dict(inspect.getmembers(namespace)).items())
+		self.functions = filter(lambda fn: getattr(fn[1], 'published', False) is True, functions)
 		self.functions = map(lambda item: (item[0], {'fn': item[1], 'vars': inspect.getargspec(item[1])}), self.functions)
 		self.functions = dict(self.functions)
 	
@@ -72,8 +73,6 @@ class Route(object):
 
 		args = []
 		kwargs = {}
-		
-		print fitem['vars']
 		
 		# var arguments
 		if fitem['vars'][3] is not None:
