@@ -1,10 +1,11 @@
+=========
 simpleapi
 =========
 
 :stage: unstable
 :author: Florian Schlachter (http://www.fs-tools.de)
 
-simpleapi is a stable, consistent and portable way of providing an API with django. It supports several formats (e. g. json, xml) and provides a client library to access the API seamlessly from any python application.
+simpleapi is an easy to use, consistent and portable way of providing an API within your django project. It supports several formats (e. g. json, xml) and provides a client library to access the API seamlessly from any python application.
 
 The server supports:
 
