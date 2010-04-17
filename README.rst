@@ -47,7 +47,7 @@ your urls.py::
 
 Clients are able to call the procedures like::
 
-    http://www.yourdomain.tld/job/sms/?_call=new&to=
-    http://www.yourdomain.tld/job/sms/?_call=status&job_id=12345678
+    http://www.yourdomain.tld/job/sms/?_call=new&to=012345364&msg=Hello!&sender=from+me
+    http://www.yourdomain.tld/job/sms/?_call=status&_type=xml&job_id=12345678
     
-The argument `_call` defines the method to be called; `_type` defines which output format should be used.
+The argument `_call` defines the method to be called; `_type` defines which output format should be used (default is json).
