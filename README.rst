@@ -14,7 +14,7 @@ simpleapi is an easy to use, consistent and portable way of providing an API wit
 The server supports:
 
 * API-namespaces to bundle methods
-* authentication to clients
+* dynamic key authentication / ip restriction
 * type-conversion
 * inheritance (create abstract namespaces and use them as superclasses)
 
@@ -30,6 +30,9 @@ your handlers.py::
     from simpleapi import Namespace
     
     class JobNamespace(Namespace):
+        __ip_restriction__ = ["127.0.0.*", "78.47.135.*"] # only allow specific ip-addresses
+        __authentication__ = "91d9f7763572c7ebcce49b183454aeb0" # you can either use a callable here (for dynamic authentication) or provide a static key for authentication
+    
         def status(self, job_id):
             # get the job by job_id ...
             return job.get_status()
@@ -77,4 +80,6 @@ new_sms contains the returned function value.
 Tips & tricks
 =============
 
-1. Make sure to remove or deactivate the new csrf-middleware functionality of django 1.2 for the Route.
+# Make sure to remove or deactivate the new csrf-middleware functionality of django 1.2 for the Route.
+# Use SSL to encrypt the datastream.
+# Use key authentication, limit ipaddress access to your business' network.
