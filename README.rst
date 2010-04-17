@@ -73,3 +73,8 @@ This is how you can access your published methods within any python application:
     )
 
 new_sms contains the returned function value.
+
+Tips & tricks
+=============
+
+1. Make sure to remove or deactivate the new csrf-middleware functionality of django 1.2 for the Route.

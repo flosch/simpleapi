@@ -21,7 +21,7 @@ class Client(object):
 				'_type': self.transport_type,
 			}
 			data.update(kwargs)
-			print data
+			
 			try:
 				response = urllib.urlopen(self.ns, urllib.urlencode(data)).read()
 			except IOError, e:
