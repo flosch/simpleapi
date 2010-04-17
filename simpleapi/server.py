@@ -166,6 +166,8 @@ class Route(object):
 			elif callable(self.namespace.__authentication__):
 				if not self.namespace.__authentication__(access_key):
 					return self._build_response(errors=u'Wrong access key')
+			else:
+				raise ValueError(u'__authentication__ can be either a callable or a string, not %s' % type(self.namespace.__authentication__))
 		
 		# check ipaddress restriction
 		if hasattr(self.namespace, '__ip_restriction__'):
