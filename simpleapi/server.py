@@ -134,7 +134,6 @@ class Route(object):
 						kwargs[key] = convert(value, var_type)
 		
 		try:
-			x
 			args = map(lambda i: i[1], args)
 			result = func(self.namespace, *args, **kwargs)
 		except Exception, e:
