@@ -36,16 +36,28 @@ class Route(object):
 		'xml': XMLResponse()
 	}
 	
-	def __init__(self, namespace):
-		self.namespace = namespace()
-		functions = filter(lambda fn: '__' not in fn[0], dict(inspect.getmembers(namespace)).items())
-		self.functions = filter(lambda fn: getattr(fn[1], 'published', False) is True, functions)
-		self.functions = map(lambda item: (item[0], {'fn': item[1], 'vars': inspect.getargspec(item[1])}), self.functions)
-		self.functions = dict(self.functions)
+	def __init__(self, *namespaces):
+		self.namespace_map = {}
 		
-		# make glob list from ip address ranges
-		if hasattr(self.namespace, '__ip_restriction__'):
-			self.namespace.__ip_restriction__ = glob_list(self.namespace.__ip_restriction__)
+		for namespace in namespaces:
+			version = getattr(namespace, '__version__', 'default')
+			
+			if self.namespace_map.has_key(version):
+				raise ValueError(u'Duplicate API version')
+			
+			functions = filter(lambda fn: '__' not in fn[0], dict(inspect.getmembers(namespace)).items())
+			functions = filter(lambda fn: getattr(fn[1], 'published', False) is True, functions)
+			functions = map(lambda item: (item[0], {'fn': item[1], 'vars': inspect.getargspec(item[1])}), functions)
+			functions = dict(functions)
+			
+			self.namespace_map[version] = {'instance': namespace(), 'functions': functions}
+		
+			# make glob list from ip address ranges
+			if hasattr(namespace, '__ip_restriction__'):
+				self.namespace_map[version]['instance'].__ip_restriction__ = glob_list(namespace.__ip_restriction__)
+		
+		# create default namespace (= latest version)
+		self.namespace_map['default'] = self.namespace_map[max(self.namespace_map.keys())]
 	
 	def _build_response(self, data=None, response_type='json', errors=None, success=None):
 		result = {}
@@ -64,11 +76,15 @@ class Route(object):
 			self.__response_types__[response_type].build(result)
 		)
 	
-	def _handle_request(self, request, fname, rvars):
-		if fname not in self.functions.keys():
+	def _handle_request(self, request, fname, rvars, version):
+		namespace_item = self.namespace_map[version]
+		namespace = namespace_item['instance']
+		functions = namespace_item['functions']
+		
+		if fname not in functions.keys():
 			raise ResponseException(u'Method (%s) not found' % fname)
 		
-		fitem = self.functions[fname]
+		fitem = functions[fname]
 		func = fitem['fn']
 		
 		# check methods
@@ -140,7 +156,7 @@ class Route(object):
 		
 		try:
 			args = map(lambda i: i[1], args)
-			result = func(self.namespace, *args, **kwargs)
+			result = func(namespace, *args, **kwargs)
 		except Exception, e:
 			if settings.DEBUG: raise
 			# TODO: send traceback!
@@ -152,26 +168,42 @@ class Route(object):
 	def __call__(self, request):
 		rvars = dict(request.REQUEST.iteritems())
 		
+		# check version
+		version = rvars.pop('_version', 'default')
+		
+		if version <> 'default':
+			try:
+				version = int(version)
+			except ValueError:
+				return self._build_response(errors=u'API-version must be an integer (available versions: %s)' % ", ".join(map(lambda x: str(x), self.namespace_map.keys())))
+		
+		
+		if not self.namespace_map.has_key(version):
+			return self._build_response(errors=u'API-version not found (available versions: %s)' % ", ".join(map(lambda x: str(x), self.namespace_map.keys())))
+		
+		# determine default namespace
+		namespace = self.namespace_map[version]['instance']
+		
 		# check authentication
-		if hasattr(self.namespace, '__authentication__'):
+		if hasattr(namespace, '__authentication__'):
 			try:
 				access_key = rvars.pop('_access_key')
 			except KeyError:
 				return self._build_response(errors=u'Please provide an access key')
 
-			if (isinstance(self.namespace.__authentication__, str) or \
-				isinstance(self.namespace.__authentication__, unicode)):
-				if access_key <> self.namespace.__authentication__:
+			if (isinstance(namespace.__authentication__, str) or \
+				isinstance(namespace.__authentication__, unicode)):
+				if access_key <> namespace.__authentication__:
 					return self._build_response(errors=u'Wrong access key')
-			elif callable(self.namespace.__authentication__):
-				if not self.namespace.__authentication__(access_key):
+			elif callable(namespace.__authentication__):
+				if not namespace.__authentication__(access_key):
 					return self._build_response(errors=u'Wrong access key')
 			else:
-				raise ValueError(u'__authentication__ can be either a callable or a string, not %s' % type(self.namespace.__authentication__))
+				raise ValueError(u'__authentication__ can be either a callable or a string, not %s' % type(namespace.__authentication__))
 		
 		# check ipaddress restriction
-		if hasattr(self.namespace, '__ip_restriction__'):
-			if request.META.get('REMOTE_ADDR', 'n/a') not in self.namespace.__ip_restriction__:
+		if hasattr(namespace, '__ip_restriction__'):
+			if request.META.get('REMOTE_ADDR', 'n/a') not in namespace.__ip_restriction__:
 				return self._build_response(errors=u'ip address not whitelisted')
 		
 		response_type = rvars.pop('_type', 'json')
@@ -186,7 +218,7 @@ class Route(object):
 		
 		try:
 			return self._build_response(
-				self._handle_request(request, fname, rvars), response_type=response_type
+				self._handle_request(request, fname, rvars, version), response_type=response_type
 			)
 		except ResponseException, e:
 			return self._build_response(

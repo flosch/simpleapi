@@ -3,8 +3,9 @@
 from django.conf.urls.defaults import *
 
 from simpleapi import Route
-from handlers import Calculator
+from handlers import OldCalculator, NewCalculator
 
 urlpatterns = patterns('',
-	(r'^calculator/$', Route(Calculator)),
+	(r'^calculator/multiple/$', Route(OldCalculator, NewCalculator)),
+	(r'^calculator/one/$', Route(OldCalculator)),
 )

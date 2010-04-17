@@ -17,15 +17,20 @@ The server supports:
 * dynamic key authentication / ip restriction
 * type-conversion
 * inheritance (create abstract namespaces and use them as superclasses)
+* support for multiple API versions
 
 The client supports:
 
 * super simple access to server functions
+* easy to switch between different api versions
 
 Server example
 ==============
 
-your handlers.py::
+First example
+-------------
+
+handlers.py::
 
     from simpleapi import Namespace
     
@@ -45,7 +50,7 @@ your handlers.py::
         status.methods = ('POST', ) # limit access to POST
         status.types = {'priority': int} # ensure that priority argument is of type int
 
-your urls.py::
+urls.py::
 
     from simpleapi import Route
     from handlers import SMSNamespace, FaxNamespace
@@ -55,12 +60,29 @@ your urls.py::
     	(r'^job/fax/$', Route(FaxNamespace)),
     )
 
+Second example with multiple API versions
+-----------------------------------------
+
+handlers.py::
+
+
+urls.py::
+
+
+HTTP call and parameters
+------------------------
+
 Clients are able to call the procedures like::
 
     http://www.yourdomain.tld/job/sms/?_call=new&to=012345364&msg=Hello!&sender=from+me
     http://www.yourdomain.tld/job/sms/?_call=status&_type=xml&job_id=12345678
-    
-The argument `_call` defines the method to be called; `_type` defines which output format should be used (default is json).
+
+The following parameters are used by simpleapi:
+
+:_call: method to be called
+:_type: output format (e. g. xml, json; default is json)
+:_version: version number of the API that should be used
+:_access_key: access key to the API (only if `__authentiation__` in `namespace` is defined)
 
 Client example
 ==============
@@ -77,9 +99,23 @@ This is how you can access your published methods within any python application:
 
 new_sms contains the returned function value.
 
+How to run the demo
+===================
+
+1. Start the server with `./manage.py runserver 127.0.0.1:8888`
+2. Start the client `python calc.py`
+
+(Make sure simpleapi is in your PATH)
+
 Tips & tricks
 =============
 
 # Make sure to remove or deactivate the new csrf-middleware functionality of django 1.2 for the Route.
 # Use SSL to encrypt the datastream.
 # Use key authentication, limit ipaddress access to your business' network.
+
+TODO
+====
+
+# method-based verification
+# usage limitations (#/second, #/hour, etc.) per user
