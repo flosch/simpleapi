@@ -62,5 +62,14 @@ The argument `_call` defines the method to be called; `_type` defines which outp
 Client example
 ==============
 
-This is how you can access your server API within any python application:
+This is how you can access your published methods within any python application::
 
+    from simpleapi import Client
+
+    SMS = Client(ns='http://yourdomain.tld/api/job/sms/')
+    new_sms = SMS.new(
+    	phonenumber="+49 123 456789",
+    	message="Short test"
+    )
+
+new_sms contains the returned function value.

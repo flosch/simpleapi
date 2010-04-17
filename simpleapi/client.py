@@ -5,20 +5,6 @@ __all__ = ('Client', )
 import urllib
 import json
 
-class Result(object):
-	
-	def __init__(self, client, fname, request, response):
-		self.client = client
-		self.fname = fname
-		self.request = request
-		self.response = response
-	
-	def __get__(self, instance, owner):
-		print instance, owner
-	
-	def __repr__(self):
-		return '%s:%s' % (self.client.ns, self.fname)
-
 class ClientException(Exception): pass
 class ConnectionException(ClientException): pass
 class RemoteException(ClientException): pass
@@ -47,12 +33,7 @@ class Client(object):
 				raise ConnectionException, e
 			
 			if response.get('success'):
-				return Result(
-					self,
-					fname,
-					kwargs,
-					response
-				)				
+				return response.get('result')
 			else:
 				raise RemoteException(". ".join(response.get('errors')))
 			
