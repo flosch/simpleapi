@@ -20,7 +20,7 @@ The server supports:
 
 The client supports:
 
-* TBD
+* super simple access to server functions
 
 Server example
 ==============
@@ -58,3 +58,9 @@ Clients are able to call the procedures like::
     http://www.yourdomain.tld/job/sms/?_call=status&_type=xml&job_id=12345678
     
 The argument `_call` defines the method to be called; `_type` defines which output format should be used (default is json).
+
+Client example
+==============
+
+This is how you can access your server API within any python application:
+
