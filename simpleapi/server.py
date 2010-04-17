@@ -8,6 +8,8 @@ import inspect
 from django.conf import settings
 from django.http import HttpResponse
 
+from utils import glob_list
+
 class NamespaceException(Exception): pass
 class Namespace(object):
 	
@@ -40,6 +42,10 @@ class Route(object):
 		self.functions = filter(lambda fn: getattr(fn[1], 'published', False) is True, functions)
 		self.functions = map(lambda item: (item[0], {'fn': item[1], 'vars': inspect.getargspec(item[1])}), self.functions)
 		self.functions = dict(self.functions)
+		
+		# make glob list from ip address ranges
+		if hasattr(self.namespace, '__ip_restriction__'):
+			self.namespace.__ip_restriction__ = glob_list(self.namespace.__ip_restriction__)
 	
 	def _build_response(self, data=None, response_type='json', errors=None, success=None):
 		result = {}
@@ -145,6 +151,27 @@ class Route(object):
 	
 	def __call__(self, request):
 		rvars = dict(request.REQUEST.iteritems())
+		
+		# check authentication
+		if hasattr(self.namespace, '__authentication__'):
+			try:
+				access_key = rvars.pop('_access_key')
+			except KeyError:
+				return self._build_response(errors=u'Please provide an access key')
+
+			if (isinstance(self.namespace.__authentication__, str) or \
+				isinstance(self.namespace.__authentication__, unicode)):
+				if access_key <> self.namespace.__authentication__:
+					return self._build_response(errors=u'Wrong access key')
+			elif callable(self.namespace.__authentication__):
+				if not self.namespace.__authentication__(access_key):
+					return self._build_response(errors=u'Wrong access key')
+		
+		# check ipaddress restriction
+		if hasattr(self.namespace, '__ip_restriction__'):
+			if request.META.get('REMOTE_ADDR', 'n/a') not in self.namespace.__ip_restriction__:
+				return self._build_response(errors=u'ip address not whitelisted')
+		
 		response_type = rvars.pop('_type', 'json')
 		
 		if response_type not in self.__response_types__.keys():

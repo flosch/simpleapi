@@ -13,12 +13,14 @@ class Client(object):
 	def __init__(self, ns, transport_type='json', access_key=None):
 		self.ns = ns
 		self.transport_type = transport_type
+		self.access_key = access_key
 	
 	def _handle_remote_call(self, fname):
 		def do_call(**kwargs):
 			data = {
 				'_call': fname,
 				'_type': self.transport_type,
+				'_access_key': self.access_key or ''
 			}
 			data.update(kwargs)
 			

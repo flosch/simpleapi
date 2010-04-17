@@ -4,6 +4,9 @@ from simpleapi import Namespace
 
 class Calculator(Namespace):
 	
+	__ip_restriction__ = ["127.0.0.*", "78.47.135.*"]
+	__authentication__ = "91d9f7763572c7ebcce49b183454aeb0"
+	
 	def add(self, a, b):
 		return a+b
 	add.published = True
