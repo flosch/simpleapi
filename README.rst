@@ -6,6 +6,9 @@ simpleapi
 :author: Florian Schlachter (http://www.fs-tools.de)
 :license: see LICENSE file for more (simpleapi is licensed under MIT license)
 
+About
+=====
+
 simpleapi is an easy to use, consistent and portable way of providing an API within your django project. It supports several formats (e. g. json, xml) and provides a client library to access the API seamlessly from any python application.
 
 The server supports:
@@ -35,7 +38,7 @@ your handlers.py::
             # send sms ...
         status.published = True # make the method available via API
         status.methods = ('POST', ) # limit access to POST
-        status.types = {'priority': int} # make sure `priority` argument is converted to int
+        status.types = {'priority': int} # make sure priority argument is converted to int
 
 your urls.py::
 

@@ -19,6 +19,11 @@ class JSONResponse(object):
 	def build(self, data):
 		return json.dumps(data)
 
+class XMLResponse(object):
+	
+	def build(self, data):
+		raise NotImplemented
+
 class RouteException(Exception): pass
 class ResponseException(RouteException): pass
 
@@ -26,6 +31,7 @@ class Route(object):
 	
 	__response_types__ = {
 		'json': JSONResponse(),
+		'xml': XMLResponse()
 	}
 	
 	def __init__(self, namespace):
@@ -36,31 +42,20 @@ class Route(object):
 	
 	def _build_response(self, data=None, response_type='json', errors=None, success=None):
 		result = {}
+		
 		if errors is not None:
-			result.update({
-				'errors': isinstance(errors, list) and errors or [unicode(errors),]
-			})
-			if success is None:
-				success = False
-		else:
-			if success is None:
-				success = True
-
-		result.update({
-			'success': success,
-		})
+			result['errors'] = isinstance(errors, list) and errors or [unicode(errors),]
+		
+		if success is None:
+			success = errors is None
+		result['success'] = success
 		
 		if data is not None:
-			result.update({
-				'result': data,
-			})
+			result['result'] = data
 		
 		return HttpResponse(
 			self.__response_types__[response_type].build(result)
 		)
-	
-	def _parse_request(self, data):
-		pass
 	
 	def _handle_request(self, request, fname, rvars):
 		if fname not in self.functions.keys():
@@ -90,7 +85,7 @@ class Route(object):
 			try:
 				args.append((arg, rvars.pop(arg)))
 			except KeyError:
-				raise ResponseException(u'argument %s is missing' % arg)
+				raise ResponseException(u'Argument %s is missing' % arg)
 		
 		# optional arguments
 		if fitem['vars'][3]:
@@ -102,7 +97,7 @@ class Route(object):
 
 		# are there any vars left? if true, they are only allowed when func takes **kwargs
 		if len(rvars) > 0 and fitem['vars'][2] is None:
-			raise ResponseException(u'Unused arguments: %s' % ", ".join(rvars.keys()))
+			raise ResponseException(u'Unused argument(s): %s' % ", ".join(rvars.keys()))
 		
 		# update kwargs if func takes **kwargs
 		if fitem['vars'][2] is not None:
@@ -123,7 +118,7 @@ class Route(object):
 						else:
 							return vtype(value)
 					except:
-						raise ResponseException(u'argument %s must be of type %s' % (var_name, repr(vtype)))
+						raise ResponseException(u'Argument %s must be of type %s' % (var_name, repr(vtype)))
 				
 				new_args = []
 				for key, value in args:
@@ -139,12 +134,14 @@ class Route(object):
 						kwargs[key] = convert(value, var_type)
 		
 		try:
+			x
 			args = map(lambda i: i[1], args)
 			result = func(self.namespace, *args, **kwargs)
 		except Exception, e:
 			if settings.DEBUG: raise
 			# TODO: send traceback!
-			raise ResponseException(u'An internal error occurred during your request. The technicians have been informed.')
+			raise ResponseException(u'An internal error occurred during your request. ' \
+									 'The technicians have been informed.')
 		
 		return result
 	
