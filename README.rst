@@ -20,7 +20,7 @@ The client supports:
 Server example
 ==============
 
-your handlers.py:
+your handlers.py::
 
     class JobNamespace(Namespace):
         def status(self, job_id):
@@ -35,7 +35,7 @@ your handlers.py:
         status.methods = ('POST', ) # limit access to POST
         status.types = {'priority': int}
 
-your urls.py:
+your urls.py::
 
     from simpleapi import Route
     from handlers import SMSNamespace, FaxNamespace
@@ -45,7 +45,7 @@ your urls.py:
     	(r'^job/fax/$', Route(FaxNamespace)),
     )
 
-Clients are able to call the procedures like:
+Clients are able to call the procedures like::
 
     http://www.yourdomain.tld/job/sms/?_call=new&to=
     http://www.yourdomain.tld/job/sms/?_call=status&job_id=12345678
