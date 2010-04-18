@@ -169,12 +169,12 @@ How to run the demo
 Tips & tricks
 =============
 
-# Make sure to remove or deactivate the new csrf-middleware functionality of django 1.2 for the Route.
-# Use SSL to encrypt the datastream.
-# Use key authentication, limit ipaddress access to your business' network.
+1. Make sure to remove or deactivate the new csrf-middleware functionality of django 1.2 for the Route.
+2. Use SSL to encrypt the datastream.
+3. Use key authentication, limit ipaddress access to your business' network.
 
 TODO
 ====
 
-# method-based verification
-# usage limitations (#/second, #/hour, etc.) per user
+1. method-based verification
+2. usage limitations (#/second, #/hour, etc.) per user
