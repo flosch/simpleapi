@@ -18,15 +18,21 @@ class Namespace(object):
 
 class JSONResponse(object):
 	
+	__mime__ = "application/json"
+	
 	def build(self, data, callback):
 		return json.dumps(data)
 
 class JSONPResponse(object):
+	
+	__mime__ = "application/javascript"
 
 	def build(self, data, callback):
 		return u'%s(%s)' % (callback or 'simpleapiCallback', json.dumps(data))
 
 class XMLResponse(object):
+	
+	__mime__ = "text/xml"
 	
 	def build(self, data, callback):
 		raise NotImplemented
@@ -65,7 +71,7 @@ class Route(object):
 		# create default namespace (= latest version)
 		self.namespace_map['default'] = self.namespace_map[max(self.namespace_map.keys())]
 	
-	def _build_response(self, data=None, response_type='json', errors=None, success=None, callback=None):
+	def _build_response(self, data=None, response_type='json', errors=None, success=None, callback=None, mimetype=None):
 		result = {}
 		
 		if errors is not None:
@@ -78,8 +84,11 @@ class Route(object):
 		if data is not None:
 			result['result'] = data
 		
+		resp_type_inst = self.__response_types__[response_type]
+		
 		return HttpResponse(
-			self.__response_types__[response_type].build(result, callback)
+			resp_type_inst.build(result, callback),
+			mimetype=mimetype or getattr(resp_type_inst, '__mime__', 'text/plain')
 		)
 	
 	def _handle_request(self, request, fname, rvars, version):
@@ -164,15 +173,31 @@ class Route(object):
 			args = map(lambda i: i[1], args)
 			result = func(namespace, *args, **kwargs)
 		except Exception, e:
-			if settings.DEBUG: raise
-			# TODO: send traceback!
-			raise ResponseException(u'An internal error occurred during your request. ' \
-									 'The technicians have been informed.')
+			trace = inspect.trace()
+			msgs = []
+			msgs.append('')
+			msgs.append(u"******* Exception raised *******")
+			msgs.append(u"Function call: %s" % fname)
+			msgs.append(u"Variables: %s, %s" % (args, kwargs))
+			msgs.append('')
+			msgs.append(u'------- Traceback follows -------')
+			for idx, item in enumerate(trace):
+				msgs.append(u"(%s)\t%s:%s (%s)" % (idx+1, item[3], item[2], item[1]))
+				for line in item[4]:
+					msgs.append(u"\t\t%s" % line.strip())
+				msgs.append('') # blank line
+			msgs.append('    -- End of traceback --    ')
+			msgs.append('')
+			print "\n".join(msgs)
+			raise ResponseException(u'An internal error occurred during your request.')
 		
 		return result
 	
 	def __call__(self, request):
 		rvars = dict(request.REQUEST.iteritems())
+		
+		# get mimetype
+		mimetype = rvars.pop('_mimetype', None)
 		
 		# get _callback for jsonp
 		callback = rvars.pop('_callback', '')
@@ -194,12 +219,14 @@ class Route(object):
 		namespace = self.namespace_map[version]['instance']
 		
 		# check authentication
+		access_key = rvars.pop('_access_key', None)
 		if hasattr(namespace, '__authentication__'):
-			try:
-				access_key = rvars.pop('_access_key')
-			except KeyError:
+			if not access_key:
 				return self._build_response(errors=u'Please provide an access key')
-
+			
+			if not namespace.__authentication__:
+				raise ValueError(u'If you want use authentication, you must provide either a static key or a callable.')
+			
 			if (isinstance(namespace.__authentication__, str) or \
 				isinstance(namespace.__authentication__, unicode)):
 				if access_key <> namespace.__authentication__:
@@ -229,7 +256,8 @@ class Route(object):
 			return self._build_response(
 				self._handle_request(request, fname, rvars, version),
 				response_type=response_type,
-				callback=callback
+				callback=callback,
+				mimetype=mimetype
 			)
 		except ResponseException, e:
 			return self._build_response(

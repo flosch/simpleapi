@@ -121,6 +121,7 @@ The following parameters are used by simpleapi:
 :_version: version number of the API that should be used
 :_access_key: access key to the API (only if `__authentiation__` in `namespace` is defined)
 :_callback: defines the callback for JSONP (default is `simpleapiCallback`)
+:_mimetype: `simpleapi` automatically sets the correct mime type depending on the output format. you can set a different mimetype by set this http parameter.
 
 Supported output formats
 ------------------------
@@ -181,6 +182,11 @@ Tips & tricks
 1. Make sure to remove or deactivate the new csrf-middleware functionality of django 1.2 for the Route.
 2. Use SSL to encrypt the datastream.
 3. Use key authentication, limit ipaddress access to your business' network.
+
+Limitations
+===========
+
+1. The output/return value of a method is limited to the formatter's restrictions. For instance, you cannot return datetime values since they aren't supported by JSON (use datetime.isotime() instead). 
 
 TODO
 ====
