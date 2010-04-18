@@ -10,9 +10,9 @@ class ConnectionException(ClientException): pass
 class RemoteException(ClientException): pass
 class Client(object):
 	
-	def __init__(self, ns, transport_type='json', access_key=None, version='default'):
+	def __init__(self, ns, access_key=None, version='default'):
 		self.ns = ns
-		self.transport_type = transport_type
+		self.transport_type = 'json'
 		self.access_key = access_key
 		self.version = version
 	

@@ -119,6 +119,14 @@ The following parameters are used by simpleapi:
 :_type: output format (e. g. xml, json; default is json)
 :_version: version number of the API that should be used
 :_access_key: access key to the API (only if `__authentiation__` in `namespace` is defined)
+:_callback: defines the callback for JSONP (default is `simpleapiCallback`)
+
+Supported output formats
+------------------------
+
+* JSON
+* JSONP
+* XML (coming)
 
 Client example
 ==============

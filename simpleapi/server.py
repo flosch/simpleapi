@@ -18,12 +18,17 @@ class Namespace(object):
 
 class JSONResponse(object):
 	
-	def build(self, data):
+	def build(self, data, callback):
 		return json.dumps(data)
+
+class JSONPResponse(object):
+
+	def build(self, data, callback):
+		return u'%s(%s)' % (callback or 'simpleapiCallback', json.dumps(data))
 
 class XMLResponse(object):
 	
-	def build(self, data):
+	def build(self, data, callback):
 		raise NotImplemented
 
 class RouteException(Exception): pass
@@ -33,6 +38,7 @@ class Route(object):
 	
 	__response_types__ = {
 		'json': JSONResponse(),
+		'jsonp': JSONPResponse(),
 		'xml': XMLResponse()
 	}
 	
@@ -59,7 +65,7 @@ class Route(object):
 		# create default namespace (= latest version)
 		self.namespace_map['default'] = self.namespace_map[max(self.namespace_map.keys())]
 	
-	def _build_response(self, data=None, response_type='json', errors=None, success=None):
+	def _build_response(self, data=None, response_type='json', errors=None, success=None, callback=None):
 		result = {}
 		
 		if errors is not None:
@@ -73,7 +79,7 @@ class Route(object):
 			result['result'] = data
 		
 		return HttpResponse(
-			self.__response_types__[response_type].build(result)
+			self.__response_types__[response_type].build(result, callback)
 		)
 	
 	def _handle_request(self, request, fname, rvars, version):
@@ -168,6 +174,9 @@ class Route(object):
 	def __call__(self, request):
 		rvars = dict(request.REQUEST.iteritems())
 		
+		# get _callback for jsonp
+		callback = rvars.pop('_callback', '')
+		
 		# check version
 		version = rvars.pop('_version', 'default')
 		
@@ -218,7 +227,9 @@ class Route(object):
 		
 		try:
 			return self._build_response(
-				self._handle_request(request, fname, rvars, version), response_type=response_type
+				self._handle_request(request, fname, rvars, version),
+				response_type=response_type,
+				callback=callback
 			)
 		except ResponseException, e:
 			return self._build_response(
