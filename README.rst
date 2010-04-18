@@ -126,7 +126,7 @@ Client example
 This is how you can access your published methods from any python application::
 
 First example
--------------
+-------------::
 
     from simpleapi import Client
 
@@ -137,7 +137,7 @@ First example
     )
 
 Second example (with version change)
-------------------------------------
+------------------------------------::
 
     from simpleapi import Client
 
