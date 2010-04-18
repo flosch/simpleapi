@@ -18,6 +18,7 @@ The server supports:
 * type-conversion
 * inheritance (create abstract namespaces and use them as superclasses)
 * support for multiple API versions
+* several output formats (json, jsonp, xml, etc.)
 
 The client supports:
 
@@ -99,8 +100,8 @@ urls.py::
     from handlers import OldSMSNamespace, NewSMSNamespace, FaxNamespace
 
     urlpatterns = patterns('',
-    	(r'^job/fax/$', Route(FaxNamespace)), # Route with exact one API-version
-    	(r'^job/sms/$', Route(OldSMSNamespace, NewSMSNamespace)), # Route can hold different versions of one API
+        (r'^job/fax/$', Route(FaxNamespace)), # Route with exact one namespace
+        (r'^job/sms/$', Route(OldSMSNamespace, NewSMSNamespace)), # Route can hold different versions of namespaces
     )
 
 The namespace with the highest version is the default one which will be used when the client doesn't provide a version.
