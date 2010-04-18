@@ -179,6 +179,8 @@ class Route(object):
 			msgs.append(u"******* Exception raised *******")
 			msgs.append(u"Function call: %s" % fname)
 			msgs.append(u"Variables: %s, %s" % (args, kwargs))
+			msgs.append(u'Exception type: %s' % type(e))
+			msgs.append(u'Exception msg: %s' % e)
 			msgs.append('')
 			msgs.append(u'------- Traceback follows -------')
 			for idx, item in enumerate(trace):
@@ -186,7 +188,7 @@ class Route(object):
 				for line in item[4]:
 					msgs.append(u"\t\t%s" % line.strip())
 				msgs.append('') # blank line
-			msgs.append('    -- End of traceback --    ')
+			msgs.append('     -- End of traceback --     ')
 			msgs.append('')
 			print "\n".join(msgs)
 			raise ResponseException(u'An internal error occurred during your request.')
