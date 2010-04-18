@@ -160,7 +160,7 @@ Second example (with version change)
     	message="Short test"
     )
     
-    SMS.set_version(1) # back to the old API-version (which takes different named arguments)
+    SMS.set_version(1) # back to the old API-version (which takes differently named arguments)
     
     new_sms = SMS.new(
 	    to="+49 123 456789",
