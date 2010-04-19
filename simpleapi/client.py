@@ -3,7 +3,7 @@
 __all__ = ('Client', )
 
 import urllib
-import json
+import cPickle
 
 class ClientException(Exception): pass
 class ConnectionException(ClientException): pass
@@ -12,7 +12,6 @@ class Client(object):
 	
 	def __init__(self, ns, access_key=None, version='default'):
 		self.ns = ns
-		self.transport_type = 'json'
 		self.access_key = access_key
 		self.version = version
 	
@@ -20,7 +19,7 @@ class Client(object):
 		def do_call(**kwargs):
 			data = {
 				'_call': fname,
-				'_type': self.transport_type,
+				'_type': 'pickle',
 				'_access_key': self.access_key or '',
 				'_version': self.version
 			}
@@ -32,7 +31,7 @@ class Client(object):
 				raise ConnectionException(e)
 			
 			try:
-				response = json.loads(response)
+				response = cPickle.loads(response)
 			except ValueError, e:
 				raise ConnectionException, e
 			

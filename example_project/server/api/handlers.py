@@ -34,3 +34,10 @@ class NewCalculator(Calculator):
 		return a+b+1
 	add.published = True
 	add.types = {'a': float, 'b': float}
+
+class SomeFunctions(Namespace):
+	
+	def today(self):
+		import datetime
+		return datetime.datetime.now()
+	today.published = True

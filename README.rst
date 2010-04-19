@@ -134,6 +134,7 @@ Supported output formats
 
 * JSON
 * JSONP
+* cPickle (used by the simpleapi client)
 * XML (coming)
 
 Client example
@@ -187,16 +188,18 @@ Tips & tricks
 
 1. Make sure to remove or deactivate the new csrf-middleware functionality of django 1.2 for the Route.
 2. Use SSL to encrypt the datastream.
-3. Use key authentication, limit ip-address access to your business' network.
+3. Use key authentication, limit ip-address access to your business' network or server.
 4. You can set up a simple throtteling by setting a callable to `__ip_restriction__` which keeps track at every request of an ip-address (the callable gets the ip-address of the calling party as the first argument). 
+5. You can outsource your namespace's settings by creating new vars in your local settings.py file (e. g. `NAMESPACE_XY_IP_RESTRICTIONS=["127.0.0.*", ]`) and reference them within your namespace (like `__ip_restriction__ = settings.NAMESPACE_XY_IP_RESTRICTIONS`)
 
 Limitations
 ===========
 
-1. The output/return value of a method is limited to the formatter's restrictions. For instance, you cannot return datetime values since they aren't supported by JSON (use datetime.isotime() instead). 
+1. Only if you're not simpleapi's python client (which uses cPickle for serializing the data): The output/return value of a method is limited to the formatter's restrictions. For instance, you cannot return datetime values since they aren't supported by JSON (use datetime.isotime() instead). 
 
 TODO
 ====
 
 1. method-based verification
 2. usage limitations (#/second, #/hour, etc.) per user
+3. cache return value when the arguments of one request are exactly the same

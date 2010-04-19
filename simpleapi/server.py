@@ -4,6 +4,7 @@ __all__ = ('Namespace', 'Route')
 
 import json
 import inspect
+import cPickle
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -37,6 +38,13 @@ class XMLResponse(object):
 	def build(self, data, callback):
 		raise NotImplemented
 
+class PickleResponse(object):
+	
+	__mime__ = "application/octet-stream"
+	
+	def build(self, data, callback):
+		return cPickle.dumps(data)
+
 class RouteException(Exception): pass
 class ResponseException(RouteException): pass
 
@@ -45,7 +53,8 @@ class Route(object):
 	__response_types__ = {
 		'json': JSONResponse(),
 		'jsonp': JSONPResponse(),
-		'xml': XMLResponse()
+		'xml': XMLResponse(),
+		'pickle': PickleResponse()
 	}
 	
 	def __init__(self, *namespaces):
