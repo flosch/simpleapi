@@ -205,7 +205,7 @@ You can configure your namespaces on an individual basis. This are the supported
 :__authentication__: either a string with a key or a callable which takes the access_key provided by the client. Must return `True` (allowed) or `False` (disallowed). If not given, no authentication is needed. It's recommended to use SSL if you plan to use `__authentication__`.
 :__outputs__: If given, the namespace is restricted to the given output formatters (a list of strings)
 :__inputs__: If given, the namespace is restricted to the given input formatters (a list of strings)
-:__features__: list of activated namespace-features (currently available: `pickle`)
+:__features__: list of activated namespace-features (currently available: `pickle`, `throttling`, `caching`)
 
 All parameters are optional.
 
