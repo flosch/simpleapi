@@ -268,7 +268,7 @@ In this case you can use simpleapi's JSONP implementation which allows you to ca
 
 See the demo project for an example implementation.
 
-Usage of arguments and **kwargs in your API method
+Usage of arguments and \*\*kwargs in your API method
 ---------------------------------------------------
 
 Usually your namespace method looks like this::
@@ -279,9 +279,9 @@ Usually your namespace method looks like this::
 
 In the request this would cause the following: `?a=1&b=2&c=3` (d is optional).
 
-If you are in need to get "unlimited" parameters you can also use `**kwargs` (not `*args`!) in your API method like this::
+If you are in need to get "unlimited" parameters you can also use `\*\*kwargs` (not `*args`!) in your API method like this::
 
-    def sum_it_up(self, **kwargs):
+    def sum_it_up(self, \*\*kwargs):
         return sum(map(lambda item: int(item), kwargs.values()))
     my_api_method.published = True
 
@@ -289,7 +289,7 @@ If you are in need to get "unlimited" parameters you can also use `**kwargs` (no
 
 Notice: All parameters in kwargs cannot be casted/verified with the types-configuration. It's up to you to check the types and raise an error if you don't want to execute the function anymore. 
 
-Hint: If you're passing more parameters in your client call than your function signature contains (e. g. in our first example only `a, b, c and d`) and your function doesn't contain a `**kwargs`, the client call will fail with an appropriate errormessage.
+Hint: If you're passing more parameters in your client call than your function signature contains (e. g. in our first example only `a, b, c and d`) and your function doesn't contain a `\*\*kwargs`, the client call will fail with an appropriate errormessage.
 
 Errors in API methods
 ---------------------
@@ -317,21 +317,21 @@ How to run the demo
 Tips & tricks
 =============
 
-0. Take a look on my example project (example_project/[client|server]) for a first view on how simpleapi works.
-1. Make sure to remove or deactivate the new csrf-middleware functionality of django 1.2 for the Route.
-2. Use SSL to encrypt the datastream.
-3. Use key authentication, limit ip-address access to your business' network or server.
-4. You can set up a simple throtteling by setting a callable to `__ip_restriction__` which keeps track at every request of an ip-address (the callable gets the ip-address of the calling party as the first argument). 
-5. You can outsource your namespace's settings by creating new vars in your local settings.py file (e. g. `NAMESPACE_XY_IP_RESTRICTIONS=["127.0.0.*", ]`) and reference them within your namespace (like `__ip_restriction__ = settings.NAMESPACE_XY_IP_RESTRICTIONS`)
+#. Take a look on my example project (example_project/[client|server]) for a first view on how simpleapi works.
+#. Make sure to remove or deactivate the new csrf-middleware functionality of django 1.2 for the Route.
+#. Use SSL to encrypt the datastream.
+#. Use key authentication, limit ip-address access to your business' network or server.
+#. You can set up a simple throtteling by setting a callable to `__ip_restriction__` which keeps track at every request of an ip-address (the callable gets the ip-address of the calling party as the first argument). 
+#. You can outsource your namespace's settings by creating new vars in your local settings.py file (e. g. `NAMESPACE_XY_IP_RESTRICTIONS=["127.0.0.*", ]`) and reference them within your namespace (like `__ip_restriction__ = settings.NAMESPACE_XY_IP_RESTRICTIONS`)
 
 Limitations
 ===========
 
-1. Only if you're not simpleapi's python client (which uses cPickle for serializing the data): The output/return value of a method is limited to the formatter's restrictions. For instance, you cannot return datetime values since they aren't supported by JSON (use datetime.isotime() instead). 
+#. Only if you're not simpleapi's python client (which uses cPickle for serializing the data): The output/return value of a method is limited to the formatter's restrictions. For instance, you cannot return datetime values since they aren't supported by JSON (use datetime.isotime() instead). 
 
 TODO
 ====
 
-1. method-based verification
-2. usage limitations (#/second, #/hour, etc.) per user
-3. cache return value when the arguments of one request are exactly the same
+#. method-based verification
+#. usage limitations (#/second, #/hour, etc.) per user
+#. cache return value when the arguments of one request are exactly the same
