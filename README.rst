@@ -241,9 +241,9 @@ See the demo project for an example implementation.
 Usage in web-apps (crossdomain)
 -------------------------------
 
-If you want to call a API method from a third-party page (which isn't located on the same domain as the server API) you cannot use XMLHttpRequest due to browser security restrictions. 
+If you want to call an API method from a third-party page (which isn't located on the same domain as the server API) you cannot use XMLHttpRequest due to browser security restrictions. 
 
-In this case you can use simpleapi's JSONP implementation which allows you to call functions and get the result via a callback. Some Ajax implementations (like jQuery and ExtJS) support transparent Ajax requests which internally uses the <script>-tag to get access to the remote function. In jQuery it looks like::
+In this case you can use simpleapi's JSONP implementation which allows you to call functions and get the result back via a callback. Some Ajax implementations (like jQuery and ExtJS) support transparent Ajax requests which internally uses the <script>-tag to get access to the remote function. In jQuery it looks like::
 
     $.ajax({
         url: "http://127.0.0.1:8888/api/calculator/one/",
