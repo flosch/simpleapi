@@ -144,8 +144,8 @@ In order to make a method available and callable from outside (the client party)
 The following configuration parameters are existing:
 
 :published: make the method available and callable from outside (boolean)
-:types: a dict where you can specify a type of which one parameter must be. The parameter will be converted into your desired type (if simpleapi cannot, it wil raise an error to the client). See the examples for more.
-:methods: specifies which HTTP methods are allowed to call the method (a list; by default it allowes every method). If you plan to receive a huge amount of data (like a file), you should only allow POST as this allows "unlimited" data (GET is limited to 1024 bytes which is fairly enough for much function calls).
+:types: a dict where you can specify a type of which one parameter must be of. The parameter will be converted into your desired type (if simpleapi cannot, it wil raise an error to the client). See the examples for more.
+:methods: specifies which HTTP methods are allowed to call the method (a list; by default it allows every method). If you plan to receive a huge amount of data (like a file), you should only allow POST as this can manage "unlimited" data (GET is limited to 1024 bytes which is fairly enough for much function calls though).
 :outputs: if specified, the output formatters are limited for this method (a list; e. g. useful, if you plan to return values that cannot be serialized by the json-module but can be pickled)
 
 HTTP call and parameters
