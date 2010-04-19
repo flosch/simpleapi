@@ -32,6 +32,32 @@ The client supports (uncomplete list):
 * an almost complete README which covers all functions and capabilities of `simpleapi`. :)
 * no REST - you can implement it in your own way if you want to.
 
+Installation
+============
+
+From PyPI
+---------
+
+::
+
+    pip install django-simpleapi
+    
+or::
+
+    easy_install -U django-simpleapi
+
+From GitHub
+-----------
+
+::
+
+    git clone git://github.com/flosch/simpleapi.git
+
+Dependencies
+============
+
+* Python 2.6.5 or greater
+
 Server example
 ==============
 
