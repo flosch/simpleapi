@@ -198,11 +198,11 @@ Namespace configuration
 
 You can configure your namespaces on an individual basis. This are the supported configuration parameters:
 
-:`__ip_restriction__`: either a list of ipaddresses (which can contain wildcards, e.g. `127.*.0.*`) which are allowed to access the namespace or a callable which takes the ipaddress as an argument and returns `True` (allowed) or `False` (disallowed). Can be used to keep track of all requests to this namespace and to throttle clients if needed, for example. 
-:`__authentication__`: either a string with a key or a callable which takes the access_key provided by the client. Must return `True` (allowed) or `False` (disallowed). If not given, no authentication is needed. It's recommended to use SSL if you plan to use `__authentication__`.
-:`__outputs__`: If given, the namespace is restricted to the given output formatters (a list of strings)
-:`__inputs__`: If given, the namespace is restricted to the given input formatters (a list of strings)
-:`__features__`: list of activated namespace-features (currently available: `pickle`)
+:__ip_restriction__: either a list of ipaddresses (which can contain wildcards, e.g. `127.*.0.*`) which are allowed to access the namespace or a callable which takes the ipaddress as an argument and returns `True` (allowed) or `False` (disallowed). Can be used to keep track of all requests to this namespace and to throttle clients if needed, for example. 
+:__authentication__: either a string with a key or a callable which takes the access_key provided by the client. Must return `True` (allowed) or `False` (disallowed). If not given, no authentication is needed. It's recommended to use SSL if you plan to use `__authentication__`.
+:__outputs__: If given, the namespace is restricted to the given output formatters (a list of strings)
+:__inputs__: If given, the namespace is restricted to the given input formatters (a list of strings)
+:__features__: list of activated namespace-features (currently available: `pickle`)
 
 All parameters are optional.
 
