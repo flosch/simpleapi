@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__all__ = ('Client', )
+__all__ = ('Client', 'ClientException', 'ConnectionException', 'RemoteException', )
 
 import urllib
 import cPickle

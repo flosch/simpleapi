@@ -186,25 +186,28 @@ class Route(object):
 			args = map(lambda i: i[1], args)
 			result = func(namespace, *args, **kwargs)
 		except Exception, e:
-			trace = inspect.trace()
-			msgs = []
-			msgs.append('')
-			msgs.append(u"******* Exception raised *******")
-			msgs.append(u"Function call: %s" % fname)
-			msgs.append(u"Variables: %s, %s" % (args, kwargs))
-			msgs.append(u'Exception type: %s' % type(e))
-			msgs.append(u'Exception msg: %s' % e)
-			msgs.append('')
-			msgs.append(u'------- Traceback follows -------')
-			for idx, item in enumerate(trace):
-				msgs.append(u"(%s)\t%s:%s (%s)" % (idx+1, item[3], item[2], item[1]))
-				for line in item[4]:
-					msgs.append(u"\t\t%s" % line.strip())
-				msgs.append('') # blank line
-			msgs.append('     -- End of traceback --     ')
-			msgs.append('')
-			print "\n".join(msgs) # TODO send it to the admins by email!
-			raise ResponseException(u'An internal error occurred during your request.')
+			if not isinstance(e, ResponseException):
+				trace = inspect.trace()
+				msgs = []
+				msgs.append('')
+				msgs.append(u"******* Exception raised *******")
+				msgs.append(u"Function call: %s" % fname)
+				msgs.append(u"Variables: %s, %s" % (args, kwargs))
+				msgs.append(u'Exception type: %s' % type(e))
+				msgs.append(u'Exception msg: %s' % e)
+				msgs.append('')
+				msgs.append(u'------- Traceback follows -------')
+				for idx, item in enumerate(trace):
+					msgs.append(u"(%s)\t%s:%s (%s)" % (idx+1, item[3], item[2], item[1]))
+					for line in item[4]:
+						msgs.append(u"\t\t%s" % line.strip())
+					msgs.append('') # blank line
+				msgs.append('     -- End of traceback --     ')
+				msgs.append('')
+				print "\n".join(msgs) # TODO send it to the admins by email!
+				raise ResponseException(u'An internal error occurred during your request.')
+			else:
+				raise
 		
 		return result
 	

@@ -205,6 +205,17 @@ The following parameters are used by simpleapi:
 :_callback: defines the callback for JSONP (default is `simpleapiCallback`)
 :_mimetype: `simpleapi` automatically sets the correct mime type depending on the output format. you can set a different mimetype by set this http parameter.
 
+Server's response
+-----------------
+
+If you call a method the server will response as follows::
+
+    {
+        status: true or false, // indicates whether the call was successful or not
+        result: value, // the return value of the called function; only if the call was successful
+        errors: ['...', ] // contains error messages why the call was not successful
+    }
+
 Usage in web-apps
 -----------------
 
@@ -257,6 +268,36 @@ In this case you can use simpleapi's JSONP implementation which allows you to ca
 
 See the demo project for an example implementation.
 
+Usage of arguments and **kwargs in your API method
+---------------------------------------------------
+
+Usually your namespace method looks like this::
+
+    def my_api_method(self, a, b, c, d=10):
+        return a+b+c+d
+    my_api_method.published = True
+
+In the request this would cause the following: `?a=1&b=2&c=3` (d is optional).
+
+If you are in need to get "unlimited" parameters you can also use `**kwargs` (not `*args`!) in your API method like this::
+
+    def sum_it_up(self, **kwargs):
+        return sum(map(lambda item: int(item), kwargs.values()))
+    my_api_method.published = True
+
+`kwargs` contains all unused parameters. If the request looks like `?var1=195&var2=95&var3=9819&var999=185` `kwargs` contains all these parameters. 
+
+Notice: All parameters in kwargs cannot be casted/verified with the types-configuration. It's up to you to check the types and raise an error if you don't want to execute the function anymore. 
+
+Hint: If you're passing more parameters in your client call than your function signature contains (e. g. in our first example only `a, b, c and d`) and your function doesn't contain a `**kwargs`, the client call will fail with an appropriate errormessage.
+
+Errors in API methods
+---------------------
+
+If you want raise an error and abort execution of your method you can always call `self.error(err_or_list)`. `err_or_list` is either an unicode string or a list of unicode strings.
+
+In simpleapi client: `self.error` raises a `simpleapi.RemoteException` which you can catch to handle the error (see example for more).
+
 Supported output formats
 ------------------------
 
@@ -264,7 +305,6 @@ Supported output formats
 * JSONP ("jsonp")
 * cPickle (used by the simpleapi client) ("pickle")
 * XML (coming) ("xml")
-
 
 How to run the demo
 ===================

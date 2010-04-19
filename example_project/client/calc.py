@@ -3,7 +3,7 @@
 import sys
 sys.path.append("/Users/flosch/devlibs/3rdparty/")
 
-from simpleapi import Client
+from simpleapi import Client, RemoteException
 
 calculator = Client(ns='http://localhost:8888/api/calculator/multiple/', access_key="91d9f7763572c7ebcce49b183454aeb0")
 print "(v2) 5 + 5 =", calculator.add(a=5, b=5)
@@ -22,3 +22,9 @@ some_functions = Client(ns='http://localhost:8888/api/functions/')
 
 # works only with simpleapi's python client because it's using cPickle functionality. JSON doesn't support to serialize date objects
 print "Today's datetime:", some_functions.today() 
+
+print "Finally, this method call fails:", 
+try:
+	some_functions.fail()
+except RemoteException, e:
+	print unicode(e)

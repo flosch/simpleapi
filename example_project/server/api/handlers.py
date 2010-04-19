@@ -42,3 +42,7 @@ class SomeFunctions(Namespace):
 		return datetime.datetime.now()
 	today.published = True
 	today.outputs = ['pickle',]
+
+	def fail(self):
+		self.error('This fails remotely!')
+	fail.published = True
