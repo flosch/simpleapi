@@ -47,9 +47,9 @@ handlers.py::
     class SMSNamespace(JobNamespace):
         def new(self, to, msg, sender='my website', priority=5):
             # send sms ...
-        status.published = True # make the method available via API
-        status.methods = ('POST', ) # limit access to POST
-        status.types = {'priority': int} # ensure that priority argument is of type int
+        new.published = True # make the method available via API
+        new.methods = ('POST', ) # limit access to POST
+        new.types = {'priority': int} # ensure that priority argument is of type int
 
 urls.py::
 
