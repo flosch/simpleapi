@@ -276,10 +276,10 @@ class Route(object):
 			# check whether output configuration is set
 			func = fitem['fn']
 			
-			if hasattr(func, 'output'):
-				assert isinstance(func.output, list) or isinstance(func.output, tuple)
-				if response_type not in func.output:
-					return self._build_response(errors=u'Response type (%s) not allowed (allowed: %s)' % (response_type, ", ".join(func.output)))
+			if hasattr(func, 'outputs'):
+				assert isinstance(func.outputs, list) or isinstance(func.outputs, tuple)
+				if response_type not in func.outputs:
+					return self._build_response(errors=u'Response type (%s) not allowed (allowed: %s)' % (response_type, ", ".join(func.outputs)))
 			
 			return self._build_response(
 				self._handle_request(request, rvars, fname, fitem, namespace),

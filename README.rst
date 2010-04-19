@@ -124,7 +124,7 @@ handlers.py::
         def today(self):
             return datetime.datetime.now()
         today.published = True
-        today.output = ['pickle',] # limit output format to pickle (which currently supports the simpleapi client only)
+        today.outputs = ['pickle',] # limit output format to pickle (which currently supports the simpleapi client only)
 
 urls.py as above. You can call the method with the simpleapi client as usual, but calling the method for instance via Ajax won't work.
 
@@ -134,7 +134,7 @@ Configuration and development
 Namespace's methods
 -------------------
 
-In order to make a method available and callable from outside (the client party) and to configure the called method simpleapi reads some configuration variables for each method. They are configured as follows:
+In order to make a method available and callable from outside (the client party) and to configure the called method simpleapi reads some configuration variables for each method. They are configured as follows::
 
     class MyNamespace(Namespace):
         def my_api_method(self, arg1):
@@ -146,7 +146,7 @@ The following configuration parameters are existing:
 :published: make the method available and callable from outside (boolean)
 :types: a dict where you can specify a type of which one parameter must be. The parameter will be converted into your desired type (if simpleapi cannot, it wil raise an error to the client). See the examples for more.
 :methods: specifies which HTTP methods are allowed to call the method (a list; by default it allowes every method). If you plan to receive a huge amount of data (like a file), you should only allow POST as this allows "unlimited" data (GET is limited to 1024 bytes which is fairly enough for much function calls).
-:output: if specified, the output formatters are limited for this method (a list; e. g. useful, if you plan to return values that cannot be serialized by the json-module but can be pickled)
+:outputs: if specified, the output formatters are limited for this method (a list; e. g. useful, if you plan to return values that cannot be serialized by the json-module but can be pickled)
 
 HTTP call and parameters
 ------------------------
