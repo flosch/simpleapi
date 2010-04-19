@@ -4,25 +4,32 @@ __all__ = ('Client', 'ClientException', 'ConnectionException', 'RemoteException'
 
 import urllib
 import cPickle
+import json
 
 class ClientException(Exception): pass
 class ConnectionException(ClientException): pass
 class RemoteException(ClientException): pass
 class Client(object):
 	
-	def __init__(self, ns, access_key=None, version='default'):
+	def __init__(self, ns, access_key=None, version='default', use_pickle=False):
 		self.ns = ns
 		self.access_key = access_key
 		self.version = version
+		self.use_pickle = use_pickle
 	
 	def _handle_remote_call(self, fname):
 		def do_call(**kwargs):
 			data = {
 				'_call': fname,
-				'_output': 'pickle',
+				'_output': self.use_pickle and 'pickle' or 'json',
+				'_input': self.use_pickle and 'pickle' or 'value',
 				'_access_key': self.access_key or '',
 				'_version': self.version
 			}
+			if self.use_pickle:
+				for key, value in kwargs.iteritems():
+					kwargs[key] = cPickle.dumps(value)
+
 			data.update(kwargs)
 			
 			try:
@@ -31,7 +38,13 @@ class Client(object):
 				raise ConnectionException(e)
 			
 			try:
-				response = cPickle.loads(response)
+				if self.use_pickle:
+					try:
+						response = cPickle.loads(response)
+					except cPickle.UnpicklingError:
+						raise ClientException(u'Couldn\'t unpickle response data. Did you added "pickle" to the namespace\'s __features__ list?')
+				else:
+					response = json.loads(response)
 			except ValueError, e:
 				raise ConnectionException, e
 			

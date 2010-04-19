@@ -37,12 +37,20 @@ class NewCalculator(Calculator):
 
 class SomeFunctions(Namespace):
 	
+	__features__ = ['pickle', ]
+	__input__ = ['pickle'] # restrict input to pickle only (since we're using datetime objects as input and use only the simpleapi client)
+	__output__ = ['pickle'] # restrict output to pickle only
+	
 	def today(self):
 		import datetime
 		return datetime.datetime.now()
 	today.published = True
-	today.outputs = ['pickle',]
 
 	def fail(self):
 		self.error('This fails remotely!')
 	fail.published = True
+	
+	def add_a_day(self, dt):
+		import datetime
+		return dt+datetime.timedelta(days=1)
+	add_a_day.published = True

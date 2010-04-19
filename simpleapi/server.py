@@ -4,11 +4,11 @@ __all__ = ('Namespace', 'Route')
 
 import json
 import inspect
-import cPickle
 
 from django.conf import settings
 from django.http import HttpResponse
 
+from features import __builtin_features__
 from utils import glob_list
 
 class NamespaceException(Exception): pass
@@ -17,33 +17,26 @@ class Namespace(object):
 	def error(self, err_or_list):
 		raise ResponseException(err_or_list)
 
-class JSONResponse(object):
+class JSONType(object):
 	
 	__mime__ = "application/json"
 	
 	def build(self, data, callback):
 		return json.dumps(data)
 
-class JSONPResponse(object):
+class JSONPType(object):
 	
 	__mime__ = "application/javascript"
 
 	def build(self, data, callback):
 		return u'%s(%s)' % (callback or 'simpleapiCallback', json.dumps(data))
 
-class XMLResponse(object):
+class XMLType(object):
 	
 	__mime__ = "text/xml"
 	
 	def build(self, data, callback):
 		raise NotImplemented
-
-class PickleResponse(object):
-	
-	__mime__ = "application/octet-stream"
-	
-	def build(self, data, callback):
-		return cPickle.dumps(data)
 
 class RouteException(Exception): pass
 class ResponseException(RouteException): pass
@@ -51,10 +44,13 @@ class ResponseException(RouteException): pass
 class Route(object):
 	
 	__response_types__ = {
-		'json': JSONResponse(),
-		'jsonp': JSONPResponse(),
-		'xml': XMLResponse(),
-		'pickle': PickleResponse()
+		'json': JSONType(),
+		'jsonp': JSONPType(),
+		'xml': XMLType()
+	}
+	
+	__request_types__ = {
+		'value': None
 	}
 	
 	def __init__(self, *namespaces):
@@ -76,6 +72,22 @@ class Route(object):
 			# make glob list from ip address ranges
 			if hasattr(namespace, '__ip_restriction__'):
 				self.namespace_map[version]['instance'].__ip_restriction__ = glob_list(namespace.__ip_restriction__)
+			
+			# __features__ 		apply features
+			if hasattr(namespace, '__features__'):
+				self.namespace_map[version]['features'] = {}
+				for feature in namespace.__features__:
+					if isinstance(feature, str):
+						if not __builtin_features__.has_key(feature):
+							raise ValueError(u'feature %s not found' % feature)
+						
+						feature = __builtin_features__[feature](self, self.namespace_map[version]['instance'])
+						assert hasattr(feature, '__name__')
+						
+						self.namespace_map[version]['features'][feature.__name__] = feature
+						feature._setup()
+					else:
+						raise NotImplemented
 		
 		# create default namespace (= latest version)
 		self.namespace_map['default'] = self.namespace_map[max(self.namespace_map.keys())]
@@ -99,6 +111,11 @@ class Route(object):
 			resp_type_inst.build(result, callback),
 			mimetype=mimetype or getattr(resp_type_inst, '__mime__', 'text/plain')
 		)
+	
+	def _parse_request(self, rvars, request_type):
+		for key, value in rvars.iteritems():
+			rvars[key] = self.__request_types__[request_type].parse(value)
+		return rvars
 	
 	def _get_function(self, fname, version):
 		namespace_item = self.namespace_map[version]
@@ -214,13 +231,13 @@ class Route(object):
 	def __call__(self, request):
 		rvars = dict(request.REQUEST.iteritems())
 		
-		# get mimetype
+		# _mimetype		get mimetype
 		mimetype = rvars.pop('_mimetype', None)
 		
-		# get _callback for jsonp
+		# _callback		get callback for jsonp
 		callback = rvars.pop('_callback', '')
 		
-		# check version
+		# _version		check version
 		version = rvars.pop('_version', 'default')
 		
 		if version <> 'default':
@@ -229,14 +246,13 @@ class Route(object):
 			except ValueError:
 				return self._build_response(errors=u'API-version must be an integer (available versions: %s)' % ", ".join(map(lambda x: str(x), self.namespace_map.keys())))
 		
-		
 		if not self.namespace_map.has_key(version):
 			return self._build_response(errors=u'API-version not found (available versions: %s)' % ", ".join(map(lambda x: str(x), self.namespace_map.keys())))
 		
 		# determine default namespace
 		namespace = self.namespace_map[version]['instance']
 		
-		# check authentication
+		# _access_key	check authentication
 		access_key = rvars.pop('_access_key', None)
 		if hasattr(namespace, '__authentication__'):
 			if not access_key:
@@ -255,7 +271,7 @@ class Route(object):
 			else:
 				raise ValueError(u'__authentication__ can be either a callable or a string, not %s' % type(namespace.__authentication__))
 		
-		# check ipaddress restriction
+		# __ip_restriction__ 		check ipaddress restriction
 		if hasattr(namespace, '__ip_restriction__'):
 			if callable(namespace.__ip_restriction__):
 				if not namespace.__ip_restriction__(request.META.get('REMOTE_ADDR')):
@@ -263,6 +279,7 @@ class Route(object):
 			elif request.META.get('REMOTE_ADDR', 'n/a') not in namespace.__ip_restriction__:
 				return self._build_response(errors=u'permission denied')
 		
+		# _output		get output formatter
 		response_type = rvars.pop('_output', 'json')
 		if callback:
 			# if callback is set, automagically set response_type to jsonp
@@ -271,10 +288,30 @@ class Route(object):
 		if response_type not in self.__response_types__.keys():
 			return self._build_response(errors=u'Response type (%s) not found' % response_type)
 		
+		# _input		request type
+		request_type = rvars.pop('_input', 'value')
+		if request_type is not None and request_type not in self.__request_types__.keys():
+			return self._build_response(errors=u'Request type (%s) not found' % request_type)
+		
+		# __outputs__ 		check against output
+		if hasattr(namespace, '__outputs__'):
+			if response_type not in namespace.__outputs__:
+				return self._build_response(errors=u'Response type not allowed')
+		
+		# __inputs__ 		check against output
+		if hasattr(namespace, '__inputs__'):
+			if request_type not in namespace.__inputs__:
+				return self._build_response(errors=u'Request type not allowed')
+		
+		# _call		get desired method name
 		try:
 			fname = rvars.pop('_call')
 		except KeyError:
 			return self._build_response(errors=u'_call not given')
+		
+		# all system parameters are removed, let's parse the request
+		if request_type <> 'value':
+			rvars = self._parse_request(rvars, request_type)
 		
 		try:
 			fitem, namespace = self._get_function(fname, version)

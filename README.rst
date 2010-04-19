@@ -25,6 +25,10 @@ The client supports (uncomplete list):
 * super simple access to server functions
 * easy to switch between different api versions
 
+`simpleapi` provides:
+
+* an almost complete README which covers all functions and capabilities of `simpleapi`. :)
+
 Server example
 ==============
 
@@ -122,10 +126,12 @@ handlers.py::
     from simpleapi import Namespace
     
     class SomeFunctions(Namespace):
+        __features__ = ['pickle',]
+        
         def today(self):
             return datetime.datetime.now()
         today.published = True
-        today.outputs = ['pickle',] # limit output format to pickle (which currently supports the simpleapi client only)
+        today.outputs = ['pickle',] # limit output format to pickle
 
 urls.py as above. You can call the method with the simpleapi client as usual, but calling the method for instance via Ajax won't work.
 
@@ -167,8 +173,6 @@ Second example (with version change)
 	    msg="Short test"    
     )
 
-Simpleapi's client uses the cPickle module of python for the whole communication. This is absolutely transparent to the developer.
-
 Configuration and development
 =============================
 
@@ -194,8 +198,11 @@ Namespace configuration
 
 You can configure your namespaces on an individual basis. This are the supported configuration parameters:
 
-:__ip_restriction__: either a list of ipaddresses (which can contain wildcards, e.g. `127.*.0.*`) which are allowed to access the namespace or a callable which takes the ipaddress as an argument and returns `True` (allowed) or `False` (disallowed). Can be used to keep track of all requests to this namespace and to throttle clients if needed, for example. 
-:__authentication__: either a string with a key or a callable which takes the access_key provided by the client. Must return `True` (allowed) or `False` (disallowed). If not given, no authentication is needed. It's recommended to use SSL if you plan to use `__authentication__`.
+:`__ip_restriction__`: either a list of ipaddresses (which can contain wildcards, e.g. `127.*.0.*`) which are allowed to access the namespace or a callable which takes the ipaddress as an argument and returns `True` (allowed) or `False` (disallowed). Can be used to keep track of all requests to this namespace and to throttle clients if needed, for example. 
+:`__authentication__`: either a string with a key or a callable which takes the access_key provided by the client. Must return `True` (allowed) or `False` (disallowed). If not given, no authentication is needed. It's recommended to use SSL if you plan to use `__authentication__`.
+:`__outputs__`: If given, the namespace is restricted to the given output formatters (a list of strings)
+:`__inputs__`: If given, the namespace is restricted to the given input formatters (a list of strings)
+:`__features__`: list of activated namespace-features (currently available: `pickle`)
 
 All parameters are optional.
 
@@ -214,7 +221,7 @@ The following parameters are used by simpleapi:
 :_version: version number of the API that should be used
 :_access_key: access key to the API (only if `__authentiation__` in `namespace` is defined)
 :_callback: defines the callback for JSONP (default is `simpleapiCallback`)
-:_mimetype: `simpleapi` automatically sets the correct mime type depending on the output format. you can set a different mimetype by set this http parameter.
+:_mimetype: `simpleapi` automatically sets the correct mime type depending on the desired output format. you can set a different mimetype by set this http parameter.
 
 Server's response
 -----------------
@@ -251,7 +258,7 @@ Usage in web-apps (Ajax+jQuery)
 If your functions are not limited to an specific output formatter (which is the default) you're able to call the functions (within the same domain) via Ajax (XMLHttpRequest). I prefer using jQuery or ExtJS which makes calling remote functions a snap. The following example is using jQuery::
 
     jQuery.get("/myapi/", {_call: 'multiply', a: 5, b: 10}, function (result) {
-        alert('A * 10 = ' + result);
+        alert('5 * 10 = ' + result);
     })
 
 For more informaton on jQuery's ajax capabilities see here: http://api.jquery.com/category/ajax/
@@ -284,10 +291,17 @@ The client's class lives in `simpleapi.Client`. Import it from there and instant
 
     my_client = Client(ns='http://yourdomain.tld/api/namespace/')
 
+To call a remote function you just use call it the same as you do usually::
+
+    my_client.my_remote_function(first="first argument", second_arg=2, third=datetime.datetime.now())
+    
+**Hint:** It's important that you name your arguments, anonymous arguments are prohibited.
+
 The constructor takes following optional arguments:
 
 :version: defines the version to be used (if no one is given, the default API version is used)
 :access_key: defines the access key to the API
+:use_pickle: If you added `pickle` to the list of features of your namespace you can activate it in your client as well (for more information about pickling see below, especially the warning!)
 
 Following methods are provided by client instances:
 
@@ -329,12 +343,44 @@ If you want to raise an error and abort execution of your method you can always 
 
 In simpleapi client: `self.error` raises a `simpleapi.RemoteException` which you can catch to handle the error on the client side (see example for more).
 
+Pickling-Support (you should really read this!)
+-----------------------------------------------
+
+Pickling of the data streams makes the developer life easier since JSON or others doesn't support (de)serializing of several native types, for example `date types`. If your API will be used by unauthorized or unknown thiry-party users you should **NOT** enable pickle serialization because cPickle doesn't validates the pickle-dump. This could **cause to insecure or harmful method calls** (like `system("rm -rf /")`, you know ;) ).
+
+To enable cPickle, you have to enable it manually in your namespace by adding `pickle` to the list of activated features::
+
+    __features__ = ['pickle']
+
+For more details on insecurity of Pickle take look at http://nadiana.com/python-pickle-insecure
+
+Add a new feature to your namespace
+-----------------------------------
+
+Features are adding more functionality and capability to your namespace. There are a few built-in features but the `__features__` configuration especially allows you to extend your namespace. It looks like this::
+
+    class MyNamespace(Namespace):
+        __features__ = ['pickle', MyFeature]
+
+The built-in features are:
+
+:caching: is coming, be patient :)
+:pickle: allows to pickle the in/out data stream (see `use_pickle` in the client)
+
+The simpleapi feature system is work in progress. As soon as it becomes usable for you, I will publish more information on that here.
+
+Supported input formats
+-----------------------
+
+* raw value ("value", default)
+* pickle - **should only be used by trusted parties**
+
 Supported output formats
 ------------------------
 
-* JSON ("json")
+* JSON ("json", default)
 * JSONP ("jsonp")
-* cPickle (*used by the simpleapi client*) ("pickle")
+* cPickle ("pickle") - **should only be used by trusted parties**
 * XML (*coming*) ("xml")
 
 How to run the demo
@@ -358,7 +404,7 @@ Tips & tricks
 Limitations
 ===========
 
-#. Only if you're not simpleapi's python client (which uses cPickle for serializing the data): The output/return value of a method is limited to the formatter's restrictions. For instance, you cannot return datetime values since they aren't supported by JSON (use datetime.isotime() instead). 
+#. The output/return value of a method is limited to the formatter's restrictions. For instance, you cannot return datetime values since they aren't supported by JSON (use datetime.isotime() or datetime.ctime() instead). Applies only if you're not using cPickle in an trusted environment (which supports datetime-objects and more).
 
 TODO
 ====

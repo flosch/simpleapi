@@ -18,10 +18,12 @@ print "5 * 5 =", calculator.multiply(a=5, b=5)
 calculator.set_ns('http://localhost:8888/api/calculator/one/')
 print "5 ** 5 =", calculator.power(a=5, b=5)
 
-some_functions = Client(ns='http://localhost:8888/api/functions/')
+some_functions = Client(ns='http://localhost:8888/api/functions/', use_pickle=True)
 
 # works only with simpleapi's python client because it's using cPickle functionality. JSON doesn't support to serialize date objects
-print "Today's datetime:", some_functions.today() 
+print "Today's datetime:", some_functions.today()
+
+print "Add a day, remotely by passing a datetime object to the function:", some_functions.add_a_day(dt=some_functions.today())
 
 print "Finally, this method call fails:", 
 try:
