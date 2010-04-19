@@ -68,7 +68,7 @@ class CachingFeature(NamespaceFeature):
 		if not cache_details: return
 		
 		key = cache_details.get('key', 'simpleapi_%s_%s' % (fname, self._build_arg_signature(fargs)))
-		timeout = cache_details.get('timeout')
+		timeout = cache_details.get('timeout', 60*60)
 		
 		session_cache['cache_key'] = key
 		session_cache['cache_timeout'] = timeout

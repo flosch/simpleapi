@@ -389,7 +389,7 @@ Using the namespace-method `caching`-configuration you can configure how the `si
 		'key': 'delayed_function' 
 	}
 
-The `caching`-option can either be a boolean (if True, no timeout is set and the caching key will be of format `simpleapi_FUNCTIONNAME`) or a dictionary with user-defined settings. `Timeout` defines, after which timeperiod the key will be removed (default is 1 hour). The `key` defines the caching-key.
+The `caching`-option can either be a boolean or a dictionary with user-defined settings. `Timeout` defines, after which timeperiod the key will be removed (default is 1 hour). The `key` defines the caching-key (default-format `simpleapi_FUNCTIONNAME`)
 
 A md5-generated fingerprint of the given arguments will be appended to the caching key. If your user-defined caching key is *delayed_function*, the complete key might be *delayed_function_0cc175b9c0f1b6a831c399e269772661*. The return value of the function is stored pickled. 
 
