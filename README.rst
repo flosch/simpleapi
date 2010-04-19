@@ -363,15 +363,10 @@ Supported output formats
 Features (take your namespace to a higher level)
 ================================================
 
-Features are adding more functionality and capability to your namespace. There are a few built-in features, but the `__features__`-configuration especially allows **you** to extend your namespace. It looks like this::
+Features are adding more functionality and capability to your namespace. There are a few built-in features, but the `__features__`-configuration especially allows **you** to extend **your** namespace. It looks like this::
 
     class MyNamespace(Namespace):
-        __features__ = ['pickle', MyFeature]
-
-The built-in features are:
-
-:caching: is coming, be patient :)
-:pickle: allows to pickle the in/out data stream (see `use_pickle` in the client)
+        __features__ = ['pickle', MyVeryOwnFeature]
 
 The simpleapi feature system is work in progress. **As soon as it becomes usable for you, I will publish more information on that here.**
 
