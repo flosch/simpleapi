@@ -71,11 +71,18 @@ handlers.py::
     class JobNamespace(Namespace):
         __ip_restriction__ = ["127.0.0.*", "78.47.135.*"] # you can either use a callable here or provide a list of ip addresses
         __authentication__ = "91d9f7763572c7ebcce49b183454aeb0" # you can either use a callable here (for dynamic authentication) or provide a static key for authentication
+        
+        def _get_job_by_id(self, job_id):
+            # get the job by job_id
+            # this method isn't published to the public and isn't 
+            # made accessable via API since it's missing the published-flag
+            return Job.objects.get(id=job_id)
     
         def status(self, job_id):
-            # get the job by job_id ...
+            job = self._get_job_by_id(job_id)
             return job.get_status()
         status.published = True # make the method available via API
+        status.types = {'job_id': str}
 
     class OldSMSNamespace(JobNamespace):
         __version__ = 1
@@ -83,7 +90,6 @@ handlers.py::
         def new(self, to, msg):
             # send sms ...
         new.published = True # make the method available via API
-        new.methods = ('POST', ) # limit access to POST
     
     class NewSMSNamespace(JobNamespace):
         __version__ = 2
@@ -181,7 +187,8 @@ Tips & tricks
 
 1. Make sure to remove or deactivate the new csrf-middleware functionality of django 1.2 for the Route.
 2. Use SSL to encrypt the datastream.
-3. Use key authentication, limit ipaddress access to your business' network.
+3. Use key authentication, limit ip-address access to your business' network.
+4. You can set up a simple throtteling by setting a callable to `__ip_restriction__` which keeps track at every request of an ip-address (the callable gets the ip-address of the calling party as the first argument). 
 
 Limitations
 ===========
