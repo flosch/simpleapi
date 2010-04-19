@@ -1,8 +1,20 @@
 # -*- coding: utf-8 -*-
 
-__all__ = ('__builtin_features__', 'NamespaceFeature', )
+__all__ = ('__builtin_features__', 'NamespaceFeature', 'FeatureResponse')
 
 import cPickle
+import hashlib
+
+try:
+	from django.core.cache import cache
+except ImportError, e:
+	# FIXME: dirty hack
+	if not 'DJANGO_SETTINGS_MODULE' in str(e):
+		raise
+
+class FeatureResponse(object): 
+	def __init__(self, data):
+		self.data = data
 
 class NamespaceFeature(object):
 	
@@ -14,11 +26,16 @@ class NamespaceFeature(object):
 		if hasattr(self, 'setup'):
 			self.setup()
 	
-	def _request(self, function_name, function_arguments):
-		self.request()
+	def _request(self, fname, fargs, ffunc, session_cache):
+		if hasattr(self, 'request'):
+			return self.request(fname, fargs, ffunc, session_cache)
 	
-	def _response(self, data):
-		self.response()
+	def _response(self, fname, fargs, fresult, ffunc, session_cache):
+		if hasattr(self, 'response'):
+			return self.response(fname, fargs, fresult, ffunc, session_cache)
+
+	def error(self, err_or_list):
+		self.namespace.error(err_or_list)
 
 class PickleFeature(NamespaceFeature):
 	
@@ -38,13 +55,36 @@ class PickleFeature(NamespaceFeature):
 		
 		self.route.__response_types__['pickle'] = PickleType()
 		self.route.__request_types__['pickle'] = PickleType()
+
+class CachingFeature(NamespaceFeature):
 	
-	def request(self):
-		pass # TODO
+	__name__ = "caching"
 	
-	def response(self):
-		pass # TODO
+	def _build_arg_signature(self, fargs):
+		return hashlib.md5(cPickle.dumps(fargs)).hexdigest()
+	
+	def request(self, fname, fargs, ffunc, session_cache):
+		cache_details = getattr(ffunc, 'caching', None)
+		if not cache_details: return
+		
+		key = cache_details.get('key', 'simpleapi_%s_%s' % (fname, self._build_arg_signature(fargs)))
+		timeout = cache_details.get('timeout')
+		
+		session_cache['cache_key'] = key
+		session_cache['cache_timeout'] = timeout
+		
+		if cache.get(key):
+			buf = cache.get(key)
+			if buf is not None:
+				return FeatureResponse(cPickle.loads(buf))
+		else:
+			session_cache['want_cached'] = True
+	
+	def response(self, fname, fargs, fresult, ffunc, session_cache):
+		if session_cache.get('want_cached') is True:
+			cache.set(session_cache['cache_key'], cPickle.dumps(fresult), session_cache['cache_timeout'])
 
 __builtin_features__ = {
-	'pickle': PickleFeature
+	'pickle': PickleFeature,
+	'caching': CachingFeature
 }

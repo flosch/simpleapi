@@ -37,7 +37,7 @@ class NewCalculator(Calculator):
 
 class SomeFunctions(Namespace):
 	
-	__features__ = ['pickle', ]
+	__features__ = ['pickle', 'caching']
 	__input__ = ['pickle'] # restrict input to pickle only (since we're using datetime objects as input and use only the simpleapi client)
 	__output__ = ['pickle'] # restrict output to pickle only
 	
@@ -54,3 +54,12 @@ class SomeFunctions(Namespace):
 		import datetime
 		return dt+datetime.timedelta(days=1)
 	add_a_day.published = True
+
+	def delayed_function(self, a, b, c=95):
+		import time
+		time.sleep(3)
+		return True
+	delayed_function.published = True
+	delayed_function.caching = {
+		'timeout': 15, # in seconds
+	} # Caching is available because 'caching' is added to the list of __features__ (see above)!

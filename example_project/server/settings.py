@@ -12,6 +12,9 @@ ROOT_URLCONF = 'server.urls'
 
 DEBUG = True
 
+# used by simpleapi.features.CacheFeature:
+CACHE_BACKEND = 'locmem://'
+
 #
 # Language / localization
 #

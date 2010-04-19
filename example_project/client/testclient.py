@@ -3,7 +3,7 @@
 import sys
 sys.path.append("/Users/flosch/devlibs/3rdparty/")
 
-from simpleapi import Client, RemoteException
+from simpleapi.client import Client, RemoteException
 
 calculator = Client(ns='http://localhost:8888/api/calculator/multiple/', access_key="91d9f7763572c7ebcce49b183454aeb0")
 print "(v2) 5 + 5 =", calculator.add(a=5, b=5)
@@ -19,6 +19,18 @@ calculator.set_ns('http://localhost:8888/api/calculator/one/')
 print "5 ** 5 =", calculator.power(a=5, b=5)
 
 some_functions = Client(ns='http://localhost:8888/api/functions/', use_pickle=True)
+
+print
+print "Function will delay 3 seconds."
+print some_functions.delayed_function(a=5, b=6)
+print
+print "Function will NOT delay 3 seconds (because it's cached):"
+print some_functions.delayed_function(a=5, b=6)
+print
+
+print "Function will delay 3 seconds (because it's NOT cached):"
+print some_functions.delayed_function(a=5, b=6, c=1)
+print
 
 # works only with simpleapi's python client because it's using cPickle functionality. JSON doesn't support to serialize date objects
 print "Today's datetime:", some_functions.today()

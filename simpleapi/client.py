@@ -41,7 +41,7 @@ class Client(object):
 				if self.use_pickle:
 					try:
 						response = cPickle.loads(response)
-					except cPickle.UnpicklingError:
+					except (cPickle.UnpicklingError, EOFError):
 						raise ClientException(u'Couldn\'t unpickle response data. Did you added "pickle" to the namespace\'s __features__ list?')
 				else:
 					response = json.loads(response)

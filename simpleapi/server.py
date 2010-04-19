@@ -8,7 +8,7 @@ import inspect
 from django.conf import settings
 from django.http import HttpResponse
 
-from features import __builtin_features__
+from features import *
 from utils import glob_list
 
 class NamespaceException(Exception): pass
@@ -129,7 +129,7 @@ class Route(object):
 		
 		return (fitem, namespace)
 	
-	def _handle_request(self, request, rvars, fname, fitem, namespace):
+	def _handle_request(self, request, rvars, fname, fitem, namespace, version):		
 		func = fitem['fn']
 		
 		# check methods
@@ -199,6 +199,15 @@ class Route(object):
 					if key == var_name:
 						kwargs[key] = convert(value, var_type)
 		
+		# trigger feature REQUEST
+		features = self.namespace_map[version].get('features')
+		if features:
+			session_cache = {}
+			for name, feature in features.iteritems():
+				feature_result = feature._request(fname, (args, kwargs), func, session_cache)
+				if isinstance(feature_result, FeatureResponse):
+					return feature_result.data
+		
 		try:
 			args = map(lambda i: i[1], args)
 			result = func(namespace, *args, **kwargs)
@@ -225,6 +234,13 @@ class Route(object):
 				raise ResponseException(u'An internal error occurred during your request.')
 			else:
 				raise
+		
+		# trigger feature REQUEST
+		if features:
+			for name, feature in features.iteritems():
+				feature_result = feature._response(fname, rvars, result, func, session_cache)
+				if isinstance(feature_result, FeatureResponse):
+					return feature_result.data
 		
 		return result
 	
@@ -325,7 +341,7 @@ class Route(object):
 					return self._build_response(errors=u'Response type (%s) not allowed (allowed: %s)' % (response_type, ", ".join(func.outputs)))
 			
 			return self._build_response(
-				self._handle_request(request, rvars, fname, fitem, namespace),
+				self._handle_request(request, rvars, fname, fitem, namespace, version),
 				response_type=response_type,
 				callback=callback,
 				mimetype=mimetype

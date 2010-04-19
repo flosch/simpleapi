@@ -11,14 +11,16 @@ About
 
 simpleapi is an **easy to use, consistent and portable** way of providing an API within your django project. It supports **several output formats** (e. g. json, jsonp, xml) and provides a **client library** to access the API seamlessly from any python application. You can also use nearly every **Ajax framework** (e. g. jQuery, ExtJS, etc.) to access the API (see more at "Usage in web-apps" in this README).
 
-The server supports (uncomplete list):
+The server (uncomplete list)...
 
-* API-namespaces to bundle methods
-* dynamic key authentication / ip restriction
-* type-conversion
-* inheritance (create abstract namespaces and use them as superclasses)
-* support for multiple API versions
-* several output formats (json, jsonp, xml, etc.)
+* provides API-namespaces to bundle methods
+* has dynamic key authentication / ip restriction
+* takes care of type-conversion
+* provides inheritance (create abstract namespaces and use them as superclasses)
+* supports multiple versions of one API
+* provides several output formats (json, jsonp, xml, etc.)
+* has features for: *caching, throttling, pickling*
+* can be extended with your own features
 
 The client supports (uncomplete list):
 
@@ -28,6 +30,7 @@ The client supports (uncomplete list):
 `simpleapi` provides:
 
 * an almost complete README which covers all functions and capabilities of `simpleapi`. :)
+* no REST - you can implement it in your own way if you want to.
 
 Server example
 ==============
@@ -278,7 +281,7 @@ In this case you can use simpleapi's JSONP implementation which allows you to ca
         dataType: "jsonp",
         jsonp: "_callback", // needed since simpleapi names his callback-identifier "_callback"
         success: function (result) {
-            alert('A * 10 = ' + result);
+            alert('5 * 10 = ' + result);
         }
     })
 
@@ -343,32 +346,6 @@ If you want to raise an error and abort execution of your method you can always 
 
 In simpleapi client: `self.error` raises a `simpleapi.RemoteException` which you can catch to handle the error on the client side (see example for more).
 
-Pickling-Support (you should really read this!)
------------------------------------------------
-
-Pickling of the data streams makes the developer life easier since JSON and others doesn't support (de)serializing of several native types, for example `date objects`. If your API will be used by unauthorized or unknown third-party users you should **NOT** enable pickle serialization because cPickle doesn't validates the pickle-dump. This could **cause to insecure or harmful method calls** (like `system("rm -rf /")`, you know ;) ).
-
-To enable cPickle, you have to enable it manually in your namespace by adding `pickle` to the list of activated features::
-
-    __features__ = ['pickle']
-
-For more details on insecurity of Pickle take look at http://nadiana.com/python-pickle-insecure
-
-Add a new feature to your namespace
------------------------------------
-
-Features are adding more functionality and capability to your namespace. There are a few built-in features, but the `__features__`-configuration especially allows **you** to extend your namespace. It looks like this::
-
-    class MyNamespace(Namespace):
-        __features__ = ['pickle', MyFeature]
-
-The built-in features are:
-
-:caching: is coming, be patient :)
-:pickle: allows to pickle the in/out data stream (see `use_pickle` in the client)
-
-The simpleapi feature system is work in progress. As soon as it becomes usable for you, I will publish more information on that here.
-
 Supported input formats
 -----------------------
 
@@ -382,6 +359,62 @@ Supported output formats
 * JSONP ("jsonp")
 * cPickle ("pickle") - **should only be used by trusted parties**
 * XML (*coming*) ("xml")
+
+Features (take your namespace to a higher level)
+================================================
+
+Features are adding more functionality and capability to your namespace. There are a few built-in features, but the `__features__`-configuration especially allows **you** to extend your namespace. It looks like this::
+
+    class MyNamespace(Namespace):
+        __features__ = ['pickle', MyFeature]
+
+The built-in features are:
+
+:caching: is coming, be patient :)
+:pickle: allows to pickle the in/out data stream (see `use_pickle` in the client)
+
+The simpleapi feature system is work in progress. **As soon as it becomes usable for you, I will publish more information on that here.**
+
+Caching
+-------
+
+simpleapi supports caching of function calls. This is pretty useful when you have a lot of calls to cpu/memory/db-intensive methods. You can ask simpleapi to cache the response (the return value) of a function call depending on the given function arguments. To do so, first add `caching` to the list of namespace-features::
+
+    __features__ = ['caching']
+
+Using the namespace-method `caching`-configuration you can configure how the `simpleapi`-cache will work::
+
+    def delayed_function(self):
+		import time
+		time.sleep(5)
+		return True
+	delayed_function.published = True
+	delayed_function.caching = {
+		'timeout': 30, # in seconds
+		'key': 'delayed_function' 
+	}
+
+The `caching`-option can either be a boolean (if True, no timeout is set and the caching key will be of format `simpleapi_FUNCTIONNAME`) or a dictionary with user-defined settings. `Timeout` defines, after which timeperiod the key will be removed (default is 1 hour). The `key` defines the caching-key.
+
+A md5-generated fingerprint of the given arguments will be appended to the caching key. If your user-defined caching key is *delayed_function*, the complete key might be *delayed_function_0cc175b9c0f1b6a831c399e269772661*. The return value of the function is stored pickled. 
+
+**Note:** Don't forget to configure Django for caching (especially CACHE_BACKEND), see more: http://docs.djangoproject.com/en/dev/topics/cache/
+
+Throttling
+----------
+
+`... is coming.. please be patient. :)´
+
+Pickling-Support (you should really read this!)
+-----------------------------------------------
+
+Pickling of the data streams makes the developer life easier since JSON and others doesn't support (de)serializing of several native types, for example `date objects`. If your API will be used by unauthorized or unknown third-party users you should **NOT** enable pickle serialization because cPickle doesn't validates the pickle-dump. This could **cause to insecure or harmful method calls** (like `system("rm -rf /")`, you know ;) ).
+
+To enable cPickle, you have to enable it manually in your namespace by adding `pickle` to the list of activated features::
+
+    __features__ = ['pickle']
+
+For more details on insecurity of Pickle take look at http://nadiana.com/python-pickle-insecure
 
 How to run the demo
 ===================
