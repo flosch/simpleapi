@@ -242,9 +242,10 @@ class Route(object):
 		# check ipaddress restriction
 		if hasattr(namespace, '__ip_restriction__'):
 			if callable(namespace.__ip_restriction__):
-				namespace.__ip_restriction__(request.META.get('REMOTE_ADDR'))
+				if not namespace.__ip_restriction__(request.META.get('REMOTE_ADDR')):
+					return self._build_response(errors=u'permission denied')
 			elif request.META.get('REMOTE_ADDR', 'n/a') not in namespace.__ip_restriction__:
-				return self._build_response(errors=u'ip address not whitelisted')
+				return self._build_response(errors=u'permission denied')
 		
 		response_type = rvars.pop('_type', 'json')
 		
