@@ -10,7 +10,7 @@ PROJECT_ROOT = os.path.dirname(__file__)
 
 ROOT_URLCONF = 'server.urls'
 
-DEBUG = False
+DEBUG = True
 
 #
 # Language / localization
@@ -19,7 +19,8 @@ DEBUG = False
 TIME_ZONE = 'Europe/Berlin'
 
 INSTALLED_APPS = (
-	'api'
+	'api',
+	'ajax_client'
 )
 
 MIDDLEWARE_CLASSES = (

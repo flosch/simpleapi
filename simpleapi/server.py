@@ -261,6 +261,9 @@ class Route(object):
 				return self._build_response(errors=u'permission denied')
 		
 		response_type = rvars.pop('_output', 'json')
+		if callback:
+			# if callback is set, automagically set response_type to jsonp
+			response_type = 'jsonp'
 		
 		if response_type not in self.__response_types__.keys():
 			return self._build_response(errors=u'Response type (%s) not found' % response_type)

@@ -128,53 +128,8 @@ handlers.py::
 
 urls.py as above. You can call the method with the simpleapi client as usual, but calling the method for instance via Ajax won't work.
 
-Configuration and development
-=============================
-
-Namespace's methods
--------------------
-
-In order to make a method available and callable from outside (the client party) and to configure the called method simpleapi reads some configuration variables for each method. They are configured as follows::
-
-    class MyNamespace(Namespace):
-        def my_api_method(self, arg1):
-            return arg1
-        my_api_method.configuration_var = value
-
-The following configuration parameters are existing:
-
-:published: make the method available and callable from outside (boolean)
-:types: a dict where you can specify a type of which one parameter must be of. The parameter will be converted into your desired type (if simpleapi cannot, it wil raise an error to the client). See the examples for more.
-:methods: specifies which HTTP methods are allowed to call the method (a list; by default it allows every method). If you plan to receive a huge amount of data (like a file), you should only allow POST as this can manage "unlimited" data (GET is limited to 1024 bytes which is fairly enough for much function calls though).
-:outputs: if specified, the output formatters are limited for this method (a list; e. g. useful, if you plan to return values that cannot be serialized by the json-module but can be pickled)
-
-HTTP call and parameters
-------------------------
-
-Clients are able to call the procedures like::
-
-    http://www.yourdomain.tld/job/sms/?_call=new&to=012345364&msg=Hello!&sender=from+me
-    http://www.yourdomain.tld/job/sms/?_call=status&_output=xml&job_id=12345678
-
-The following parameters are used by simpleapi:
-
-:_call: method to be called
-:_output: output format (e. g. xml, json; default is json)
-:_version: version number of the API that should be used
-:_access_key: access key to the API (only if `__authentiation__` in `namespace` is defined)
-:_callback: defines the callback for JSONP (default is `simpleapiCallback`)
-:_mimetype: `simpleapi` automatically sets the correct mime type depending on the output format. you can set a different mimetype by set this http parameter.
-
-Supported output formats
-------------------------
-
-* JSON ("json")
-* JSONP ("jsonp")
-* cPickle (used by the simpleapi client) ("pickle")
-* XML (coming) ("xml")
-
-Client example
-==============
+Client example with simpleapi's client library
+==============================================
 
 This is how you can access your published methods from any python application::
 
@@ -210,6 +165,104 @@ Second example (with version change)
 	    to="+49 123 456789",
 	    msg="Short test"    
     )
+
+Configuration and development
+=============================
+
+Namespace's methods
+-------------------
+
+In order to make a method available and callable from outside (the client party) and to configure the called method simpleapi reads some configuration variables for each method. They are configured as follows::
+
+    class MyNamespace(Namespace):
+        def my_api_method(self, arg1):
+            return arg1
+        my_api_method.configuration_var = value
+
+The following configuration parameters are existing:
+
+:published: make the method available and callable from outside (boolean)
+:types: a dict where you can specify a type of which one parameter must be of. The parameter will be converted into your desired type (if simpleapi cannot, it wil raise an error to the client). See the examples for more.
+:methods: specifies which HTTP methods are allowed to call the method (a list; by default it allows every method). If you plan to receive a huge amount of data (like a file), you should only allow POST as this can manage "unlimited" data (GET is limited to 1024 bytes which is fairly enough for much function calls though).
+:outputs: if specified, the output formatters are limited for this method (a list; e. g. useful, if you plan to return values that cannot be serialized by the json-module but can be pickled and compatibility to Ajax and others isn't an issue for you)
+
+HTTP call and parameters
+------------------------
+
+Clients are able to call the procedures like::
+
+    http://www.yourdomain.tld/job/sms/?_call=new&to=012345364&msg=Hello!&sender=from+me
+    http://www.yourdomain.tld/job/sms/?_call=status&_output=xml&job_id=12345678
+
+The following parameters are used by simpleapi:
+
+:_call: method to be called
+:_output: output format (e. g. xml, json; default is json)
+:_version: version number of the API that should be used
+:_access_key: access key to the API (only if `__authentiation__` in `namespace` is defined)
+:_callback: defines the callback for JSONP (default is `simpleapiCallback`)
+:_mimetype: `simpleapi` automatically sets the correct mime type depending on the output format. you can set a different mimetype by set this http parameter.
+
+Usage in Web-Apps
+-----------------
+
+Imagine the following server implementation which will be used for the web-apps examples:
+
+    from simpleapi import Namespace
+    
+    class Calculator(Namespace):
+    	def multiply(self, a, b):
+    		return a*b	
+    	multiply.published = True
+    	multiply.types = {'a': float, 'b': float}
+
+    	def power(self, a, b):
+    		return a**b	
+    	power.published = True
+    	power.types = {'a': float, 'b': float}
+
+The next two chapters are covering Ajax (with jQuery) and crossdomain-Requests.
+
+Usage in web-apps (Ajax+jQuery)
+-------------------------------
+
+If your functions are not limited to an specific output formatter (which is the default) you're able to call the functions (within the same domain) via Ajax (XMLHttpRequest). I prefer using jQuery or ExtJS which makes calling remote functions a snap. The following example is using jQuery::
+
+    jQuery.get("/myapi/", {_call: 'multiply', a: 5, b: 10}, function (result) {
+        alert('A * 10 = ' + result);
+    })
+
+For more informaton on jQuery's ajax capabilities see here: http://api.jquery.com/category/ajax/
+
+See the demo project for an example implementation.
+
+Usage in web-apps (crossdomain)
+-------------------------------
+
+If you want to call a API method from a third-party page (which isn't located on the same domain as the server API) you cannot use XMLHttpRequest due to browser security restrictions. 
+
+In this case you can use simpleapi's JSONP implementation which allows you to call functions and get the result via a callback. Some Ajax implementations (like jQuery and ExtJS) support transparent Ajax requests which internally uses the <script>-tag to get access to the remote function. In jQuery it looks like::
+
+    $.ajax({
+        url: "http://127.0.0.1:8888/api/calculator/one/",
+        data: {_call: 'multiply', a: 5, b: 10},
+        dataType: "jsonp",
+        jsonp: "_callback", // needed since simpleapi names his callback-identifier "_callback"
+        success: function (result) {
+            alert('A * 10 = ' + result);
+        }
+    })
+
+See the demo project for an example implementation.
+
+Supported output formats
+------------------------
+
+* JSON ("json")
+* JSONP ("jsonp")
+* cPickle (used by the simpleapi client) ("pickle")
+* XML (coming) ("xml")
+
 
 How to run the demo
 ===================
