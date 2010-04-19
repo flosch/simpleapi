@@ -166,6 +166,8 @@ Second example (with version change)
 	    msg="Short test"    
     )
 
+Simpleapi's client uses the cPickle module of python for the whole communication. This is absolutely transparent to the developer.
+
 Configuration and development
 =============================
 
@@ -206,7 +208,7 @@ The following parameters are used by simpleapi:
 Usage in Web-Apps
 -----------------
 
-Imagine the following server implementation which will be used for the web-apps examples:
+Imagine the following server implementation which will be used for the web-apps examples::
 
     from simpleapi import Namespace
     
