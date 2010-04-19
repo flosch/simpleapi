@@ -280,19 +280,24 @@ See the demo project for an example implementation.
 Usage of simpleapi's client
 ---------------------------
 
-The client's class lives in `simpleapi.Client`. Import it from there and instantiate your client like this:
+The client's class lives in `simpleapi.Client`. Import it from there and instantiate your client like this::
 
     my_client = Client(ns='http://yourdomain.tld/api/namespace/')
 
 The constructor takes following optional arguments:
 
 :version: defines the version to be used (if no one is given, the default API version is used)
-:ns: namespace-URL to be used
+:access_key: defines the access key to the API
 
 Following methods are provided by client instances:
 
 :set_ns: set's a new namespace-URL to be used
 :set_version: changes the version to be used
+
+Following exceptions can be raised by the client instance:
+
+:ConnectionException: there was a problem during connection establishment or transmission
+:RemoteException: a remote exception was raised
 
 Usage of arguments and \*\*kwargs in your API method
 ---------------------------------------------------
