@@ -210,11 +210,9 @@ Server's response
 
 If you call a method the server will response as follows::
 
-    {
-        status: true or false, // indicates whether the call was successful or not
-        result: value, // the return value of the called function; only if the call was successful
-        errors: ['...', ] // contains error messages why the call was not successful
-    }
+:status: true or false (boolean; indicates whether the call was successful or not)
+:result: return value of the called function (only if the call was **successful**)
+:errors: contains reasons why the call was **not successful** (list of unicode strings)
 
 Usage in web-apps
 -----------------
