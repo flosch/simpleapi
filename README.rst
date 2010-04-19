@@ -398,10 +398,10 @@ A md5-generated fingerprint of the given arguments will be appended to the cachi
 Throttling
 ----------
 
-`... is coming.. please be patient. :)´
+is coming.. please be patient. :)
 
-Pickling-Support (you should really read this!)
------------------------------------------------
+Pickling (you should really read this!)
+---------------------------------------
 
 Pickling of the data streams makes the developer life easier since JSON and others doesn't support (de)serializing of several native types, for example `date objects`. If your API will be used by unauthorized or unknown third-party users you should **NOT** enable pickle serialization because cPickle doesn't validates the pickle-dump. This could **cause to insecure or harmful method calls** (like `system("rm -rf /")`, you know ;) ).
 
