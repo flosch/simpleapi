@@ -69,7 +69,7 @@ handlers.py::
     from simpleapi import Namespace
     
     class JobNamespace(Namespace):
-        __ip_restriction__ = ["127.0.0.*", "78.47.135.*"] # only allow specific ip-addresses
+        __ip_restriction__ = ["127.0.0.*", "78.47.135.*"] # you can either use a callable here or provide a list of ip addresses
         __authentication__ = "91d9f7763572c7ebcce49b183454aeb0" # you can either use a callable here (for dynamic authentication) or provide a static key for authentication
     
         def status(self, job_id):
@@ -82,17 +82,17 @@ handlers.py::
     
         def new(self, to, msg):
             # send sms ...
-        status.published = True # make the method available via API
-        status.methods = ('POST', ) # limit access to POST
+        new.published = True # make the method available via API
+        new.methods = ('POST', ) # limit access to POST
     
     class NewSMSNamespace(JobNamespace):
         __version__ = 2
 
         def new(self, phonenumber, message, sender='my website', priority=5):
             # send sms ...
-        status.published = True # make the method available via API
-        status.methods = ('POST', ) # limit access to POST
-        status.types = {'priority': int} # ensure that priority argument is of type int
+        new.published = True # make the method available via API
+        new.methods = ('POST', ) # limit access to POST
+        new.types = {'priority': int} # ensure that priority argument is of type int
 
 urls.py::
 
