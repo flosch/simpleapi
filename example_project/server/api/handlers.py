@@ -41,3 +41,4 @@ class SomeFunctions(Namespace):
 		import datetime
 		return datetime.datetime.now()
 	today.published = True
+	today.output = ['pickle',]

@@ -100,7 +100,7 @@ class Route(object):
 			mimetype=mimetype or getattr(resp_type_inst, '__mime__', 'text/plain')
 		)
 	
-	def _handle_request(self, request, fname, rvars, version):
+	def _get_function(self, fname, version):
 		namespace_item = self.namespace_map[version]
 		namespace = namespace_item['instance']
 		functions = namespace_item['functions']
@@ -109,6 +109,10 @@ class Route(object):
 			raise ResponseException(u'Method (%s) not found' % fname)
 		
 		fitem = functions[fname]
+		
+		return (fitem, namespace)
+	
+	def _handle_request(self, request, rvars, fname, fitem, namespace):
 		func = fitem['fn']
 		
 		# check methods
@@ -199,7 +203,7 @@ class Route(object):
 				msgs.append('') # blank line
 			msgs.append('     -- End of traceback --     ')
 			msgs.append('')
-			print "\n".join(msgs)
+			print "\n".join(msgs) # TODO send it to the admins by email!
 			raise ResponseException(u'An internal error occurred during your request.')
 		
 		return result
@@ -256,7 +260,7 @@ class Route(object):
 			elif request.META.get('REMOTE_ADDR', 'n/a') not in namespace.__ip_restriction__:
 				return self._build_response(errors=u'permission denied')
 		
-		response_type = rvars.pop('_type', 'json')
+		response_type = rvars.pop('_output', 'json')
 		
 		if response_type not in self.__response_types__.keys():
 			return self._build_response(errors=u'Response type (%s) not found' % response_type)
@@ -267,8 +271,18 @@ class Route(object):
 			return self._build_response(errors=u'_call not given')
 		
 		try:
+			fitem, namespace = self._get_function(fname, version)
+			
+			# check whether output configuration is set
+			func = fitem['fn']
+			
+			if hasattr(func, 'output'):
+				assert isinstance(func.output, list) or isinstance(func.output, tuple)
+				if response_type not in func.output:
+					return self._build_response(errors=u'Response type (%s) not allowed (allowed: %s)' % (response_type, ", ".join(func.output)))
+			
 			return self._build_response(
-				self._handle_request(request, fname, rvars, version),
+				self._handle_request(request, rvars, fname, fitem, namespace),
 				response_type=response_type,
 				callback=callback,
 				mimetype=mimetype

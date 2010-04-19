@@ -112,18 +112,54 @@ urls.py::
 
 The namespace with the highest version is the default one which will be used when the client doesn't provide a version.
 
+Third example (which is restricted in use to the simpleapi client)
+------------------------------------------------------------------
+
+handlers.py::
+
+    import datetime
+    from simpleapi import Namespace
+    
+    class SomeFunctions(Namespace):
+        def today(self):
+            return datetime.datetime.now()
+        today.published = True
+        today.output = ['pickle',] # limit output format to pickle (which currently supports the simpleapi client only)
+
+urls.py as above. You can call the method with the simpleapi client as usual, but calling the method for instance via Ajax won't work.
+
+Configuration and development
+=============================
+
+Namespace's methods
+-------------------
+
+In order to make a method available and callable from outside (the client party) and to configure the called method simpleapi reads some configuration variables for each method. They are configured as follows:
+
+    class MyNamespace(Namespace):
+        def my_api_method(self, arg1):
+            return arg1
+        my_api_method.configuration_var = value
+
+The following configuration parameters are existing:
+
+:published: make the method available and callable from outside (boolean)
+:types: a dict where you can specify a type of which one parameter must be. The parameter will be converted into your desired type (if simpleapi cannot, it wil raise an error to the client). See the examples for more.
+:methods: specifies which HTTP methods are allowed to call the method (a list; by default it allowes every method). If you plan to receive a huge amount of data (like a file), you should only allow POST as this allows "unlimited" data (GET is limited to 1024 bytes which is fairly enough for much function calls).
+:output: if specified, the output formatters are limited for this method (a list; e. g. useful, if you plan to return values that cannot be serialized by the json-module but can be pickled)
+
 HTTP call and parameters
 ------------------------
 
 Clients are able to call the procedures like::
 
     http://www.yourdomain.tld/job/sms/?_call=new&to=012345364&msg=Hello!&sender=from+me
-    http://www.yourdomain.tld/job/sms/?_call=status&_type=xml&job_id=12345678
+    http://www.yourdomain.tld/job/sms/?_call=status&_output=xml&job_id=12345678
 
 The following parameters are used by simpleapi:
 
 :_call: method to be called
-:_type: output format (e. g. xml, json; default is json)
+:_output: output format (e. g. xml, json; default is json)
 :_version: version number of the API that should be used
 :_access_key: access key to the API (only if `__authentiation__` in `namespace` is defined)
 :_callback: defines the callback for JSONP (default is `simpleapiCallback`)
@@ -132,10 +168,10 @@ The following parameters are used by simpleapi:
 Supported output formats
 ------------------------
 
-* JSON
-* JSONP
-* cPickle (used by the simpleapi client)
-* XML (coming)
+* JSON ("json")
+* JSONP ("jsonp")
+* cPickle (used by the simpleapi client) ("pickle")
+* XML (coming) ("xml")
 
 Client example
 ==============
@@ -186,6 +222,7 @@ How to run the demo
 Tips & tricks
 =============
 
+0. Take a look on my example project (example_project/[client|server]) for a first view on how simpleapi works.
 1. Make sure to remove or deactivate the new csrf-middleware functionality of django 1.2 for the Route.
 2. Use SSL to encrypt the datastream.
 3. Use key authentication, limit ip-address access to your business' network or server.

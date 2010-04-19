@@ -10,7 +10,7 @@ PROJECT_ROOT = os.path.dirname(__file__)
 
 ROOT_URLCONF = 'server.urls'
 
-DEBUG = True
+DEBUG = False
 
 #
 # Language / localization

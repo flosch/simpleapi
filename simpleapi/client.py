@@ -19,7 +19,7 @@ class Client(object):
 		def do_call(**kwargs):
 			data = {
 				'_call': fname,
-				'_type': 'pickle',
+				'_output': 'pickle',
 				'_access_key': self.access_key or '',
 				'_version': self.version
 			}
