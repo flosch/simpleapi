@@ -346,7 +346,7 @@ In simpleapi client: `self.error` raises a `simpleapi.RemoteException` which you
 Pickling-Support (you should really read this!)
 -----------------------------------------------
 
-Pickling of the data streams makes the developer life easier since JSON or others doesn't support (de)serializing of several native types, for example `date types`. If your API will be used by unauthorized or unknown thiry-party users you should **NOT** enable pickle serialization because cPickle doesn't validates the pickle-dump. This could **cause to insecure or harmful method calls** (like `system("rm -rf /")`, you know ;) ).
+Pickling of the data streams makes the developer life easier since JSON and others doesn't support (de)serializing of several native types, for example `date objects`. If your API will be used by unauthorized or unknown third-party users you should **NOT** enable pickle serialization because cPickle doesn't validates the pickle-dump. This could **cause to insecure or harmful method calls** (like `system("rm -rf /")`, you know ;) ).
 
 To enable cPickle, you have to enable it manually in your namespace by adding `pickle` to the list of activated features::
 
@@ -357,7 +357,7 @@ For more details on insecurity of Pickle take look at http://nadiana.com/python-
 Add a new feature to your namespace
 -----------------------------------
 
-Features are adding more functionality and capability to your namespace. There are a few built-in features but the `__features__` configuration especially allows you to extend your namespace. It looks like this::
+Features are adding more functionality and capability to your namespace. There are a few built-in features, but the `__features__`-configuration especially allows **you** to extend your namespace. It looks like this::
 
     class MyNamespace(Namespace):
         __features__ = ['pickle', MyFeature]
