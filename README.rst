@@ -208,7 +208,7 @@ The following parameters are used by simpleapi:
 Server's response
 -----------------
 
-If you call a method the server will response as follows::
+If you call a method the server will response as follows:
 
 :status: true or false (boolean; indicates whether the call was successful or not)
 :result: return value of the called function (only if the call was **successful**)
