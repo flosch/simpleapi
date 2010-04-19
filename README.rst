@@ -2,16 +2,16 @@
 simpleapi
 =========
 
-:stage: unstable
+:stage: I consider it as **nearly stable** as it's used in my projects
 :author: Florian Schlachter (http://www.fs-tools.de)
 :license: see LICENSE file for more (simpleapi is licensed under MIT license)
 
 About
 =====
 
-simpleapi is an easy to use, consistent and portable way of providing an API within your django project. It supports several output formats (e. g. json, xml) and provides a client library to access the API seamlessly from any python application.
+simpleapi is an **easy to use, consistent and portable** way of providing an API within your django project. It supports **several output formats** (e. g. json, jsonp, xml) and provides a **client library** to access the API seamlessly from any python application. You can also use nearly every **Ajax framework** (e. g. jQuery, ExtJS, etc.) to access the API (see more at "Usage in web-apps" in this README).
 
-The server supports:
+The server supports (uncomplete list):
 
 * API-namespaces to bundle methods
 * dynamic key authentication / ip restriction
@@ -20,7 +20,7 @@ The server supports:
 * support for multiple API versions
 * several output formats (json, jsonp, xml, etc.)
 
-The client supports:
+The client supports (uncomplete list):
 
 * super simple access to server functions
 * easy to switch between different api versions
@@ -31,14 +31,13 @@ Server example
 First example
 -------------
 
+Let's start with our first simple server implementation. See more below in this README.
+
 handlers.py::
 
     from simpleapi import Namespace
     
-    class JobNamespace(Namespace):
-        __ip_restriction__ = ["127.0.0.*", "78.47.135.*"] # only allow specific ip-addresses
-        __authentication__ = "91d9f7763572c7ebcce49b183454aeb0" # you can either use a callable here (for dynamic authentication) or provide a static key for authentication
-    
+    class JobNamespace(Namespace):    
         def status(self, job_id):
             # get the job by job_id ...
             return job.get_status()
@@ -48,7 +47,6 @@ handlers.py::
         def new(self, to, msg, sender='my website', priority=5):
             # send sms ...
         new.published = True # make the method available via API
-        new.methods = ('POST', ) # limit access to POST
         new.types = {'priority': int} # ensure that priority argument is of type int
 
 urls.py::
@@ -69,8 +67,11 @@ handlers.py::
     from simpleapi import Namespace
     
     class JobNamespace(Namespace):
-        __ip_restriction__ = ["127.0.0.*", "78.47.135.*"] # you can either use a callable here or provide a list of ip addresses
-        __authentication__ = "91d9f7763572c7ebcce49b183454aeb0" # you can either use a callable here (for dynamic authentication) or provide a static key for authentication
+        # you can either use a callable here or provide a list of ip addresses:
+        __ip_restriction__ = ["127.0.0.*", "78.47.135.*"] 
+        
+        # you can either use a callable here (for dynamic authentication) or provide a static key for authentication:
+        __authentication__ = "91d9f7763572c7ebcce49b183454aeb0" 
         
         def _get_job_by_id(self, job_id):
             # get the job by job_id
@@ -171,8 +172,8 @@ Simpleapi's client uses the cPickle module of python for the whole communication
 Configuration and development
 =============================
 
-Namespace's methods
--------------------
+Namespace methods
+-----------------
 
 In order to make a method available and callable from outside (the client party) and to configure the called method simpleapi reads some configuration variables for each method. They are configured as follows::
 
@@ -187,6 +188,16 @@ The following configuration parameters are existing:
 :types: a dict where you can specify a type of which one parameter must be of. The parameter will be converted into your desired type (if simpleapi cannot, it wil raise an error to the client). See the examples for more.
 :methods: specifies which HTTP methods are allowed to call the method (a list; by default it allows every method). If you plan to receive a huge amount of data (like a file), you should only allow POST as this can manage "unlimited" data (GET is limited to 1024 bytes which is fairly enough for much function calls though).
 :outputs: if specified, the output formatters are limited for this method (a list; e. g. useful, if you plan to return values that cannot be serialized by the json-module but can be pickled and compatibility to Ajax and others isn't an issue for you)
+
+Namespace configuration
+-----------------------
+
+You can configure your namespaces on an individual basis. This are the supported configuration parameters:
+
+:__ip_restriction__: either a list of ipaddresses (which can contain wildcards, e.g. `127.*.0.*`) which are allowed to access the namespace or a callable which takes the ipaddress as an argument and returns `True` (allowed) or `False` (disallowed). Can be used to keep track of all requests to this namespace and to throttle clients if needed, for example. 
+:__authentication__: either a string with a key or a callable which takes the access_key provided by the client. Must return `True` (allowed) or `False` (disallowed). If not given, no authentication is needed. It's recommended to use SSL if you plan to use `__authentication__`.
+
+All parameters are optional.
 
 HTTP call and parameters
 ------------------------
@@ -266,6 +277,23 @@ In this case you can use simpleapi's JSONP implementation which allows you to ca
 
 See the demo project for an example implementation.
 
+Usage of simpleapi's client
+---------------------------
+
+The client's class lives in `simpleapi.Client`. Import it from there and instantiate your client like this:
+
+    my_client = Client(ns='http://yourdomain.tld/api/namespace/')
+
+The constructor takes following optional arguments:
+
+:version: defines the version to be used (if no one is given, the default API version is used)
+:ns: namespace-URL to be used
+
+Following methods are provided by client instances:
+
+:set_ns: set's a new namespace-URL to be used
+:set_version: changes the version to be used
+
 Usage of arguments and \*\*kwargs in your API method
 ---------------------------------------------------
 
@@ -279,30 +307,30 @@ In the request this would cause the following: `?a=1&b=2&c=3` (d is optional).
 
 If you are in need to get "unlimited" parameters you can also use `\*\*kwargs` (not `*args`!) in your API method like this::
 
-    def sum_it_up(self, \*\*kwargs):
+    def sum_it_up(self, **kwargs):
         return sum(map(lambda item: int(item), kwargs.values()))
     my_api_method.published = True
 
-`kwargs` contains all unused parameters. If the request looks like `?var1=195&var2=95&var3=9819&var999=185` `kwargs` contains all these parameters. 
+`kwargs` contains all unused parameters. If the request looks like `?var1=195&var2=95&var3=9819&var999=185` `kwargs` contains all these parameters.
 
-Notice: All parameters in kwargs cannot be casted/verified with the types-configuration. It's up to you to check the types and raise an error if you don't want to execute the function anymore. 
+**Notice**: All parameters in kwargs cannot be casted/verified with the `types`-configuration. It's up to you to check the types and raise an error if you don't want to execute the function anymore.
 
-Hint: If you're passing more parameters in your client call than your function signature contains (e. g. in our first example only `a, b, c and d`) and your function doesn't contain a `\*\*kwargs`, the client call will fail with an appropriate errormessage.
+**Hint**: If you're passing more parameters in your client call than your function signature contains (e. g. in our first example only `a, b, c and d`) and your function doesn't contain a `\*\*kwargs`, the client call will fail with an appropriate errormessage.
 
-Errors in API methods
----------------------
+Error handling on client/server-side
+------------------------------------
 
-If you want raise an error and abort execution of your method you can always call `self.error(err_or_list)`. `err_or_list` is either an unicode string or a list of unicode strings.
+If you want to raise an error and abort execution of your method you can always call `self.error(err_or_list)`. `err_or_list` is either an unicode string or a list of unicode strings.
 
-In simpleapi client: `self.error` raises a `simpleapi.RemoteException` which you can catch to handle the error (see example for more).
+In simpleapi client: `self.error` raises a `simpleapi.RemoteException` which you can catch to handle the error on the client side (see example for more).
 
 Supported output formats
 ------------------------
 
 * JSON ("json")
 * JSONP ("jsonp")
-* cPickle (used by the simpleapi client) ("pickle")
-* XML (coming) ("xml")
+* cPickle (*used by the simpleapi client*) ("pickle")
+* XML (*coming*) ("xml")
 
 How to run the demo
 ===================
