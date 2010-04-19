@@ -2,7 +2,7 @@
 simpleapi
 =========
 
-:stage: I consider it as **nearly stable** as it's used in my projects
+:version: 0.0.1
 :author: Florian Schlachter (http://www.fs-tools.de)
 :license: see LICENSE file for more (simpleapi is licensed under MIT license)
 
