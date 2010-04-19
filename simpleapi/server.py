@@ -204,7 +204,7 @@ class Route(object):
 		if features:
 			session_cache = {}
 			for name, feature in features.iteritems():
-				feature_result = feature._request(fname, (args, kwargs), func, session_cache)
+				feature_result = feature._request(fname, (args, kwargs), func, session_cache, request)
 				if isinstance(feature_result, FeatureResponse):
 					return feature_result.data
 		
@@ -238,7 +238,7 @@ class Route(object):
 		# trigger feature REQUEST
 		if features:
 			for name, feature in features.iteritems():
-				feature_result = feature._response(fname, rvars, result, func, session_cache)
+				feature_result = feature._response(fname, rvars, result, func, session_cache, request)
 				if isinstance(feature_result, FeatureResponse):
 					return feature_result.data
 		

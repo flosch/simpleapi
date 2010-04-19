@@ -26,13 +26,13 @@ class NamespaceFeature(object):
 		if hasattr(self, 'setup'):
 			self.setup()
 	
-	def _request(self, fname, fargs, ffunc, session_cache):
+	def _request(self, fname, fargs, ffunc, session_cache, request):
 		if hasattr(self, 'request'):
-			return self.request(fname, fargs, ffunc, session_cache)
+			return self.request(fname, fargs, ffunc, session_cache, request)
 	
-	def _response(self, fname, fargs, fresult, ffunc, session_cache):
+	def _response(self, fname, fargs, fresult, ffunc, session_cache, request):
 		if hasattr(self, 'response'):
-			return self.response(fname, fargs, fresult, ffunc, session_cache)
+			return self.response(fname, fargs, fresult, ffunc, session_cache, request)
 
 	def error(self, err_or_list):
 		self.namespace.error(err_or_list)
@@ -63,12 +63,15 @@ class CachingFeature(NamespaceFeature):
 	def _build_arg_signature(self, fargs):
 		return hashlib.md5(cPickle.dumps(fargs)).hexdigest()
 	
-	def request(self, fname, fargs, ffunc, session_cache):
+	def request(self, fname, fargs, ffunc, session_cache, request):
 		cache_details = getattr(ffunc, 'caching', None)
 		if not cache_details: return
 		
 		key = cache_details.get('key', 'simpleapi_%s_%s' % (fname, self._build_arg_signature(fargs)))
 		timeout = cache_details.get('timeout', 60*60)
+		
+		if callable(key):
+			key = key(request)
 		
 		session_cache['cache_key'] = key
 		session_cache['cache_timeout'] = timeout
@@ -80,7 +83,7 @@ class CachingFeature(NamespaceFeature):
 		else:
 			session_cache['want_cached'] = True
 	
-	def response(self, fname, fargs, fresult, ffunc, session_cache):
+	def response(self, fname, fargs, fresult, ffunc, session_cache, request):
 		if session_cache.get('want_cached') is True:
 			cache.set(session_cache['cache_key'], cPickle.dumps(fresult), session_cache['cache_timeout'])
 
