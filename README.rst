@@ -205,10 +205,10 @@ The following parameters are used by simpleapi:
 :_callback: defines the callback for JSONP (default is `simpleapiCallback`)
 :_mimetype: `simpleapi` automatically sets the correct mime type depending on the output format. you can set a different mimetype by set this http parameter.
 
-Usage in Web-Apps
+Usage in web-apps
 -----------------
 
-Imagine the following server implementation which will be used for the web-apps examples::
+Imagine the following server implementation which will be used for the web-app examples::
 
     from simpleapi import Namespace
     
