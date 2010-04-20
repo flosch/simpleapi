@@ -208,12 +208,12 @@ Configuration and development
 Namespace methods
 -----------------
 
-In order to make a method available and callable from outside (the client party) and to configure the called method simpleapi reads some configuration variables for each method. They are configured as follows::
+In order to make a method available and callable from outside (the client party) and to configure the called method `simpleapi` reads some configuration variables for each method. They are configured as follows::
 
     class MyNamespace(Namespace):
         def my_api_method(self, arg1):
             return arg1
-        my_api_method.configuration_var = value
+        my_api_method.configuration_var = value # <-- 
 
 The following configuration parameters are existing:
 
@@ -227,6 +227,7 @@ Namespace configuration
 
 You can configure your namespaces on an individual basis. This are the supported configuration parameters:
 
+:__version__: an integer; important if you want provide different versions of namespaces within one Route (e. g. for introducing improved API methods without breaking old clients which uses the old namespace, see example above). If the client doesn't provide a version, the namespace with the highest will be used.
 :__ip_restriction__: either a list of ipaddresses (which can contain wildcards, e.g. `127.*.0.*`) which are allowed to access the namespace or a callable which takes the ipaddress as an argument and returns `True` (allowed) or `False` (disallowed). Can be used to keep track of all requests to this namespace and to throttle clients if needed, for example. 
 :__authentication__: either a string with a key or a callable which takes the access_key provided by the client. Must return `True` (allowed) or `False` (disallowed). If not given, no authentication is needed. It's recommended to use SSL if you plan to use `__authentication__`.
 :__outputs__: If given, the namespace is restricted to the given output formatters (a list of strings)
@@ -234,6 +235,37 @@ You can configure your namespaces on an individual basis. This are the supported
 :__features__: list of activated namespace-features (currently available: `pickle`, `throttling`, `caching`)
 
 All parameters are optional.
+
+
+Route configuration
+-------------------
+
+The `Route` maintains the communcation between calling clients and your API implementation, the `Namespace`. It is hooked on a specific URL in your `urls.py` like this::
+
+    (r'^job/fax/$', Route(FaxNamespace))
+
+`Route` takes only `namespaces` as arguments. If you have different versions of `namespaces` (see `__version__` in *Namespacce configuration*) you can pass as many `namespaces` as you want to `Route`. It will manage automatically all versions and will use the right one for incoming method calls from clients. 
+
+This is an example with 2 different namespacs, a basic one (version 1) and a extended one (verison 2), which would break clients which are develoepd for version 1. 
+
+::
+    class BookingSystem(Namespace): 
+        # global configuration for all derived BookingSystem-classes 
+        pass
+
+    class BookingSystem_1(BookingSystem):
+        __version__ = 1
+    
+    class BookingSystem_2(BookingSystem):
+        __version__ = 2
+    
+Your urls.py should look like::
+
+    (r'^api/$', Route(BookingSystem_1, BookingSystem_2))
+
+Whenever a new client wants to use your API without providing a specific version he will be connected to the `namespace` with the highest version number (in our example version 2). If he provides version *1*, he will see automatically `BookingSystem_1`, if he provides *2*, he will get in touch with `BookingSystem_2`. 
+
+In `simpleapi's` client you can use `set_version()` or the `version`-argument at instantiation to define which version you want to use (see example project). The related HTTP parameter is called `_version` (see *HTTP call and parameters* for more).
 
 HTTP call and parameters
 ------------------------
@@ -247,7 +279,7 @@ The following parameters are used by simpleapi:
 
 :_call: method to be called
 :_output: output format (e. g. xml, json; default is json)
-:_version: version number of the API that should be used
+:_version: version number of the API that should be used (see *`Route` configuration*)
 :_access_key: access key to the API (only if `__authentiation__` in `namespace` is defined)
 :_callback: defines the callback for JSONP (default is `simpleapiCallback`)
 :_mimetype: `simpleapi` automatically sets the correct mime type depending on the desired output format. you can set a different mimetype by set this http parameter.
@@ -441,7 +473,7 @@ How to run the demo
 ===================
 
 1. Start the server with `./manage.py runserver 127.0.0.1:8888`
-2. Start the client `python calc.py`
+2. Start the client `python testclient.py`
 
 (Make sure simpleapi is in your PATH)
 
@@ -452,7 +484,7 @@ Tips & tricks
 #. Make sure to remove or deactivate the new csrf-middleware functionality of django 1.2 for the Route.
 #. Use SSL to encrypt the datastream.
 #. Use key authentication, limit ip-address access to your business' network or server.
-#. You can set up a simple throtteling by setting a callable to `__ip_restriction__` which keeps track at every request of an ip-address (the callable gets the ip-address of the calling party as the first argument). 
+#. You can set up a simple throtteling by setting a callable to `__ip_restriction__` which keeps track on every request of an ip-address (the callable gets the ip-address of the calling party as the first argument). 
 #. You can outsource your namespace's settings by creating new vars in your local settings.py file (e. g. `NAMESPACE_XY_IP_RESTRICTIONS=["127.0.0.*", ]`) and reference them within your namespace (like `__ip_restriction__ = settings.NAMESPACE_XY_IP_RESTRICTIONS`)
 
 Limitations

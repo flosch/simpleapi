@@ -235,7 +235,7 @@ class Route(object):
 			else:
 				raise
 		
-		# trigger feature REQUEST
+		# trigger feature RESPONSE
 		if features:
 			for name, feature in features.iteritems():
 				feature_result = feature._response(fname, rvars, result, func, session_cache, request)
