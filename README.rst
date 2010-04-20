@@ -249,6 +249,7 @@ The `Route` maintains the communcation between calling clients and your API impl
 This is an example with 2 different namespacs, a basic one (version 1) and a extended one (verison 2), which would break clients which are develoepd for version 1. 
 
 ::
+
     class BookingSystem(Namespace): 
         # global configuration for all derived BookingSystem-classes 
         pass
