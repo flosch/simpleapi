@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import re
 from simpleapi import Namespace
 
 class Calculator(Namespace):
@@ -14,12 +15,29 @@ class Calculator(Namespace):
 	def multiply(self, a, b):
 		return a*b	
 	multiply.published = True
-	multiply.types = {'a': float, 'b': float}
+	multiply.constraints = {'a': float, 'b': float}
 	
 	def power(self, a, b):
 		return a**b	
 	power.published = True
-	power.types = {'a': float, 'b': float}
+	power.constraints = {'a': float, 'b': lambda b: float(b)}
+	
+	def verify_sum_up(self, key, value):
+		return float(value) # verifiies also all kwargs!
+	
+	def sum_up(self, **kwargs):
+		return sum(kwargs.values())
+	sum_up.published = True
+	sum_up.constraints = verify_sum_up
+	
+	def verifiy_get_max(self, key, value):
+		return float(value)
+	verifiy_get_max.name = 'float'
+	
+	def get_max(self, a, b):
+		return max(a, b)
+	get_max.published = True
+	get_max.constraints = {'a': verifiy_get_max, 'b': verifiy_get_max}
 	
 class OldCalculator(Calculator):
 	
@@ -30,7 +48,7 @@ class OldCalculator(Calculator):
 	def add(self, a, b):
 		return a+b
 	add.published = True
-	add.types = {'a': float, 'b': float}
+	add.constraints = {'a': float, 'b': float}
 
 class NewCalculator(Calculator):
 	
@@ -39,13 +57,18 @@ class NewCalculator(Calculator):
 	def add(self, a, b):
 		return a+b+1
 	add.published = True
-	add.types = {'a': float, 'b': float}
+	add.constraints = {'a': float, 'b': float}
 
 class SomeFunctions(Namespace):
 	
 	__features__ = ['pickle', 'caching']
 	__input__ = ['pickle'] # restrict input to pickle only (since we're using datetime objects as input and use only the simpleapi client)
 	__output__ = ['pickle'] # restrict output to pickle only
+	
+	def regex_constraint(self, value):
+		return True
+	regex_constraint.published = True
+	regex_constraint.constraints = {'value': re.compile(r'^\d{5}\-\w{3,7}$')}
 	
 	def get_remote_ip(self):
 		return self.session.request.META.get('REMOTE_ADDR')

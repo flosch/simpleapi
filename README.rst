@@ -81,7 +81,7 @@ handlers.py::
         def new(self, to, msg, sender='my website', priority=5):
             # send sms ...
         new.published = True # make the method available via API
-        new.types = {'priority': int} # ensure that priority argument is of type int
+        new.constraints = {'priority': int} # ensure that priority argument is of type int
 
 urls.py::
 
@@ -117,7 +117,7 @@ handlers.py::
             job = self._get_job_by_id(job_id)
             return job.get_status()
         status.published = True # make the method available via API
-        status.types = {'job_id': str}
+        status.constraints = {'job_id': str}
 
     class OldSMSNamespace(JobNamespace):
         __version__ = 1
@@ -133,7 +133,7 @@ handlers.py::
             # send sms ...
         new.published = True # make the method available via API
         new.methods = ('POST', ) # limit access to POST
-        new.types = {'priority': int} # ensure that priority argument is of type int
+        new.constraints = {'priority': int, 'phonenumber': re.compile(r'\+\d{1,4}\ \d{3,6} \d{5,}')} # ensure that priority argument is of type int
 
 urls.py::
 
@@ -219,7 +219,7 @@ In order to make a method available and callable from outside (the client party)
 The following configuration parameters are existing:
 
 :published: make the method available and callable from outside (boolean)
-:types: a dict where you can specify a type of which one parameter must be of. The parameter will be converted into your desired type (if simpleapi cannot, it wil raise an error to the client). See the examples for more.
+:constraints: a dict where you can specify any type of which one parameter must be of. The parameter will be converted into your desired type (if simpleapi cannot, it wil raise an error to the client). You can also define a callable (which gets (`namespace`, `value`) passed and must return the new value or any error, like ValueError) or a compiled regular expression (`re.compile(r'...')`; in this case the value will be checked against the regular expression). See the examples for more.
 :methods: specifies which HTTP methods are allowed to call the method (a list; by default it allows every method). If you plan to receive a huge amount of data (like a file), you should only allow POST as this can manage "unlimited" data (GET is limited to 1024 bytes which is fairly enough for much function calls though).
 :outputs: if specified, the output formatters are limited for this method (a list; e. g. useful, if you plan to return values that cannot be serialized by the json-module but can be pickled and compatibility to Ajax and others isn't an issue for you)
 
@@ -247,7 +247,7 @@ An individual connection-based `NamespaceSession` is provided within any method 
 :version: client's requested version
 :mimetype: 
 
-Note: All properties are **read-only**. Any changes made will be ignored.
+Note: All properties are **read-only**. Any changes made will be ignored..constraints
 
 Example call::
 
@@ -321,12 +321,21 @@ Imagine the following server implementation which will be used for the web-app e
     	def multiply(self, a, b):
     		return a*b	
     	multiply.published = True
-    	multiply.types = {'a': float, 'b': float}
+    	multiply.constraints = {'a': float, 'b': float}
+
+        # example for user-defined callable for the constraints-property
+        def check_power(key, value):
+            # you can even check the values when you accept **kwargs
+            # in your API method
+            try:
+                float(key)
+            except (ValueError, TypeError):
+                self.error('%s must be of type float' % key)
 
     	def power(self, a, b):
     		return a**b	
     	power.published = True
-    	power.types = {'a': float, 'b': float}
+    	power.constraints = check_power
 
 The next two chapters are covering Ajax (with jQuery) and crossdomain-Requests.
 

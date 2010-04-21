@@ -7,6 +7,7 @@ try:
 except ImportError:
 	import simplejson as json
 import inspect
+import copy
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -180,35 +181,63 @@ class Route(object):
 		if fitem['vars'][2] is not None:
 			kwargs.update(rvars)
 		
-		# ensure types
-		if hasattr(func, 'types'):
-			assert isinstance(func.types, dict)
+		# ensure constraints
+		if hasattr(func, 'constraints'):
+			assert isinstance(func.constraints, dict) or callable(func.constraints)
 			
-			for var_name, var_type in func.types.iteritems():
-				if var_name not in fitem['vars'][0]:
-					raise ValueError(u'%s not found in function argument list' % var_name)
+			if isinstance(func.constraints, dict):
+				for var_name, var_type in func.constraints.iteritems():
+					if var_name not in fitem['vars'][0]:
+						raise ValueError(u'%s not found in function argument list' % var_name)
 				
-				def convert(value, vtype):
-					try:
-						if vtype == bool:
-							return vtype(int(value))
+					def convert(value, vtype):
+						if hasattr(vtype, 'match'):
+							if vtype.match(value) is None:
+								raise ResponseException(u'Argument %s must fulfil constraint (regex)' % var_name)
 						else:
-							return vtype(value)
-					except:
-						raise ResponseException(u'Argument %s must be of type %s' % (var_name, repr(vtype)))
+							try:
+								if vtype == bool:
+									return vtype(int(value))
+								else:
+									return vtype(value)
+							except (ValueError, TypeError):
+								if hasattr(vtype, 'name'):
+									vtype_name = vtype.name
+								else:
+									vtype_name = repr(vtype)
+								raise ResponseException(u'Argument %s must contain: %s' % (var_name, vtype_name))
+					
+					new_args = []
+					for key, value in args:
+						if key == var_name:
+							new_args.append((key, convert(value, var_type)))
+						else:
+							new_args.append((key, value))
+					args = new_args
+					
+					if kwargs.has_key(var_name):
+						kwargs[var_name] = convert(value, var_type)
+			elif callable(func):
+				def convert_via_callable(key, value):
+					try:
+						return func.constraints(namespace, key, value)
+					except (ValueError, TypeError), e:
+						raise ResponseException(u'Argument %s must fulfil constraint' % key)
 				
-				new_args = []
-				for key, value in args:
-					if key == var_name:
-						new_args.append((key, convert(value, var_type)))
-					else:
-						new_args.append((key, value))
+				# args
+				for key, value in dict(args).iteritems():
+					new_args = []
+					for akey, avalue in args:
+						if akey == key:
+							new_args.append((akey, convert_via_callable(akey, avalue)))
+						else:
+							new_args.append((akey, avalue))
 				
-				args = new_args
+					args = new_args
 				
+				# kwargs
 				for key, value in kwargs.iteritems():
-					if key == var_name:
-						kwargs[key] = convert(value, var_type)
+					kwargs[key] = convert_via_callable(key, value)
 		
 		# trigger feature REQUEST
 		features = self.namespace_map[version].get('features')

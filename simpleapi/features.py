@@ -4,6 +4,7 @@ __all__ = ('__builtin_features__', 'NamespaceFeature', 'FeatureResponse')
 
 import cPickle
 import hashlib
+import warnings
 
 try:
 	from django.core.cache import cache
@@ -55,6 +56,9 @@ class PickleFeature(NamespaceFeature):
 		
 		self.route.__response_types__['pickle'] = PickleType()
 		self.route.__request_types__['pickle'] = PickleType()
+		
+		if not hasattr(self.namespace, '__authentication__'):
+			warnings.warn(u'WARNING: You should activate __authentication__ since enabling pickle is a risk when used in a untrusted environment!')
 
 class CachingFeature(NamespaceFeature):
 	
