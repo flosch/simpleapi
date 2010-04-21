@@ -247,7 +247,7 @@ An individual connection-based `NamespaceSession` is provided within any method 
 :version: client's requested version
 :mimetype: 
 
-Note: All properties are **read-only**. Any changes made will be ignored..constraints
+Note: All properties are **read-only**. Any changes made will be ignored.
 
 Example call::
 
@@ -324,13 +324,10 @@ Imagine the following server implementation which will be used for the web-app e
     	multiply.constraints = {'a': float, 'b': float}
 
         # example for user-defined callable for the constraints-property
-        def check_power(key, value):
+        def check_power(self, key, value):
             # you can even check the values when you accept **kwargs
             # in your API method
-            try:
-                float(key)
-            except (ValueError, TypeError):
-                self.error('%s must be of type float' % key)
+            return float(key) # return casted value # simpleapi will take care of any errors raised
 
     	def power(self, a, b):
     		return a**b	
