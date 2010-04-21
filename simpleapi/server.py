@@ -245,7 +245,7 @@ class Route(object):
 		return result
 	
 	def __call__(self, request):
-		rvars = dict(request.REQUEST.iteritems())
+		rvars = dict(request.REQUEST.items())
 		
 		# _mimetype		get mimetype
 		mimetype = rvars.pop('_mimetype', None)

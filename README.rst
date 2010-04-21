@@ -11,7 +11,7 @@ About
 
 simpleapi is an **easy to use, consistent and portable** way of providing an API within your django project. It supports **several output formats** (e. g. json, jsonp, xml) and provides a **client library** to access the API seamlessly from any python application. You can also use nearly every **Ajax framework** (e. g. jQuery, ExtJS, etc.) to access the API (see more at "Usage in web-apps" in this README).
 
-The server (uncomplete list)...
+The server...
 
 * provides API-namespaces to bundle methods
 * has dynamic key authentication / ip restriction
@@ -22,10 +22,10 @@ The server (uncomplete list)...
 * has features for: *caching, throttling, pickling*
 * can be extended with your own features
 
-The client supports (uncomplete list):
+The client supports...
 
 * super simple access to server functions
-* easy to switch between different api versions
+* an easy switch between different api versions
 
 `simpleapi` provides:
 
