@@ -16,14 +16,17 @@ from utils import glob_list
 
 class NamespaceSession(object):
 	
-	def __init__(self, **kwargs):
-		self.data = kwargs
+	def __init__(self, session_data):
+		self.data = session_data
 	
 	def __getattr__(self, name):
 		return self.data.get(name)
 
 class NamespaceException(Exception): pass
 class Namespace(object):
+	
+	def __init__(self, session_data):
+		self.session = NamespaceSession(session_data)
 	
 	def error(self, err_or_list):
 		raise ResponseException(err_or_list)
@@ -78,11 +81,11 @@ class Route(object):
 			functions = map(lambda item: (item[0], {'fn': item[1], 'vars': inspect.getargspec(item[1])}), functions)
 			functions = dict(functions)
 			
-			self.namespace_map[version] = {'instance': namespace, 'functions': functions}
+			self.namespace_map[version] = {'class': namespace, 'functions': functions}
 		
 			# make glob list from ip address ranges
 			if hasattr(namespace, '__ip_restriction__'):
-				self.namespace_map[version]['instance'].__ip_restriction__ = glob_list(namespace.__ip_restriction__)
+				self.namespace_map[version]['class'].__ip_restriction__ = glob_list(namespace.__ip_restriction__)
 			
 			# __features__ 		apply features
 			if hasattr(namespace, '__features__'):
@@ -92,7 +95,7 @@ class Route(object):
 						if not __builtin_features__.has_key(feature):
 							raise ValueError(u'feature %s not found' % feature)
 						
-						feature = __builtin_features__[feature](self, self.namespace_map[version]['instance'])
+						feature = __builtin_features__[feature](self, self.namespace_map[version]['class'])
 						assert hasattr(feature, '__name__')
 						
 						self.namespace_map[version]['features'][feature.__name__] = feature
@@ -130,15 +133,12 @@ class Route(object):
 	
 	def _get_function(self, fname, version):
 		namespace_item = self.namespace_map[version]
-		namespace = namespace_item['instance']
 		functions = namespace_item['functions']
 		
 		if fname not in functions.keys():
 			raise ResponseException(u'Method (%s) not found' % fname)
 		
-		fitem = functions[fname]
-		
-		return (fitem, namespace)
+		return functions[fname]
 	
 	def _handle_request(self, request, rvars, fname, fitem, namespace, version):		
 		func = fitem['fn']
@@ -276,8 +276,16 @@ class Route(object):
 		if not self.namespace_map.has_key(version):
 			return self._build_response(errors=u'API-version not found (available versions: %s)' % ", ".join(map(lambda x: str(x), self.namespace_map.keys())))
 		
-		# determine default namespace
-		namespace = self.namespace_map[version]['instance']
+		# determine default namespace-class
+		namespace_class = self.namespace_map[version]['class']
+		
+		# instantiate connection-based namespace
+		namespace = namespace_class({
+			'request': request,
+			'version' :version,
+			'mimetype': mimetype,
+			'callback': callback
+		})
 		
 		# _access_key	check authentication
 		access_key = rvars.pop('_access_key', None)
@@ -297,6 +305,8 @@ class Route(object):
 					return self._build_response(errors=u'Wrong access key')
 			else:
 				raise ValueError(u'__authentication__ can be either a callable or a string, not %s' % type(namespace.__authentication__))
+			
+			namespace.session.data['access_key'] = access_key
 		
 		# __ip_restriction__ 		check ipaddress restriction
 		if hasattr(namespace, '__ip_restriction__'):
@@ -341,20 +351,7 @@ class Route(object):
 			rvars = self._parse_request(rvars, request_type)
 		
 		try:
-			fitem, namespace_class = self._get_function(fname, version)
-			
-			# instantiate connection-based namespace
-			namespace = namespace_class()
-			
-			# provide a request-based Session-object which contains several connection-related data 
-			# like request object, access_key, etc.
-			namespace.session = NamespaceSession(
-				request=request,
-				access_key=access_key,
-				version=version,
-				mimetype=mimetype,
-				callback=callback
-			)
+			fitem = self._get_function(fname, version)
 			
 			# check whether output configuration is set
 			func = fitem['fn']

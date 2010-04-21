@@ -5,7 +5,7 @@ from simpleapi import Namespace
 class Calculator(Namespace):
 	
 	__ip_restriction__ = ["127.0.0.*", "78.47.135.*"]
-	__authentication__ = "91d9f7763572c7ebcce49b183454aeb0"
+	__authentication__ = lambda self, access_key: access_key == "91d9f7763572c7ebcce49b183454aeb0"
 	
 	def get_access_keys(self):
 		return (self.__authentication__, self.session.access_key)
@@ -22,6 +22,8 @@ class Calculator(Namespace):
 	power.types = {'a': float, 'b': float}
 	
 class OldCalculator(Calculator):
+	
+	__authentication__ = "91d9f7763572c7ebcce49b183454aeb0"
 	
 	__version__ = 1
 	

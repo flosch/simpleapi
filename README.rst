@@ -56,7 +56,8 @@ From GitHub
 Dependencies
 ============
 
-* Python 2.6.5 or greater
+* Python 2.6.5 or greater 
+* simplejson (if you're using Python <= 2.5)
 
 Server example
 ==============
@@ -236,6 +237,21 @@ You can configure your namespaces on an individual basis. This are the supported
 
 All parameters are optional.
 
+NamespaceSession
+----------------
+
+An individual connection-based `NamespaceSession` is provided within any method call and can be reached via `self.session`. The following parameters are available:
+
+:request: the original request object provided by django
+:access_key: client's access key
+:version: client's requested version
+:mimetype: 
+
+Note: All properties are **read-only**. Any changes made will be ignored.
+
+Example call::
+
+    print self.session.access_key
 
 Route configuration
 -------------------
@@ -246,7 +262,7 @@ The `Route` maintains the communcation between calling clients and your API impl
 
 `Route` takes only `namespaces` as arguments. If you have different versions of `namespaces` (see `__version__` in *Namespacce configuration*) you can pass as many `namespaces` as you want to `Route`. It will manage automatically all versions and will use the right one for incoming method calls from clients. 
 
-This is an example with 2 different namespacs, a basic one (version 1) and a extended one (verison 2), which would break clients which are develoepd for version 1. 
+This is an example with 2 different namespacs, a basic one (version 1) and a extended one (verison 2), which would break clients which are developed for version 1. 
 
 ::
 
