@@ -1,8 +1,10 @@
 from setuptools import setup, find_packages
 
+from simpleapi import get_version
+
 setup(
 	name='django-simpleapi',
-	version='0.0.1',
+	version=get_version(),
 	description='A simple API-framework for django to provide an easy to use, consistent and portable client/server-architecture.',
 	long_description=open('README.rst').read(),
 	author='Florian Schlachter',

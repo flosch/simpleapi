@@ -2,7 +2,7 @@
 simpleapi
 =========
 
-:version: 0.0.1
+:version: 0.0.2
 :author: Florian Schlachter (http://www.fs-tools.de)
 :license: see LICENSE file for more (simpleapi is licensed under MIT license)
 
