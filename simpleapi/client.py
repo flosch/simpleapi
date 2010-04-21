@@ -4,7 +4,10 @@ __all__ = ('Client', 'ClientException', 'ConnectionException', 'RemoteException'
 
 import urllib
 import cPickle
-import json
+try:
+	import json
+except ImportError:
+	import simplejson as json
 
 class ClientException(Exception): pass
 class ConnectionException(ClientException): pass

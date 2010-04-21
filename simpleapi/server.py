@@ -2,7 +2,10 @@
 
 __all__ = ('Namespace', 'Route')
 
-import json
+try:
+	import json
+except ImportError:
+	import simplejson as json
 import inspect
 
 from django.conf import settings
