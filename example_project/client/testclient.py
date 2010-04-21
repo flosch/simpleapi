@@ -18,6 +18,9 @@ print "5 * 5 =", calculator.multiply(a=5, b=5)
 calculator.set_ns('http://localhost:8888/api/calculator/one/')
 print "5 ** 5 =", calculator.power(a=5, b=5)
 
+access_keys = calculator.get_access_keys()
+print "Access keys:", access_keys[0], access_keys[1], access_keys[0] == access_keys[1] 
+
 some_functions = Client(ns='http://localhost:8888/api/functions/', use_pickle=True)
 
 print
@@ -31,6 +34,8 @@ print
 print "Function will delay 3 seconds (because it's NOT cached):"
 print some_functions.delayed_function(a=5, b=6, c=1)
 print
+
+print "Client's ip address:", some_functions.get_remote_ip()
 
 # works only with simpleapi's python client because it's using cPickle functionality. JSON doesn't support to serialize date objects
 print "Today's datetime:", some_functions.today()

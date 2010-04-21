@@ -7,6 +7,10 @@ class Calculator(Namespace):
 	__ip_restriction__ = ["127.0.0.*", "78.47.135.*"]
 	__authentication__ = "91d9f7763572c7ebcce49b183454aeb0"
 	
+	def get_access_keys(self):
+		return (self.__authentication__, self.session.access_key)
+	get_access_keys.published = True
+	
 	def multiply(self, a, b):
 		return a*b	
 	multiply.published = True
@@ -40,6 +44,10 @@ class SomeFunctions(Namespace):
 	__features__ = ['pickle', 'caching']
 	__input__ = ['pickle'] # restrict input to pickle only (since we're using datetime objects as input and use only the simpleapi client)
 	__output__ = ['pickle'] # restrict output to pickle only
+	
+	def get_remote_ip(self):
+		return self.session.request.META.get('REMOTE_ADDR')
+	get_remote_ip.published = True
 	
 	def today(self):
 		import datetime

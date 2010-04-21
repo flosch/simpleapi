@@ -14,6 +14,14 @@ from django.http import HttpResponse
 from features import *
 from utils import glob_list
 
+class NamespaceSession(object):
+	
+	def __init__(self, **kwargs):
+		self.data = kwargs
+	
+	def __getattr__(self, name):
+		return self.data.get(name)
+
 class NamespaceException(Exception): pass
 class Namespace(object):
 	
@@ -70,7 +78,7 @@ class Route(object):
 			functions = map(lambda item: (item[0], {'fn': item[1], 'vars': inspect.getargspec(item[1])}), functions)
 			functions = dict(functions)
 			
-			self.namespace_map[version] = {'instance': namespace(), 'functions': functions}
+			self.namespace_map[version] = {'instance': namespace, 'functions': functions}
 		
 			# make glob list from ip address ranges
 			if hasattr(namespace, '__ip_restriction__'):
@@ -333,7 +341,20 @@ class Route(object):
 			rvars = self._parse_request(rvars, request_type)
 		
 		try:
-			fitem, namespace = self._get_function(fname, version)
+			fitem, namespace_class = self._get_function(fname, version)
+			
+			# instantiate connection-based namespace
+			namespace = namespace_class()
+			
+			# provide a request-based Session-object which contains several connection-related data 
+			# like request object, access_key, etc.
+			namespace.session = NamespaceSession(
+				request=request,
+				access_key=access_key,
+				version=version,
+				mimetype=mimetype,
+				callback=callback
+			)
 			
 			# check whether output configuration is set
 			func = fitem['fn']
