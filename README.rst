@@ -419,7 +419,7 @@ If you are in need to get "unlimited" parameters you can also use `\*\*kwargs` (
 
 `kwargs` contains all unused parameters. If the request looks like `?var1=195&var2=95&var3=9819&var999=185` `kwargs` contains all these parameters.
 
-**Notice**: All parameters in kwargs cannot be casted/verified with the `types`-configuration. It's up to you to check the types and raise an error if you don't want to execute the function anymore.
+**Advice**: To check the **kwargs values use a callable for the method's `constraints`-configuration.
 
 **Hint**: If you're passing more parameters in your client call than your function signature contains (e. g. in our first example only `a, b, c and d`) and your function doesn't contain a `\*\*kwargs`, the client call will fail with an appropriate errormessage.
 
