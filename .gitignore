@@ -3,3 +3,4 @@
 secret.txt
 dist/*
 django_simpleapi.egg-info
+doc/_build/*
