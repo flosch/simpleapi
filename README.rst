@@ -111,11 +111,10 @@ handlers.py::
         status.constraints = {'job_id': str}
 
     class FaxNamespace(JobNamespace):
-        """
-        Send a fax and use a the provided Response object to built a response that
-        can be sent as json/jsonp/xml and parse back to a Response on a python or javascript client
-        The Response object is modeled after ElementTree
-        """
+        #Send a fax and use a the provided Response object to built a response that
+        #can be sent as json/jsonp/xml and parse back to a Response on a python or javascript client
+        #The Response object is modeled after ElementTree
+
         ret = Response()
 
         #send fax
