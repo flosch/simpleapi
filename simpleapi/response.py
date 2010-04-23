@@ -362,19 +362,36 @@ class ResponseElement(BaseResponse):
         if isinstance(source, basestring):
             source = json.loads(source, encoding='utf-8')
 
-        kwargs = dict([(str(k), v)for k, v in source['attrs'].iteritems()])
-        ret = cls(source['tag'], **kwargs)
+        kwargs = dict([(str(k), v)for k, v in source.get('attrs', {}).iteritems()])
+        el = cls(source['tag'], **kwargs)
         if source.get('text'):
-            ret.text = source['text']
+            el.text = source['text']
 
-        for child in source['children']:
-            ret.append(cls.parse(child))
+        for child in source.get('children', []):
+            el.append(cls.parse_json(child))
 
-        return ret
+        return el
 
     @classmethod
-    def parse_xml(self, xml_string):
-        pass
+    def parse_xml(cls, source):
+        """
+        Parses a xml String into a ResponseElement
+
+        @param source A json string.
+        @return The ResponseElement.
+        @defreturn ResponseElement
+        """
+        if isinstance(source, basestring):
+            source = ET.fromstring(source)
+
+        el = cls(source.tag, **source.attrib)
+        if source.text:
+            el.text = source.text
+
+        for child in source.children:
+            el.append(cls.parse_xml(child))
+
+        return el
 
     #Properties
     def _get_tag(self):
@@ -462,7 +479,7 @@ class Response(BaseResponse):
             id=id(self))
 
     def to_json(self, as_dict=True):
-        _ = {u'__type__': 'response',
+        _ = {u'simpleapi': 'response',
              u'error': True if self._errors else False,
              u'errors': tuple(self._errors),
              u'attrs': dict(self.iteritems()),
@@ -624,7 +641,7 @@ class Response(BaseResponse):
 
         kwargs = dict([(str(k), v)for k, v in source['attrs'].iteritems()])
         if source.get('root'):
-            ret = cls(ResponseElement.parse(source['root']), **kwargs)
+            ret = cls(ResponseElement.parse_json(source['root']), **kwargs)
         else:
             ret = cls(**kwargs)
 
@@ -640,8 +657,35 @@ class Response(BaseResponse):
         return ret
 
     @classmethod
-    def parse_xml(self, xml_string):
-        pass
+    def parse_xml(cls, source):
+        """
+        Parses a xml String into a Response
+
+        @param source A json string.
+        @return The Response.
+        @defreturn Response
+        """
+        if isinstance(source, basestring):
+            source = ET.fromstring(source)
+
+        if source.tag != 'response':
+            raise TypeError('Response does not know how to decode this')
+
+        ret = cls(**source.attrib)
+
+        for err in source.findall('error'):
+            ret.add_error(err.text)
+            source.remove(err)
+
+        for errs in source.findall('errors'):
+            source.remove(errs)
+
+        child = source.children[0] if len(source.children) else None
+        if child is not None:
+            c = ResponseElement.parse_xml(child)
+            ret._root = c
+
+        return ret
 
     #Properties
     def _get_root(self):
