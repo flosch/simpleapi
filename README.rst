@@ -119,10 +119,10 @@ handlers.py::
 
         #send fax
         if not success:
-            ret.add_error('The Fax failed to send')
+            ret.add_error("The Fax failed to send")
         else:
-            el = ResponseElement('receipts')
-            el.text = 'The fax was sent on {date}'.format(date=datetime.now())
+            el = ResponseElement("receipts")
+            el.text = "The fax was sent on {date}".format(date=datetime.now())
 
         return ret
 
