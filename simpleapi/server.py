@@ -1,21 +1,22 @@
 # -*- coding: utf-8 -*-
 
+__all__ = ('Namespace', 'Route')
+
 try:
     import json
 except ImportError:
     import simplejson as json
 import inspect
+import copy
 
 from django.conf import settings
 from django.http import HttpResponse
 
 from features import *
 from utils import glob_list
-
-__all__ = ('Namespace', 'Route')
+from response import BaseResponse
 
 class NamespaceSession(object):
-
     def __init__(self, session_data):
         self.data = session_data
 
@@ -24,7 +25,6 @@ class NamespaceSession(object):
 
 class NamespaceException(Exception): pass
 class Namespace(object):
-
     def __init__(self, session_data):
         self.session = NamespaceSession(session_data)
 
@@ -32,34 +32,37 @@ class Namespace(object):
         raise ResponseException(err_or_list)
 
 class JSONType(object):
-
     __mime__ = "application/json"
 
     def build(self, data, callback):
+        if isinstance(data['result'], BaseResponse):
+            data['result'] = data['result'].to_json()
+
         return json.dumps(data)
 
-    def parse(self, data):
-        return json.loads(data)
-
 class JSONPType(object):
-
     __mime__ = "application/javascript"
 
     def build(self, data, callback):
-        return u'%s(%s)' % (callback or 'simpleapiCallback', json.dumps(data))
+        func = callback or 'simpleapiCallback'
+
+        if isinstance(data['result'], BaseResponse):
+            data['result'] = data['result'].to_json()
+
+        return u'{func}({data}})'.format(func=func, data=json.dumps(data))
 
 class XMLType(object):
-
     __mime__ = "text/xml"
 
     def build(self, data, callback):
+        if isinstance(data['response'], BaseResponse):
+            return data['response'].to_xml()
         raise NotImplemented
 
 class RouteException(Exception): pass
 class ResponseException(RouteException): pass
 
 class Route(object):
-
     __response_types__ = {
         'json': JSONType(),
         'jsonp': JSONPType(),
@@ -67,8 +70,7 @@ class Route(object):
     }
 
     __request_types__ = {
-        'value': None,
-        'json': JSONType()
+        'value': None
     }
 
     def __init__(self, *namespaces):
@@ -81,7 +83,7 @@ class Route(object):
                 raise ValueError(u'Duplicate API version')
 
             functions = filter(lambda fn: '__' not in fn[0], dict(inspect.getmembers(namespace)).items())
-            functions = filter(lambda fn: getattr(fn[1], 'published', False) == True, functions)
+            functions = filter(lambda fn: getattr(fn[1], 'published', False) is True, functions)
             functions = map(lambda item: (item[0], {'fn': item[1], 'vars': inspect.getargspec(item[1])}), functions)
             functions = dict(functions)
 
@@ -95,7 +97,7 @@ class Route(object):
             if hasattr(namespace, '__features__'):
                 self.namespace_map[version]['features'] = {}
                 for feature in namespace.__features__:
-                    if isinstance(feature, basestring):
+                    if isinstance(feature, str):
                         if not __builtin_features__.has_key(feature):
                             raise ValueError(u'feature %s not found' % feature)
 
@@ -332,9 +334,9 @@ class Route(object):
                 if access_key != namespace.__authentication__:
                     return self._build_response(errors=u'Wrong access key')
             elif callable(namespace.__authentication__):
-                if not hasattr(namespace.__authentication__, 'provides_user'):
-                    if not namespace.__authentication__(access_key):
-                        return self._build_response(errors=u'Wrong access key')
+                if not hasattr(namespace.__authentication__, 'provides_user') and\
+                   not namespace.__authentication__(access_key):
+                    return self._build_response(errors=u'Wrong access key')
                 else:
                     auth, user = namespace.__authentication__(access_key)
                     if not auth:
@@ -388,10 +390,7 @@ class Route(object):
 
         # all system parameters are removed, let's parse the request
         if request_type != 'value':
-            try:
-                rvars = self._parse_request(rvars, request_type)
-            except:
-                return self._build_response(errors=u'There was an error during decoding your inputs. Please check whether you chose the correct input-type and you\'ve coded the inputs appropriately!')
+            rvars = self._parse_request(rvars, request_type)
 
         try:
             fitem = self._get_function(fname, version)
