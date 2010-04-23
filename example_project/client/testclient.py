@@ -28,7 +28,7 @@ except RemoteException, e:
 access_keys = calculator.get_access_keys()
 print "Access keys:", access_keys[0], access_keys[1], access_keys[0] == access_keys[1] 
 
-some_functions = Client(ns='http://localhost:8888/api/functions/', use_pickle=True)
+some_functions = Client(ns='http://localhost:8888/api/functions/', transport_type='pickle')
 
 print
 print "Function will delay 3 seconds."
@@ -62,3 +62,7 @@ try:
 	some_functions.fail()
 except RemoteException, e:
 	print unicode(e)
+
+json_functions = Client(ns='http://localhost:8888/api/misc/')
+
+print json_functions.return_my_value(val={1:2, 5:6, 'test': 'hehe'})

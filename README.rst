@@ -35,22 +35,13 @@ The client supports...
 Installation
 ============
 
-From PyPI
----------
-
 ::
-
-    pip install django-simpleapi
-    
-or::
-
     easy_install -U django-simpleapi
 
 From GitHub
 -----------
 
 ::
-
     git clone git://github.com/flosch/simpleapi.git
 
 Dependencies

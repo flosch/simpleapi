@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import client
-from client import *
-
 import server
+
+from client import *
 from server import *
 
 __all__ = (client.__all__ + server.__all__)

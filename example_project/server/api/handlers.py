@@ -96,3 +96,9 @@ class SomeFunctions(Namespace):
 	delayed_function.caching = {
 		'timeout': 15, # in seconds
 	} # Caching is available because 'caching' is added to the list of __features__ (see above)!
+
+class Misc(Namespace):
+    
+    def return_my_value(self, val):
+        return val
+    return_my_value.published = True
