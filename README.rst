@@ -88,6 +88,7 @@ Second example with multiple API versions
 -----------------------------------------
 
 handlers.py::
+
     from datetime import datetime
     from simpleapi import Namespace, Response, ResponseElement
 
