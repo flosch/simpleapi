@@ -379,7 +379,10 @@ class Route(object):
         
         # all system parameters are removed, let's parse the request
         if request_type <> 'value':
-            rvars = self._parse_request(rvars, request_type)
+            try:
+                rvars = self._parse_request(rvars, request_type)
+            except:
+                return self._build_response(errors=u'There was an error during decoding your inputs. Please check whether you chose the correct input-type and you\'ve coded the inputs appropriately!')
         
         try:
             fitem = self._get_function(fname, version)
