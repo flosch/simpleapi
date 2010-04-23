@@ -36,12 +36,14 @@ Installation
 ============
 
 ::
+    
     easy_install -U django-simpleapi
 
 From GitHub
 -----------
 
 ::
+    
     git clone git://github.com/flosch/simpleapi.git
 
 Dependencies
