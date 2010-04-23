@@ -376,7 +376,7 @@ The constructor takes following optional arguments:
 
 :version: defines the version to be used (if no one is given, the default API version is used)
 :access_key: defines the access key to the API
-:use_pickle: If you added `pickle` to the list of features of your namespace you can activate it in your client as well (for more information about pickling see below, especially the warning!)
+:transport_type: Change transport type (default is `json`). You can set 'pickle' here if the other side allows it. 
 
 Following methods are provided by client instances:
 
