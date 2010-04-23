@@ -388,7 +388,8 @@ class ResponseElement(BaseResponse):
         if source.text:
             el.text = source.text
 
-        for child in source.children:
+        children = source.getchildren()
+        for child in children:
             el.append(cls.parse_xml(child))
 
         return el
@@ -680,7 +681,8 @@ class Response(BaseResponse):
         for errs in source.findall('errors'):
             source.remove(errs)
 
-        child = source.children[0] if len(source.children) else None
+        children = source.getchildren()
+        child = children[0] if len(children) else None
         if child is not None:
             c = ResponseElement.parse_xml(child)
             ret._root = c

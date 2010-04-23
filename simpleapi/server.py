@@ -55,8 +55,8 @@ class XMLType(object):
     __mime__ = "text/xml"
 
     def build(self, data, callback):
-        if isinstance(data['response'], BaseResponse):
-            return data['response'].to_xml()
+        if isinstance(data['result'], BaseResponse):
+            return data['result'].to_xml()
         raise NotImplemented
 
 class RouteException(Exception): pass
@@ -334,9 +334,9 @@ class Route(object):
                 if access_key != namespace.__authentication__:
                     return self._build_response(errors=u'Wrong access key')
             elif callable(namespace.__authentication__):
-                if not hasattr(namespace.__authentication__, 'provides_user') and\
-                   not namespace.__authentication__(access_key):
-                    return self._build_response(errors=u'Wrong access key')
+                if not hasattr(namespace.__authentication__, 'provides_user'):
+                    if not namespace.__authentication__(access_key):
+                        return self._build_response(errors=u'Wrong access key')
                 else:
                     auth, user = namespace.__authentication__(access_key)
                     if not auth:

@@ -47,7 +47,7 @@ From GitHub
 Dependencies
 ============
 
-* Python 2.6.5 or greater 
+* Python 2.6.5 or greater
 * simplejson (if you're using Python <= 2.5)
 
 Server example
@@ -61,8 +61,8 @@ Let's start with our first simple server implementation. See more below in this 
 handlers.py::
 
     from simpleapi import Namespace
-    
-    class JobNamespace(Namespace):    
+
+    class JobNamespace(Namespace):
         def status(self, job_id):
             # get the job by job_id ...
             return job.get_status()
@@ -80,43 +80,61 @@ urls.py::
     from handlers import SMSNamespace, FaxNamespace
 
     urlpatterns = patterns('',
-    	(r'^job/sms/$', Route(SMSNamespace)),
-    	(r'^job/fax/$', Route(FaxNamespace)),
+        (r'^job/sms/$', Route(SMSNamespace)),
+        (r'^job/fax/$', Route(FaxNamespace)),
     )
 
 Second example with multiple API versions
 -----------------------------------------
 
 handlers.py::
+    from datetime import datetime
+    from simpleapi import Namespace, Response, ResponseElement
 
-    from simpleapi import Namespace
-    
     class JobNamespace(Namespace):
         # you can either use a callable here or provide a list of ip addresses:
-        __ip_restriction__ = ["127.0.0.*", "78.47.135.*"] 
-        
+        __ip_restriction__ = ["127.0.0.*", "78.47.135.*"]
+
         # you can either use a callable here (for dynamic authentication) or provide a static key for authentication:
-        __authentication__ = "91d9f7763572c7ebcce49b183454aeb0" 
-        
+        __authentication__ = "91d9f7763572c7ebcce49b183454aeb0"
+
         def _get_job_by_id(self, job_id):
             # get the job by job_id
-            # this method isn't published to the public and isn't 
+            # this method isn't published to the public and isn't
             # made accessable via API since it's missing the published-flag
             return Job.objects.get(id=job_id)
-    
+
         def status(self, job_id):
             job = self._get_job_by_id(job_id)
             return job.get_status()
         status.published = True # make the method available via API
         status.constraints = {'job_id': str}
 
+    class FaxNamespace(JobNamespace):
+        """
+        Send a fax and use a the provided Response object to built a response that
+        can be sent as json/jsonp/xml and parse back to a Response on a python or javascript client
+        The Response object is modeled after ElementTree
+        """
+        ret = Response()
+
+        #send fax
+        if not success:
+            ret.add_error('The Fax failed to send')
+        else:
+            el = ResponseElement('receipts')
+            el.text = 'The fax was sent on {date}'.format(date=datetime.now())
+
+        return ret
+
+
     class OldSMSNamespace(JobNamespace):
         __version__ = 1
-    
+
         def new(self, to, msg):
             # send sms ...
         new.published = True # make the method available via API
-    
+
     class NewSMSNamespace(JobNamespace):
         __version__ = 2
 
@@ -145,10 +163,10 @@ handlers.py::
 
     import datetime
     from simpleapi import Namespace
-    
+
     class SomeFunctions(Namespace):
         __features__ = ['pickle',]
-        
+
         def today(self):
             return datetime.datetime.now()
         today.published = True
@@ -170,8 +188,8 @@ First example
 
     SMS = Client(ns='http://yourdomain.tld/api/job/sms/')
     new_sms = SMS.new(
-    	to="+49 123 456789",
-    	msg="Short test"
+        to="+49 123 456789",
+        msg="Short test"
     )
 
 Second example (with version change)
@@ -183,15 +201,15 @@ Second example (with version change)
 
     SMS = Client(ns='http://yourdomain.tld/api/job/sms/', version=2)
     new_sms = SMS.new(
-    	phonenumber="+49 123 456789",
-    	message="Short test"
+        phonenumber="+49 123 456789",
+        message="Short test"
     )
-    
+
     SMS.set_version(1) # back to the old API-version (which takes differently named arguments)
-    
+
     new_sms = SMS.new(
-	    to="+49 123 456789",
-	    msg="Short test"    
+        to="+49 123 456789",
+        msg="Short test"
     )
 
 Configuration and development
@@ -205,7 +223,7 @@ In order to make a method available and callable from outside (the client party)
     class MyNamespace(Namespace):
         def my_api_method(self, arg1):
             return arg1
-        my_api_method.configuration_var = value # <-- 
+        my_api_method.configuration_var = value # <--
 
 The following configuration parameters are existing:
 
@@ -220,7 +238,7 @@ Namespace configuration
 You can configure your namespaces on an individual basis. This are the supported configuration parameters:
 
 :__version__: an integer; important if you want provide different versions of namespaces within one Route (e. g. for introducing improved API methods without breaking old clients which uses the old namespace, see example above). If the client doesn't provide a version, the namespace with the highest will be used.
-:__ip_restriction__: either a list of ipaddresses (which can contain wildcards, e.g. `127.*.0.*`) which are allowed to access the namespace or a callable which takes the ipaddress as an argument and returns `True` (allowed) or `False` (disallowed). Can be used to keep track of all requests to this namespace and to throttle clients if needed, for example. 
+:__ip_restriction__: either a list of ipaddresses (which can contain wildcards, e.g. `127.*.0.*`) which are allowed to access the namespace or a callable which takes the ipaddress as an argument and returns `True` (allowed) or `False` (disallowed). Can be used to keep track of all requests to this namespace and to throttle clients if needed, for example.
 :__authentication__: either a string with a key or a callable which takes the access_key provided by the client. Must return `True` (allowed) or `False` (disallowed). If not given, no authentication is needed. It's recommended to use SSL if you plan to use `__authentication__`.
 :__outputs__: If given, the namespace is restricted to the given output formatters (a list of strings)
 :__inputs__: If given, the namespace is restricted to the given input formatters (a list of strings)
@@ -236,7 +254,7 @@ An individual connection-based `NamespaceSession` is provided within any method 
 :request: the original request object provided by django
 :access_key: client's access key
 :version: client's requested version
-:mimetype: 
+:mimetype:
 
 Note: All properties are **read-only**. Any changes made will be ignored.
 
@@ -251,27 +269,27 @@ The `Route` maintains the communcation between calling clients and your API impl
 
     (r'^job/fax/$', Route(FaxNamespace))
 
-`Route` takes only `namespaces` as arguments. If you have different versions of `namespaces` (see `__version__` in *Namespacce configuration*) you can pass as many `namespaces` as you want to `Route`. It will manage automatically all versions and will use the right one for incoming method calls from clients. 
+`Route` takes only `namespaces` as arguments. If you have different versions of `namespaces` (see `__version__` in *Namespacce configuration*) you can pass as many `namespaces` as you want to `Route`. It will manage automatically all versions and will use the right one for incoming method calls from clients.
 
-This is an example with 2 different namespacs, a basic one (version 1) and a extended one (verison 2), which would break clients which are developed for version 1. 
+This is an example with 2 different namespacs, a basic one (version 1) and a extended one (verison 2), which would break clients which are developed for version 1.
 
 ::
 
-    class BookingSystem(Namespace): 
-        # global configuration for all derived BookingSystem-classes 
+    class BookingSystem(Namespace):
+        # global configuration for all derived BookingSystem-classes
         pass
 
     class BookingSystem_1(BookingSystem):
         __version__ = 1
-    
+
     class BookingSystem_2(BookingSystem):
         __version__ = 2
-    
+
 Your urls.py should look like::
 
     (r'^api/$', Route(BookingSystem_1, BookingSystem_2))
 
-Whenever a new client wants to use your API without providing a specific version he will be connected to the `namespace` with the highest version number (in our example version 2). If he provides version *1*, he will see automatically `BookingSystem_1`, if he provides *2*, he will get in touch with `BookingSystem_2`. 
+Whenever a new client wants to use your API without providing a specific version he will be connected to the `namespace` with the highest version number (in our example version 2). If he provides version *1*, he will see automatically `BookingSystem_1`, if he provides *2*, he will get in touch with `BookingSystem_2`.
 
 In `simpleapi's` client you can use `set_version()` or the `version`-argument at instantiation to define which version you want to use (see example project). The related HTTP parameter is called `_version` (see *HTTP call and parameters* for more).
 
@@ -308,12 +326,12 @@ Usage in web-apps
 Imagine the following server implementation which will be used for the web-app examples::
 
     from simpleapi import Namespace
-    
+
     class Calculator(Namespace):
-    	def multiply(self, a, b):
-    		return a*b	
-    	multiply.published = True
-    	multiply.constraints = {'a': float, 'b': float}
+        def multiply(self, a, b):
+            return a*b
+        multiply.published = True
+        multiply.constraints = {'a': float, 'b': float}
 
         # example for user-defined callable for the constraints-property
         def check_power(self, key, value):
@@ -321,10 +339,10 @@ Imagine the following server implementation which will be used for the web-app e
             # in your API method
             return float(key) # return casted value # simpleapi will take care of any errors raised
 
-    	def power(self, a, b):
-    		return a**b	
-    	power.published = True
-    	power.constraints = check_power
+        def power(self, a, b):
+            return a**b
+        power.published = True
+        power.constraints = check_power
 
 The next two chapters are covering Ajax (with jQuery) and crossdomain-Requests.
 
@@ -344,7 +362,7 @@ See the demo project for an example implementation.
 Usage in web-apps (crossdomain)
 -------------------------------
 
-If you want to call an API method from a third-party page (which isn't located on the same domain as the server API) you cannot use XMLHttpRequest due to browser security restrictions. 
+If you want to call an API method from a third-party page (which isn't located on the same domain as the server API) you cannot use XMLHttpRequest due to browser security restrictions.
 
 In this case you can use simpleapi's JSONP implementation which allows you to call functions and get the result back via a callback. Some Ajax implementations (like jQuery and ExtJS) support transparent Ajax requests which internally uses the <script>-tag to get access to the remote function. In jQuery it looks like::
 
@@ -370,14 +388,14 @@ The client's class lives in `simpleapi.Client`. Import it from there and instant
 To call a remote function you just use call it the same as you do usually::
 
     my_client.my_remote_function(first="first argument", second_arg=2, third=datetime.datetime.now())
-    
+
 **Hint:** It's important that you name your arguments, anonymous arguments are prohibited.
 
 The constructor takes following optional arguments:
 
 :version: defines the version to be used (if no one is given, the default API version is used)
 :access_key: defines the access key to the API
-:transport_type: Change transport type (default is `json`). You can set 'pickle' here if the other side allows it. 
+:transport_type: Change transport type (default is `json`). You can set 'pickle' here if the other side allows it.
 
 Following methods are provided by client instances:
 
@@ -453,18 +471,18 @@ simpleapi supports caching of function calls. This is pretty useful when you hav
 Using the namespace-method `caching`-configuration you can configure how the `simpleapi`-cache will work::
 
     def delayed_function(self):
-		import time
-		time.sleep(5)
-		return True
-	delayed_function.published = True
-	delayed_function.caching = {
-		'timeout': 30, # in seconds
-		'key': 'delayed_function' 
-	}
+        import time
+        time.sleep(5)
+        return True
+    delayed_function.published = True
+    delayed_function.caching = {
+        'timeout': 30, # in seconds
+        'key': 'delayed_function'
+    }
 
 The `caching`-option can either be a boolean or a dictionary with user-defined settings. `Timeout` defines, after which timeperiod the key will be removed (default is 1 hour). The `key` defines the caching-key (default-format `simpleapi_FUNCTIONNAME`) which can either be a string or a callable (with the `request` object passed).
 
-A md5-generated fingerprint of the given arguments will be appended to the caching key. If your user-defined caching key is *delayed_function*, the complete key might be *delayed_function_0cc175b9c0f1b6a831c399e269772661*. The return value of the function is stored pickled. 
+A md5-generated fingerprint of the given arguments will be appended to the caching key. If your user-defined caching key is *delayed_function*, the complete key might be *delayed_function_0cc175b9c0f1b6a831c399e269772661*. The return value of the function is stored pickled.
 
 **Note:** Don't forget to configure Django for caching (especially CACHE_BACKEND), see more: http://docs.djangoproject.com/en/dev/topics/cache/
 
@@ -499,7 +517,7 @@ Tips & tricks
 #. Make sure to remove or deactivate the new csrf-middleware functionality of django 1.2 for the Route.
 #. Use SSL to encrypt the datastream.
 #. Use key authentication, limit ip-address access to your business' network or server.
-#. You can set up a simple throtteling by setting a callable to `__ip_restriction__` which keeps track on every request of an ip-address (the callable gets the ip-address of the calling party as the first argument). 
+#. You can set up a simple throtteling by setting a callable to `__ip_restriction__` which keeps track on every request of an ip-address (the callable gets the ip-address of the calling party as the first argument).
 #. You can outsource your namespace's settings by creating new vars in your local settings.py file (e. g. `NAMESPACE_XY_IP_RESTRICTIONS=["127.0.0.*", ]`) and reference them within your namespace (like `__ip_restriction__ = settings.NAMESPACE_XY_IP_RESTRICTIONS`)
 
 Limitations
