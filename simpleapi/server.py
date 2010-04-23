@@ -80,16 +80,26 @@ class Route(object):
             if self.namespace_map.has_key(version):
                 raise ValueError(u'Duplicate API version')
             
-            functions = filter(lambda fn: '__' not in fn[0], dict(inspect.getmembers(namespace)).items())
-            functions = filter(lambda fn: getattr(fn[1], 'published', False) == True, functions)
-            functions = map(lambda item: (item[0], {'fn': item[1], 'vars': inspect.getargspec(item[1])}), functions)
+            functions = filter(lambda fn: '__' not in fn[0],
+                dict(inspect.getmembers(namespace)).items())
+            
+            functions = filter(lambda fn: 
+                getattr(fn[1], 'published', False) == True, functions)
+            
+            functions = map(lambda item: (item[0], {'fn': item[1], 'vars':
+                inspect.getargspec(item[1])}), functions)
+            
             functions = dict(functions)
             
-            self.namespace_map[version] = {'class': namespace, 'functions': functions}
-        
+            self.namespace_map[version] = {
+                'class': namespace,
+                'functions': functions
+            }
+            
             # make glob list from ip address ranges
             if hasattr(namespace, '__ip_restriction__'):
-                self.namespace_map[version]['class'].__ip_restriction__ = glob_list(namespace.__ip_restriction__)
+                self.namespace_map[version]['class'].__ip_restriction__ = \
+                    glob_list(namespace.__ip_restriction__)
             
             # __features__      apply features
             if hasattr(namespace, '__features__'):
@@ -99,7 +109,8 @@ class Route(object):
                         if not __builtin_features__.has_key(feature):
                             raise ValueError(u'feature %s not found' % feature)
                         
-                        feature = __builtin_features__[feature](self, self.namespace_map[version]['class'])
+                        feature = __builtin_features__[feature](
+                            self, self.namespace_map[version]['class'])
                         assert hasattr(feature, '__name__')
                         
                         self.namespace_map[version]['features'][feature.__name__] = feature
@@ -110,7 +121,8 @@ class Route(object):
         # create default namespace (= latest version)
         self.namespace_map['default'] = self.namespace_map[max(self.namespace_map.keys())]
     
-    def _build_response(self, data=None, response_type='json', errors=None, success=None, callback=None, mimetype=None):
+    def _build_response(self, data=None, response_type='json', errors=None,
+                        success=None, callback=None, mimetype=None):
         result = {}
         
         if errors is not None:
@@ -144,15 +156,18 @@ class Route(object):
         
         return functions[fname]
     
-    def _handle_request(self, request, rvars, fname, fitem, namespace, version):        
+    def _handle_request(self, request, rvars, fname, fitem, namespace,
+                        version):
         func = fitem['fn']
         
         # check methods
         if hasattr(func, 'methods'):
             assert isinstance(func.methods, tuple)
             if request.method not in func.methods:
-                raise ResponseException(u'HTTP-method not supported (supported: %s)' % ", ".join(func.methods))
-
+                raise ResponseException(
+                    u'HTTP-method not supported (supported: %s)' % \
+                        ", ".join(func.methods))
+        
         args = []
         kwargs = {}
         
@@ -176,9 +191,11 @@ class Route(object):
                 except KeyError:
                     pass
 
-        # are there any vars left? if true, they are only allowed when func takes **kwargs
+        # are there any vars left?
+        # if true, they are only allowed when func takes **kwargs
         if len(rvars) > 0 and fitem['vars'][2] is None:
-            raise ResponseException(u'Unused argument(s): %s' % ", ".join(rvars.keys()))
+            raise ResponseException(u'Unused argument(s): %s' % \
+                ", ".join(rvars.keys()))
         
         # update kwargs if func takes **kwargs
         if fitem['vars'][2] is not None:
@@ -191,12 +208,16 @@ class Route(object):
             if isinstance(func.constraints, dict):
                 for var_name, var_type in func.constraints.iteritems():
                     if var_name not in fitem['vars'][0]:
-                        raise ValueError(u'%s not found in function argument list' % var_name)
+                        message = u'%s not found in function argument list' % \
+                            var_name
+                        raise ValueError(message)
                 
                     def convert(value, vtype):
                         if hasattr(vtype, 'match'):
                             if vtype.match(value) is None:
-                                raise ResponseException(u'Argument %s must fulfil constraint (regex)' % var_name)
+                                message = u'Argument %s must fulfil ' \
+                                          u'constraint (regex)' % var_name
+                                raise ResponseException(message)
                         else:
                             try:
                                 if vtype == bool:
@@ -208,7 +229,10 @@ class Route(object):
                                     vtype_name = vtype.name
                                 else:
                                     vtype_name = repr(vtype)
-                                raise ResponseException(u'Argument %s must contain: %s' % (var_name, vtype_name))
+
+                                message = u'Argument %s must contain: %s' % \
+                                    (var_name, vtype_name)
+                                raise ResponseException(message)
                     
                     new_args = []
                     for key, value in args:
@@ -225,7 +249,8 @@ class Route(object):
                     try:
                         return func.constraints(namespace, key, value)
                     except (ValueError, TypeError), e:
-                        raise ResponseException(u'Argument %s must fulfil constraint' % key)
+                        message = u'Argument %s must fulfil constraint' % key
+                        raise ResponseException(message)
                 
                 # args
                 for key, value in dict(args).iteritems():
@@ -303,10 +328,16 @@ class Route(object):
             try:
                 version = int(version)
             except ValueError:
-                return self._build_response(errors=u'API-version must be an integer (available versions: %s)' % ", ".join(map(lambda x: str(x), self.namespace_map.keys())))
+                return self._build_response(
+                    errors=u'API-version must be an integer (available ' \
+                           u'versions: %s)' % ", ".join(
+                                map(lambda x: str(x), self.namespace_map.keys()))
+                            )
         
         if not self.namespace_map.has_key(version):
-            return self._build_response(errors=u'API-version not found (available versions: %s)' % ", ".join(map(lambda x: str(x), self.namespace_map.keys())))
+            return self._build_response(
+                errors=u'API-version not found (available versions: %s)' % \
+                    ", ".join(map(lambda x: str(x), self.namespace_map.keys())))
         
         # determine default namespace-class
         namespace_class = self.namespace_map[version]['class']
@@ -382,7 +413,10 @@ class Route(object):
             try:
                 rvars = self._parse_request(rvars, request_type)
             except:
-                return self._build_response(errors=u'There was an error during decoding your inputs. Please check whether you chose the correct input-type and you\'ve coded the inputs appropriately!')
+                return self._build_response(
+                    errors=u'There was an error during decoding your inputs.' \
+                           u'Please check whether you chose the correct' \
+                           u'input-type and you\'ve coded the inputs appropriately!')
         
         try:
             fitem = self._get_function(fname, version)
@@ -393,10 +427,19 @@ class Route(object):
             if hasattr(func, 'outputs'):
                 assert isinstance(func.outputs, list) or isinstance(func.outputs, tuple)
                 if response_type not in func.outputs:
-                    return self._build_response(errors=u'Response type (%s) not allowed (allowed: %s)' % (response_type, ", ".join(func.outputs)))
+                    return self._build_response(
+                        errors=u'Response type (%s) not allowed (allowed: %s)' % \
+                            (response_type, ", ".join(func.outputs)))
             
             return self._build_response(
-                self._handle_request(request, rvars, fname, fitem, namespace, version),
+                self._handle_request(
+                    request,
+                    rvars,
+                    fname,
+                    fitem,
+                    namespace,
+                    version
+                ),
                 response_type=response_type,
                 callback=callback,
                 mimetype=mimetype

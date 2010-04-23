@@ -20,7 +20,8 @@ class ConnectionException(ClientException): pass
 class RemoteException(ClientException): pass
 class Client(object):
     
-    def __init__(self, ns, access_key=None, version='default', transport_type='json'):
+    def __init__(self, ns, access_key=None, version='default',
+                 transport_type='json'):
         self.ns = ns
         self.access_key = access_key
         self.version = version
@@ -56,7 +57,11 @@ class Client(object):
                     try:
                         response = cPickle.loads(response)
                     except (cPickle.UnpicklingError, EOFError):
-                        raise ClientException(u'Couldn\'t unpickle response data. Did you added "pickle" to the namespace\'s __features__ list?')
+                        raise ClientException(
+                            u'Couldn\'t unpickle response ' \
+                            'data. Did you added "pickle" to the namespace\'s' \
+                            ' __features__ list?'
+                        )
                 else:
                     response = json.loads(response)
             except ValueError, e:
