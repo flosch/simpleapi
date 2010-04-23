@@ -287,6 +287,7 @@ The following parameters are used by simpleapi:
 
 :_call: method to be called
 :_output: output format (e. g. xml, json; default is json)
+:_input: input format (possible: 'value' (default), 'json', 'pickle' (if allowed by the server))
 :_version: version number of the API that should be used (see *`Route` configuration*)
 :_access_key: access key to the API (only if `__authentiation__` in `namespace` is defined)
 :_callback: defines the callback for JSONP (default is `simpleapiCallback`)
