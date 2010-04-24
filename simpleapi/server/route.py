@@ -204,7 +204,15 @@ class Route(object):
         request_items = dict(http_request.REQUEST.items())
         version = request_items.pop('_version', 'default')
         callback = request_items.pop('_callback', None)
-        output_formatter = request_items.pop('_output', 'json')
+        output_formatter = request_items.pop('_output', None)
+        
+        # let's activate JSONP automatically if _callback is given
+        if callback:
+            if not output_formatter:
+                output_formatter = 'jsonp'
+        else:
+            output_formatter = 'json'
+        
         input_formatter = request_items.pop('_input', 'value')
         wrapper = request_items.pop('_wrapper', 'default')
         mimetype = request_items.pop('_mimetype', None)
