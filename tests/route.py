@@ -34,6 +34,8 @@ class RouteTest(unittest.TestCase):
         
         class TestNamespace(Namespace):
             
+            __features__ = ['pickle',]
+            
             def return_value(self, val):
                 return val
             return_value.published = True
@@ -57,6 +59,7 @@ class RouteTest(unittest.TestCase):
             pass
         
         request = Request()
+        request.method = 'POST'
         request.REQUEST = {}
         request.META = {
             'REMOTE_ADDR': '127.0.0.1'
@@ -67,7 +70,7 @@ class RouteTest(unittest.TestCase):
         
         # make sure every transporttype returns the same result after
         # decoding the response content
-        transporttypes = ['json', ]
+        transporttypes = ['json', 'pickle']
         first_response = None
         for transporttype in transporttypes:
             # encode query parameters
@@ -75,6 +78,8 @@ class RouteTest(unittest.TestCase):
             for key, value in local_kwargs.iteritems():
                 if transporttype == 'json':
                     local_kwargs[key] = json.dumps(value)
+                elif transporttype == 'pickle':
+                    local_kwargs[key] = cPickle.dumps(value)
             
             request.REQUEST.update(local_kwargs)
             
@@ -85,6 +90,8 @@ class RouteTest(unittest.TestCase):
             
             if transporttype == 'json':
                 response = json.loads(http_response.content)
+            elif transporttype == 'pickle':
+                response = cPickle.loads(http_response.content)
             else:
                 self.fail(u'unknown transport type: %s' % transporttype)
             

@@ -4,3 +4,4 @@
 secret.txt
 dist/*
 docs/_build/*
+build/*

@@ -110,7 +110,9 @@ class PickleFeature(Feature):
                 return cPickle.dumps(value)
     
             def parse(self, value):
-                return cPickle.loads(value.encode("utf-8"))
+                if isinstance(value, unicode):
+                    value = value.encode("utf-8")
+                return cPickle.loads(value)
         
         self.ns_config['input_formatters']['pickle'] = PickleFormatter
         self.ns_config['output_formatters']['pickle'] = PickleFormatter
@@ -121,7 +123,6 @@ class CachingFeature(Feature):
     
     def handle_request(self, request):
         caching_config = self.get_config(request)
-        scope = self.get_config_scope(request)
         
         if caching_config:
             arg_signature = hashlib.md5(cPickle.dumps(
