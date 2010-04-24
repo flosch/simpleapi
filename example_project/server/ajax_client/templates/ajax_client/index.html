@@ -40,8 +40,8 @@
                 var method = $(this).attr("id");
                 var way = $("input[name=way2]:checked").val();
                 var data = {_call: method, _access_key: key, _input: 'json', _data: $.toJSON({
-                    a: a,
-                    b: b
+                    'a': a,
+                    'b': b
                 })};
                 
                 var callback_fn = function(result) {

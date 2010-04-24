@@ -80,9 +80,10 @@ class Request(object):
                 raise RequestException(u'Unused arguments: %s' % \
                 ", ".join(unsued_arguments))
         
-        # decode incoming variables
-        for key, value in request_items.iteritems():
-            request_items[key] = self.input_formatter.parse(value)
+        # decode incoming variables (only if _data is not set!)
+        if not data:
+            for key, value in request_items.iteritems():
+                request_items[key] = self.input_formatter.parse(value)
 
         # check constraints
         for key, value in request_items.iteritems():
