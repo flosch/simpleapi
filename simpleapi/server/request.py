@@ -2,6 +2,7 @@
 
 from response import Response
 from session import Session
+from feature import FeatureContentResponse
 
 __all__ = ('Request', 'RequestException')
 
@@ -49,6 +50,7 @@ class Request(object):
             raise RequestException(u'You are not allowed to access.')
         
         function = self.namespace['functions'][method]
+        self.session.function = function
         
         # check allowed HTTP methods
         if not function['methods']['function'](self.http_request.method):
@@ -90,14 +92,18 @@ class Request(object):
             except:
                 raise RequestException(u'Constraint failed for argument: %s' % key)
         
+        # we're done working on arguments, pass it to the session
         self.session.arguments = request_items
         
         # call feature: handle_request
-        for feature in self.namespace['features']:
-            feature.handle_request(self)
-        
-        # make the call
-        result = getattr(local_namespace, method)(**request_items)
+        try:
+            for feature in self.namespace['features']:
+                feature.handle_request(self)
+        except FeatureContentResponse, e:
+            result = e
+        else:
+            # make the call
+            result = getattr(local_namespace, method)(**request_items)
         
         # if result is not a Response, create one
         if not isinstance(result, Response):

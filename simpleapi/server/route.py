@@ -99,6 +99,7 @@ class Route(object):
                 
                 functions[function_name] = {
                     'method': function_method,
+                    'name': function_name,
                     'args': {
                         'raw': raw_args,
                         'all': all_args,

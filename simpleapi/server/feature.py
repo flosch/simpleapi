@@ -14,12 +14,17 @@ except ImportError, e:
     if not 'DJANGO_SETTINGS_MODULE' in str(e):
         raise
 
-__all__ = ('__features__', )
+__all__ = ('__features__', 'FeatureContentResponse')
 
+class FeatureContentResponse(Exception): pass
 class Feature(object):
     
     def __init__(self, ns_config):
         self.ns_config = ns_config
+        self.setup()
+
+    def setup(self):
+        pass
     
     def handle_request(self, request):
         pass
@@ -29,9 +34,7 @@ class Feature(object):
 
 class PickleFeature(Feature):
     
-    def __init__(self, *args, **kwargs):
-        super(PickleFeature, self).__init__(*args, **kwargs)
-        
+    def setup(self):
         class PickleFormatter(Formatter):
             __mime__ = "application/octet-stream"
     
@@ -43,13 +46,44 @@ class PickleFeature(Feature):
         
         self.ns_config['input_formatters']['pickle'] = PickleFormatter
         self.ns_config['output_formatters']['pickle'] = PickleFormatter
-    
-    def handle_request(self, request):
-        pass
 
 class CachingFeature(Feature):
     
-    pass
+    def handle_request(self, request):
+        caching_config = getattr(request.session.function['method'], 'caching', None)
+        if caching_config:
+            arg_signature = hashlib.md5(cPickle.dumps(request.session.arguments)).hexdigest()
+            timeout = 60*60
+            prefix = None
+            
+            if isinstance(caching_config, dict):
+                timeout = caching_config.get('timeout', timeout)
+                prefix = caching_config.get('key', None)
+                if callable(prefix):
+                    prefix = prefix(request)
+            
+            key = '%s_%s' % (
+                prefix or ('simpleapi_%s' % request.session.function['name']),
+                arg_signature,
+            )
+            
+            content = cache.get(key)
+            
+            if content:
+                raise FeatureContentResponse(cPickle.loads(content))
+            else:
+                request.session.cache_timeout = timeout
+                request.session.cache_key = key
+                request.session.want_cached = True
+    
+    def handle_response(self, response):
+        # only cache if function returns no errors!
+        if hasattr(response.session, 'want_cached') and not response.errors:
+            cache.set(
+                response.session.cache_key,
+                cPickle.dumps(response.result),
+                response.session.cache_timeout
+            )
 
 __features__ = {
     'pickle': PickleFeature,
