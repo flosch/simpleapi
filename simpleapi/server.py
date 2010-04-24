@@ -9,7 +9,7 @@ import inspect
 from django.conf import settings
 from django.http import HttpResponse
 
-from features import *
+from features import __builtin_features__, NamespaceFeature, FeatureResponse
 from utils import glob_list
 
 __all__ = ('Namespace', 'Route')

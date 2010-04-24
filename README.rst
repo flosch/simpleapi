@@ -508,10 +508,3 @@ Limitations
 ===========
 
 #. The output/return value of a method is limited to the formatter's restrictions. For instance, you cannot return datetime values since they aren't supported by JSON (use datetime.isotime() or datetime.ctime() instead). Applies only if you're not using cPickle in an trusted environment (which supports datetime-objects and more).
-
-TODO
-====
-
-#. method-based verification
-#. usage limitations (#/second, #/hour, etc.) per user
-#. cache return value when the arguments of one request are exactly the same

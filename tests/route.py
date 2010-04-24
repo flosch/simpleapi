@@ -14,7 +14,7 @@ class RouteTest(unittest.TestCase):
     
     _value_simple = 5592.61
     
-    # in JSON key values of dict items must be a string
+    # in JSON key values of dict items must be of type string
     _value_complex = {
         'test1': u'test äöüß',
         'test2': 592,
@@ -51,9 +51,10 @@ class RouteTest(unittest.TestCase):
         self.route2 = Route(TestNamespace1, TestNamespace2)
         
     def call(self, route, method, **kwargs):
+        """Simulates a call to the API."""
+        
         class Request(object):
-            def __init__(self):
-                pass
+            pass
         
         request = Request()
         request.REQUEST = {}
@@ -99,11 +100,12 @@ class RouteTest(unittest.TestCase):
         )
     
     def test_local_options(self):
-        # test whether functions are published or not
+        # test whether the published-flag works fine
         success, errors, result = self.call(self.route1, 'non_published')
         self.failIf(success)
         
-        success, errors, result = self.call(self.route1, 'return_value', val=self._value_complex)
+        success, errors, result = self.call(self.route1, 'return_value', 
+            val=self._value_complex)
         self.failUnless(success)
         self.failUnlessEqual(result, self._value_complex)
     

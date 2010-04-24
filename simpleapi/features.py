@@ -93,5 +93,5 @@ class CachingFeature(NamespaceFeature):
 
 __builtin_features__ = {
     'pickle': PickleFeature,
-    'caching': CachingFeature
+    'caching': CachingFeature,
 }
