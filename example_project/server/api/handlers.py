@@ -3,10 +3,26 @@
 import re
 from simpleapi import Namespace, Feature
 
+class FunFeature(Feature):
+    
+    __config__ = ('fun', bool)
+    
+    def handle_response(self, response):
+        config = self.get_config(response)
+        if config:
+            if response.result == 50:
+                # we're funny :D, if the result of our calculator is 50 we add 1
+                response.result += 1
+
 class Calculator(Namespace):
     
+    __features__ = [FunFeature, ]
     __ip_restriction__ = ["127.0.0.*", "78.47.135.*"]
     __authentication__ = lambda self, access_key: access_key == "91d9f7763572c7ebcce49b183454aeb0"
+    
+    # activates fun mode (FunFeature), thanks to __config__ this is also possible on a method basis!
+    # e.g.: power.fun = True
+    fun = True
     
     def get_access_keys(self):
         return (self.__authentication__, self.session.access_key)
@@ -16,6 +32,7 @@ class Calculator(Namespace):
         return a*b  
     multiply.published = True
     multiply.constraints = {'a': float, 'b': float}
+    multiply.fun = False # disable fun modus for multiply
     
     def power(self, a, b):
         return a**b 
@@ -50,27 +67,31 @@ class OldCalculator(Calculator):
     add.published = True
     add.constraints = {'a': float, 'b': float}
 
-class RemoveOneFeature(Feature):
+class AdjustmentFeature(Feature):
+    
+    # the Feature will automatically triggered when __function_config__ applies
+    __function_config__ = ('adjustment', int)
     
     def handle_response(self, response):
-        # remove 1 from the result to correct the result
-        # (because we added 1 to the result in the add()-method :-) ..)
+        # adjust results by `adjustment`-config (ie. see add.adjustment)
         # we use the new Feature-system of simpleapi 0.0.3
-        response.result -= 1
+        config = self.get_config(response)
+        response.result += config
 
 class NewCalculator(Calculator):
     
     __version__ = 2
-    __features__ = [RemoveOneFeature]
+    __features__ = [AdjustmentFeature]
     
     def add(self, a, b):
         return a+b+1
     add.published = True
     add.constraints = {'a': float, 'b': float}
+    add.adjustment = -1
 
 class SomeFunctions(Namespace):
     
-    __features__ = ['pickle', 'caching']
+    __features__ = ['throttling', 'pickle', 'caching']
     __input__ = ['pickle'] # restrict input to pickle only (since we're using datetime objects as input and use only the simpleapi client)
     __output__ = ['pickle'] # restrict output to pickle only
     
@@ -87,7 +108,7 @@ class SomeFunctions(Namespace):
         import datetime
         return datetime.datetime.now()
     today.published = True
-
+    
     def fail(self):
         self.error('This fails remotely!')
     fail.published = True
@@ -96,7 +117,7 @@ class SomeFunctions(Namespace):
         import datetime
         return dt+datetime.timedelta(days=1)
     add_a_day.published = True
-
+    
     def delayed_function(self, a, b, c=95):
         import time
         time.sleep(3)
@@ -105,6 +126,16 @@ class SomeFunctions(Namespace):
     delayed_function.caching = {
         'timeout': 15, # in seconds
     } # Caching is available because 'caching' is added to the list of __features__ (see above)!
+    
+    def throttled_function(self):
+        return True
+    throttled_function.published = True
+    throttled_function.throttling = {
+        # you can combine several throttling options 
+        'rps': 50,  # requests per second
+        'rpm': 500, # requests per minute
+        'rph': 5000, # requests per hour
+    }
 
 class Misc(Namespace):
     

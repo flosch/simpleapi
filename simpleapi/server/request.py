@@ -35,6 +35,10 @@ class Request(object):
         
         # instantiate namespace
         local_namespace = self.namespace['class'](self)
+        self.session.namespace = {
+            'nmap': self.namespace,
+            'instance': local_namespace
+        }
         
         # check whether method exists
         if not self.namespace['functions'].has_key(method):
@@ -99,7 +103,7 @@ class Request(object):
         # call feature: handle_request
         try:
             for feature in self.namespace['features']:
-                feature.handle_request(self)
+                feature._handle_request(self)
         except FeatureContentResponse, e:
             result = e
         else:

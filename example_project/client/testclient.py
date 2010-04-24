@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import time
+
 import sys
 sys.path.append("/Users/flosch/devlibs/3rdparty/")
 
@@ -66,3 +68,25 @@ except RemoteException, e:
 json_functions = Client(ns='http://localhost:8888/api/misc/')
 
 print json_functions.return_my_value(val={1:2, 5:6, 'test': 'hehe'})
+
+print
+print
+print "Testing throttling... (calling until we get an exception)"
+print 
+stime = time.time()
+count = 0
+while True:
+    try:
+        some_functions.throttled_function()
+        count += 1
+    except RemoteException, e:
+        etime = time.time()
+        count = float(count)
+        print "- Stopped, remote error message:", e
+        ttime = etime-stime
+        print "  performed secs: %.2fs" % ttime
+        print "  performed #/sec:", int(count/ttime)
+        break
+
+print "Done."
+print

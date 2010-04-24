@@ -29,11 +29,11 @@ class Response(object):
         
         self.session = session
     
-    def build(self):
+    def build(self, skip_features=False):
         # call feature: handle_response
-        if self.namespace:
+        if self.namespace and not skip_features:
             for feature in self.namespace['features']:
-                feature.handle_response(self)
+                feature._handle_response(self)
         
         if isinstance(self.output_formatter, type):
             self.output_formatter = self.output_formatter(

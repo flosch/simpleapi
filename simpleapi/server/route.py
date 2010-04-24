@@ -7,7 +7,7 @@ import re
 from request import Request, RequestException
 from response import Response, ResponseException
 from namespace import NamespaceException
-from feature import __features__, Feature
+from feature import __features__, Feature, FeatureException
 from formatter import __formatters__
 from wrapper import __wrappers__
 from utils import glob_list
@@ -235,21 +235,24 @@ class Route(object):
             
             # check input formatter
             if input_formatter not in namespace['input_formatters']: 
-                raise RequestException(u'Input formatter not allowed or unknown: %s' % input_formatter)
+                raise RequestException(u'Input formatter not allowed or ' \
+                                        'unknown: %s' % input_formatter)
             
             # get input formatter
             input_formatter_instancec = namespace['input_formatters'][input_formatter](http_request, callback)
             
             # check output formatter
             if output_formatter not in namespace['output_formatters']: 
-                raise RequestException(u'Output formatter not allowed or unknown: %s' % output_formatter)
+                raise RequestException(u'Output formatter not allowed or ' \
+                                        'unknown: %s' % output_formatter)
             
             # get output formatter
             output_formatter_instance = namespace['output_formatters'][output_formatter](http_request, callback)
             
             # check wrapper
             if wrapper not in namespace['wrappers']:
-                raise RequestException(u'Wrapper unknown or not allowed: %s' % wrapper)
+                raise RequestException(u'Wrapper unknown or not allowed: %s' % \
+                    wrapper)
             
             # get wrapper
             wrapper_instance = namespace['wrappers'][wrapper]
@@ -264,42 +267,38 @@ class Route(object):
                 mimetype=mimetype
             )
             response = request.run(request_items)
-        except (NamespaceException, RequestException, ResponseException,
-                RouteException), e:
-            response = Response(
-                http_request,
-                errors=unicode(e),
-                output_formatter=output_formatter_instance,
-                wrapper=wrapper_instance,
-                mimetype=mimetype
-            )
+            http_response = response.build()
         except Exception, e:
-            trace = inspect.trace()
-            msgs = []
-            msgs.append('')
-            msgs.append(u"******* Exception raised *******")
-            msgs.append(u'Exception type: %s' % type(e))
-            msgs.append(u'Exception msg: %s' % e)
-            msgs.append('')
-            msgs.append(u'------- Traceback follows -------')
-            for idx, item in enumerate(trace):
-                msgs.append(u"(%s)\t%s:%s (%s)" % (idx+1, item[3], item[2], item[1]))
-                for line in item[4]:
-                    msgs.append(u"\t\t%s" % line.strip())
-                msgs.append('') # blank line
-            msgs.append('     -- End of traceback --     ')
-            msgs.append('')
+            if isinstance(e, (NamespaceException, RequestException,
+               ResponseException, RouteException, FeatureException)):
+                err_msg = unicode(e)
+            else:
+                err_msg = u'An internal error occurred during your request.'
+                trace = inspect.trace()
+                msgs = []
+                msgs.append('')
+                msgs.append(u"******* Exception raised *******")
+                msgs.append(u'Exception type: %s' % type(e))
+                msgs.append(u'Exception msg: %s' % e)
+                msgs.append('')
+                msgs.append(u'------- Traceback follows -------')
+                for idx, item in enumerate(trace):
+                    msgs.append(u"(%s)\t%s:%s (%s)" % (idx+1, item[3], item[2], item[1]))
+                    for line in item[4]:
+                        msgs.append(u"\t\t%s" % line.strip())
+                    msgs.append('') # blank line
+                msgs.append('     -- End of traceback --     ')
+                msgs.append('')
             
-            print "\n".join(msgs) # TODO: send it to the admins by email!
+                print "\n".join(msgs) # TODO: send it to the admins by email!
             
             response = Response(
                 http_request,
-                errors=u'An internal error occurred during your request.',
+                errors=err_msg,
                 output_formatter=output_formatter_instance,
                 wrapper=wrapper_instance,
                 mimetype=mimetype
             )
-        
-        http_response = response.build()
-        
+            http_response = response.build(skip_features=True)
+            
         return http_response
