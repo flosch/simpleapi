@@ -211,7 +211,8 @@ class Route(object):
             if not output_formatter:
                 output_formatter = 'jsonp'
         else:
-            output_formatter = 'json'
+            if not output_formatter:
+                output_formatter = 'json'
         
         input_formatter = request_items.pop('_input', 'value')
         wrapper = request_items.pop('_wrapper', 'default')
@@ -272,8 +273,32 @@ class Route(object):
                 wrapper=wrapper_instance,
                 mimetype=mimetype
             )
-        except:
-            raise # TODO handling
+        except Exception, e:
+            trace = inspect.trace()
+            msgs = []
+            msgs.append('')
+            msgs.append(u"******* Exception raised *******")
+            msgs.append(u'Exception type: %s' % type(e))
+            msgs.append(u'Exception msg: %s' % e)
+            msgs.append('')
+            msgs.append(u'------- Traceback follows -------')
+            for idx, item in enumerate(trace):
+                msgs.append(u"(%s)\t%s:%s (%s)" % (idx+1, item[3], item[2], item[1]))
+                for line in item[4]:
+                    msgs.append(u"\t\t%s" % line.strip())
+                msgs.append('') # blank line
+            msgs.append('     -- End of traceback --     ')
+            msgs.append('')
+            
+            print "\n".join(msgs) # TODO: send it to the admins by email!
+            
+            response = Response(
+                http_request,
+                errors=u'An internal error occurred during your request.',
+                output_formatter=output_formatter_instance,
+                wrapper=wrapper_instance,
+                mimetype=mimetype
+            )
         
         http_response = response.build()
         
