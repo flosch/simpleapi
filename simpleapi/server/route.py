@@ -188,7 +188,7 @@ class Route(object):
                         assert feature in __features__.keys()
                         features.append(__features__[feature](nmap[version]))
                     elif issubclass(feature, Feature):
-                        features.append(__features__[feature](nmap[version]))
+                        features.append(feature(nmap[version]))
 
             
             nmap[version]['features'] = features

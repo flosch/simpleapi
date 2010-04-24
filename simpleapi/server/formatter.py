@@ -32,7 +32,8 @@ class JSONPFormatter(Formatter):
     __mime__ = "application/javascript"
     
     def build(self, value):
-        return u'%s(%s)' % (self.callback or 'simpleapiCallback', json.dumps(data))
+        func = self.callback or 'simpleapiCallback'
+        return u'{func}({data})'.format(func=func, data=json.dumps(value))
     
     def parse(self, value):
         return json.loads(value)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
-from simpleapi import Namespace
+from simpleapi import Namespace, Feature
 
 class Calculator(Namespace):
     
@@ -50,9 +50,18 @@ class OldCalculator(Calculator):
     add.published = True
     add.constraints = {'a': float, 'b': float}
 
+class RemoveOneFeature(Feature):
+    
+    def handle_response(self, response):
+        # remove 1 from the result to correct the result
+        # (because we added 1 to the result in the add()-method :-) ..)
+        # we use the new Feature-system of simpleapi 0.0.3
+        response.result -= 1
+
 class NewCalculator(Calculator):
     
     __version__ = 2
+    __features__ = [RemoveOneFeature]
     
     def add(self, a, b):
         return a+b+1
