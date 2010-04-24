@@ -61,8 +61,10 @@ class Route(object):
                     
                     if isinstance(constraints, dict):
                         def check_constraint(constraints):
-                            def check(key, value):
+                            def check(namespace, key, value):
                                 constraint = constraints.get(key)
+                                if not constraint:
+                                    return value
                                 if hasattr(constraint, 'match'):
                                     if constraint.match(value):
                                         return value
@@ -75,12 +77,12 @@ class Route(object):
                                         return constraint(value)
                             return check
                         
-                        constraint_function = check_constraint
+                        constraint_function = check_constraint(constraints)
                     elif callable(constraints):
                         constraint_function = constraints
                 else:
                     constraints = None
-                    constraint_function = lambda k, v: v
+                    constraint_function = lambda namespace, key, value: value
                 
                 # determine allowed methods
                 if hasattr(function_method, 'methods'):
@@ -113,8 +115,14 @@ class Route(object):
                 }
             
             # configure authentication
-            # TODO
-            authentication = None
+            if hasattr(namespace, '__authentication__'):
+                authentication = namespace.__authentication__
+                if isinstance(authentication, basestring):
+                    authentication = lambda namespace, access_key: \
+                        namespace.__authentication__ == access_key
+            else:
+                # grant allow everyone access
+                authentication = lambda namespace, access_key: True
             
             # configure ip address based access rights
             if hasattr(namespace, '__ip_restriction__'):
@@ -126,10 +134,10 @@ class Route(object):
                     namespace.__ip_restriction__ = glob_list(namespace.__ip_restriction__)
                     
                     # restrict access to the given ip address list
-                    ip_restriction = lambda ip: ip in namespace.__ip_restriction__
+                    ip_restriction = lambda namespace, ip: ip in namespace.__ip_restriction__
             else:
                 # accept every ip address
-                ip_restriction = lambda ip: True
+                ip_restriction = lambda namespace, ip: True
             
             nmap[version] = {
                 'class': namespace,
@@ -148,9 +156,13 @@ class Route(object):
     def __call__(self, http_request):
         version = http_request.REQUEST.get('_version', 'default')
         try:
+            try:
+                version = int(version)
+            except (ValueError, TypeError):
+                pass
             if not self.nmap.has_key(version):
                 raise RouteException(u'Version %s not found (possible: %s)' % \
-                    (version, ", ".join(self.nmap.keys())))
+                    (version, ", ".join(map(lambda i: str(i), self.nmap.keys()))))
             
             namespace = self.nmap[version]
         
@@ -158,7 +170,10 @@ class Route(object):
             response = request.run()
         except (NamespaceException, RequestException, ResponseException,
                 RouteException), e:
-            response = Response(errors=unicode(e))
+            response = Response(
+                http_request,
+                errors=unicode(e)
+            )
         except:
             raise # TODO handling
         

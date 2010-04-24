@@ -6,8 +6,8 @@ from simpleapi import Route
 from handlers import OldCalculator, NewCalculator, SomeFunctions, Misc
 
 urlpatterns = patterns('',
-	(r'^calculator/multiple/$', Route(OldCalculator, NewCalculator)),
-	(r'^calculator/one/$', Route(OldCalculator)),
-	(r'^functions/$', Route(SomeFunctions)),
-	(r'^misc/$', Route(Misc))
+    (r'^calculator/multiple/$', Route(OldCalculator, NewCalculator)),
+    (r'^calculator/one/$', Route(OldCalculator)),
+    (r'^functions/$', Route(SomeFunctions)),
+    (r'^misc/$', Route(Misc))
 )

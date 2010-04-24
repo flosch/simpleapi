@@ -21,9 +21,9 @@ print "5 ** 5 =", calculator.power(a=5, b=5)
 print "This call sums up a list of arguments:", calculator.sum_up(a=1, b=5, c=99, d=1895, e=1895.12, f=8925.125)
 print "This call fails due to constraints:", 
 try:
-	calculator.sum_up(a=1, b=5, c=99, d=1895, e=1895.12, f='abc')
+    calculator.sum_up(a=1, b=5, c=99, d=1895, e=1895.12, f='abc')
 except RemoteException, e:
-	print unicode(e)
+    print unicode(e)
 
 access_keys = calculator.get_access_keys()
 print "Access keys:", access_keys[0], access_keys[1], access_keys[0] == access_keys[1] 
@@ -46,9 +46,9 @@ print "Client's ip address:", some_functions.get_remote_ip()
 
 print "This call should fail due to regex-constraints: ", 
 try:
-	some_functions.regex_constraint(value='abcdef')
+    some_functions.regex_constraint(value='abcdef')
 except RemoteException, e:
-	print unicode(e)
+    print unicode(e)
 
 print "This call should NOT fail due to regex-constraints: ", some_functions.regex_constraint(value='16548-abc')
 
@@ -59,9 +59,9 @@ print "Add a day, remotely by passing a datetime object to the function:", some_
 
 print "Finally, this method call fails:", 
 try:
-	some_functions.fail()
+    some_functions.fail()
 except RemoteException, e:
-	print unicode(e)
+    print unicode(e)
 
 json_functions = Client(ns='http://localhost:8888/api/misc/')
 

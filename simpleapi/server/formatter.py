@@ -29,7 +29,7 @@ class JSONFormatter(Formatter):
     def parse(self, value):
         return json.loads(value)
 
-class JSONPType(Formatter):
+class JSONPFormatter(Formatter):
     
     __mime__ = "application/javascript"
     
@@ -41,6 +41,8 @@ class JSONPType(Formatter):
 
 class ValueFormatter(Formatter):
     
+    __mime__ = "text/html"
+    
     def build(self, value):
         return value
     
@@ -49,5 +51,6 @@ class ValueFormatter(Formatter):
 
 __formatters__ = {
     'json': JSONFormatter,
+    'jsonp': JSONPFormatter,
     'value': ValueFormatter
 }

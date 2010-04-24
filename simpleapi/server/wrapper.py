@@ -19,7 +19,10 @@ class DefaultWrapper(Wrapper):
     
     def build(self):
         result = {}
-        result['success'] = self.errors and False or True
+        if self.errors:
+            result['success'] = False
+        else:
+             result['success'] = True
         if self.errors:
             result['errors'] = self.errors
         if self.result:
@@ -30,12 +33,17 @@ class ExtJSFormWrapper(Wrapper):
     
     def build(self):
         result = {}
-        result['success'] = self.errors and False or True
         if self.errors:
-            result['errormsg'] = self.errors[0]
-
-            assert
-            result['errors'] = 
+            result['success'] = False
+        else:
+             result['success'] = True
+        if self.errors:
+            errmsg, errors = self.errors[0], self.errors[1]
+            assert isinstance(errmsg, basestring)
+            assert isinstance(errors, dict)
+            
+            result['errormsg'] = errmsg
+            result['errors'] = errors
         if self.result:
             result['data'] = self.result
         return result
