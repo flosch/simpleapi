@@ -49,7 +49,6 @@ class Client(object):
             
             try:
                 response = urllib.urlopen(self.ns, urllib.urlencode(data)).read()
-                #print response
             except IOError, e:
                 raise ConnectionException(e)
             
