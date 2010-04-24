@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
-__all__ = ('Namespace',)
+__all__ = ('Namespace', 'NamespaceException')
 
+class NamespaceException(Exception): pass
 class Namespace(object):
     
-    pass
+    def error(self, errors):
+        raise NamespaceException(errors)

@@ -5,6 +5,7 @@ import re
 
 from request import Request, RequestException
 from response import Response, ResponseException
+from namespace import NamespaceException
 from utils import glob_list
 
 __all__ = ('Route', )
@@ -145,8 +146,7 @@ class Route(object):
         self.nmap = nmap
     
     def __call__(self, http_request):
-        request_items = dict(http_request.REQUEST.items())
-        version = request_items.pop('_version', None) or 'default'
+        version = http_request.REQUEST.get('_version', 'default')
         try:
             if not self.nmap.has_key(version):
                 raise RouteException(u'Version %s not found (possible: %s)' % \
@@ -155,8 +155,9 @@ class Route(object):
             namespace = self.nmap[version]
         
             request = Request(http_request, namespace)
-            response = Response(result=request.run())
-        except (RequestException, ResponseException, RouteException), e:
+            response = request.run()
+        except (NamespaceException, RequestException, ResponseException,
+                RouteException), e:
             response = Response(errors=unicode(e))
         except:
             raise # TODO handling
