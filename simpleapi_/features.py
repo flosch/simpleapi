@@ -18,7 +18,6 @@ class FeatureResponse(object):
         self.data = data
 
 class NamespaceFeature(object):
-    
     def __init__(self, route, namespace):
         self.route = route
         self.namespace = namespace
@@ -39,7 +38,6 @@ class NamespaceFeature(object):
         self.namespace.error(err_or_list)
 
 class PickleFeature(NamespaceFeature):
-    
     __name__ = "pickle"
     
     def setup(self):
@@ -61,7 +59,6 @@ class PickleFeature(NamespaceFeature):
             warnings.warn(u'WARNING: You should activate __authentication__ since enabling pickle is a risk when used in an untrusted environment!')
 
 class CachingFeature(NamespaceFeature):
-    
     __name__ = "caching"
     
     def _build_arg_signature(self, fargs):

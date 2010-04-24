@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import copy
 import inspect
 import re
 
 from request import Request, RequestException
 from response import Response, ResponseException
 from namespace import NamespaceException
+from feature import __features__, Feature
+from formatter import __formatters__
+from wrapper import __wrappers__
 from utils import glob_list
 
 __all__ = ('Route', )
@@ -139,12 +143,54 @@ class Route(object):
                 # accept every ip address
                 ip_restriction = lambda namespace, ip: True
             
+            # configure input formatters
+            input_formatters = copy.deepcopy(__formatters__)
+            if hasattr(namespace, '__input__'):
+                allowed_formatters = namespace.__input__
+                input_formatters = filter(lambda i: i[0] in allowed_formatters,
+                    input_formatters.items())
+                input_formatters = dict(input_formatters)
+            
+            # configure output formatters
+            output_formatters = copy.deepcopy(__formatters__)
+            if hasattr(namespace, '__output__'):
+                allowed_formatters = namespace.__output__
+                output_formatters = filter(lambda i: i[0] in allowed_formatters,
+                    output_formatters.items())
+                output_formatters = dict(output_formatters)
+            
+            # configure wrappers
+            wrappers = copy.deepcopy(__wrappers__)
+            if hasattr(namespace, '__wrapper__'):
+                allowed_wrapper = namespace.__wrapper__
+                wrappers = filter(lambda i: i[0] in allowed_wrapper,
+                    wrappers.items())
+                wrappers = dict(wrappers)
+            
             nmap[version] = {
                 'class': namespace,
                 'functions': functions,
                 'ip_restriction': ip_restriction,
                 'authentication': authentication,
+                'input_formatters': input_formatters,
+                'output_formatters': output_formatters,
+                'wrappers': wrappers,
             }
+            
+            # set up all features
+            features = []
+            if hasattr(namespace, '__features__'):
+                raw_features = namespace.__features__
+                for feature in raw_features:
+                    assert isinstance(feature, basestring) or issubclass(feature, Feature)
+                    if isinstance(feature, basestring):
+                        assert feature in __features__.keys()
+                        features.append(__features__[feature](nmap[version]))
+                    elif issubclass(feature, Feature):
+                        features.append(__features__[feature](nmap[version]))
+
+            
+            nmap[version]['features'] = features
         
         # if map has no default version, determine namespace with the 
         # highest version 
@@ -154,7 +200,18 @@ class Route(object):
         self.nmap = nmap
     
     def __call__(self, http_request):
-        version = http_request.REQUEST.get('_version', 'default')
+        request_items = dict(http_request.REQUEST.items())
+        version = request_items.pop('_version', 'default')
+        callback = request_items.pop('_callback', None)
+        output_formatter = request_items.pop('_output', 'json')
+        input_formatter = request_items.pop('_input', 'value')
+        wrapper = request_items.pop('_wrapper', 'default')
+        mimetype = request_items.pop('_mimetype', None)
+        
+        input_formatter_instance = None
+        output_formatter_instance = None
+        wrapper_instance = None
+        
         try:
             try:
                 version = int(version)
@@ -165,14 +222,46 @@ class Route(object):
                     (version, ", ".join(map(lambda i: str(i), self.nmap.keys()))))
             
             namespace = self.nmap[version]
-        
-            request = Request(http_request, namespace)
-            response = request.run()
+            
+            # check input formatter
+            if input_formatter not in namespace['input_formatters']: 
+                raise RequestException(u'Input formatter not allowed or unknown: %s' % input_formatter)
+            
+            # get input formatter
+            input_formatter_instancec = namespace['input_formatters'][input_formatter](http_request, callback)
+            
+            # check output formatter
+            if output_formatter not in namespace['output_formatters']: 
+                raise RequestException(u'Output formatter not allowed or unknown: %s' % output_formatter)
+            
+            # get output formatter
+            output_formatter_instance = namespace['output_formatters'][output_formatter](http_request, callback)
+            
+            # check wrapper
+            if wrapper not in namespace['wrappers']:
+                raise RequestException(u'Wrapper unknown or not allowed: %s' % wrapper)
+            
+            # get wrapper
+            wrapper_instance = namespace['wrappers'][wrapper]
+            
+            request = Request(
+                http_request=http_request,
+                namespace=namespace,
+                input_formatter=input_formatter_instancec,
+                output_formatter=output_formatter_instance,
+                wrapper=wrapper_instance,
+                callback=callback,
+                mimetype=mimetype
+            )
+            response = request.run(request_items)
         except (NamespaceException, RequestException, ResponseException,
                 RouteException), e:
             response = Response(
                 http_request,
-                errors=unicode(e)
+                errors=unicode(e),
+                output_formatter=output_formatter_instance,
+                wrapper=wrapper_instance,
+                mimetype=mimetype
             )
         except:
             raise # TODO handling

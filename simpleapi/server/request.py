@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from response import Response
-from formatter import __formatters__
-from wrapper import __wrappers__
 from session import Session
 
 __all__ = ('Request', 'RequestException')
@@ -10,27 +8,28 @@ __all__ = ('Request', 'RequestException')
 class RequestException(Exception): pass 
 class Request(object):
     
-    def __init__(self, http_request, namespace):
+    def __init__(self, http_request, namespace, input_formatter,
+                 output_formatter, wrapper, callback, mimetype):
         self.http_request = http_request
         self.namespace = namespace
-        self.session = Session(request=http_request)
-    
-    def run(self):
-        request_items = dict(self.http_request.REQUEST.items())
+        self.input_formatter = input_formatter
+        self.output_formatter = output_formatter
+        self.wrapper = wrapper
+        self.callback = callback
+        self.mimetype = mimetype
         
+        self.session = Session()
+    
+    def run(self, request_items):
         # set all required simpleapi arguments
-        mimetype = request_items.pop('_mimetype', None)
-        callback = request_items.pop('_callback', None)
         access_key = request_items.pop('_access_key', None)
-        output_formatter = request_items.pop('_output', 'json')
-        input_formatter = request_items.pop('_input', 'value')
         method = request_items.pop('_call', None)
-        wrapper = request_items.pop('_wrapper', 'default')
-        version = request_items.pop('_version', 'default')
+        data = request_items.pop('_data', None)
         
         # update session
-        self.session.mimetype = mimetype
-        self.session.callback = callback
+        self.session.request = self.http_request
+        self.session.mimetype = self.mimetype
+        self.session.callback = self.callback
         self.session.access_key = access_key
         
         # instantiate namespace
@@ -39,21 +38,6 @@ class Request(object):
         # check whether method exists
         if not self.namespace['functions'].has_key(method):
             raise RequestException(u'Method %s does not exist.' % method)
-        
-        # get input formatter
-        if input_formatter not in __formatters__:
-            raise RequestException(u'Unkonwn input formatter: %s' % input_formatter)
-        input_formatter = __formatters__[input_formatter](self.http_request, callback)
-        
-        # get output formatter
-        if output_formatter not in __formatters__:
-            raise RequestException(u'Unkonwn output formatter: %s' % output_formatter)
-        output_formatter = __formatters__[output_formatter](self.http_request, callback)
-        
-        # get wrapper
-        if wrapper not in __wrappers__:
-            raise RequestException(u'Unkonwn wrapper: %s' % wrapper)
-        wrapper = __wrappers__[wrapper]
         
         # check authentication
         if not self.namespace['authentication'](local_namespace, access_key):
@@ -66,6 +50,18 @@ class Request(object):
         
         function = self.namespace['functions'][method]
         
+        # check allowed HTTP methods
+        if not function['methods']['function'](self.http_request.method):
+            raise RequestException(u'Method not allowed: %s' % self.http_request.method)
+        
+        # if data is set, make sure input formatter is not ValueFormatter
+        if data:
+            if isinstance(self.input_formatter, __formatters__['value']):
+                raise RequestException(u'If you\'re using _data please make ' \
+                                        'sure you set _input and _input s not ' \
+                                        '\'value\'.')
+            request_items = self.input_formatter.parse(data)
+        
         # check whether all obligatory arguments are given
         ungiven_obligatory_args = list(set(function['args']['obligatory']) - \
             set(request_items.keys()))
@@ -76,19 +72,15 @@ class Request(object):
         # check whether there are more arguments than needed
         if not function['args']['kwargs_allowed']:
             unsued_arguments = list(set(request_items.keys()) - \
-                set(function['args']['obligatory']))
+                set(function['args']['all']))
             
             if unsued_arguments:
                 raise RequestException(u'Unused arguments: %s' % \
                 ", ".join(unsued_arguments))
         
-        # check allowed HTTP methods
-        if not function['methods']['function'](self.http_request.method):
-            raise RequestException(u'Method not allowed: %s' % self.http_request.method)
-        
         # decode incoming variables
         for key, value in request_items.iteritems():
-            request_items[key] = input_formatter.parse(value)
+            request_items[key] = self.input_formatter.parse(value)
 
         # check constraints
         for key, value in request_items.iteritems():
@@ -98,17 +90,27 @@ class Request(object):
             except:
                 raise RequestException(u'Constraint failed for argument: %s' % key)
         
+        self.session.arguments = request_items
+        
+        # call feature: handle_request
+        for feature in self.namespace['features']:
+            feature.handle_request(self)
+        
         # make the call
         result = getattr(local_namespace, method)(**request_items)
         
-        # if result is already a Response, return it
-        if isinstance(result, Response):
-            return result
+        # if result is not a Response, create one
+        if not isinstance(result, Response):
+            response = Response(
+                http_request=self.http_request,
+                namespace=self.namespace,
+                result=result,
+                output_formatter=self.output_formatter,
+                wrapper=self.wrapper,
+                mimetype=self.mimetype,
+                session=self.session,
+            )
+        else:
+            response = result
         
-        return Response(
-            self.http_request,
-            result=result,
-            output_formatter=output_formatter,
-            wrapper=wrapper,
-            mimetype=mimetype,
-        )
+        return response

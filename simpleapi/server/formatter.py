@@ -20,7 +20,6 @@ class Formatter(object):
         raise NotImplemented
 
 class JSONFormatter(Formatter):
-    
     __mime__ = "application/json"
     
     def build(self, value):
@@ -30,7 +29,6 @@ class JSONFormatter(Formatter):
         return json.loads(value)
 
 class JSONPFormatter(Formatter):
-    
     __mime__ = "application/javascript"
     
     def build(self, value):
@@ -40,7 +38,6 @@ class JSONPFormatter(Formatter):
         return json.loads(value)
 
 class ValueFormatter(Formatter):
-    
     __mime__ = "text/html"
     
     def build(self, value):

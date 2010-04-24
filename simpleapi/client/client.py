@@ -56,7 +56,7 @@ class Client(object):
                 if self.transport_type == 'pickle':
                     try:
                         response = cPickle.loads(response)
-                    except (cPickle.UnpicklingError, EOFError):
+                    except (cPickle.UnpicklingError, EOFError), e:
                         raise ClientException(
                             u'Couldn\'t unpickle response ' \
                             'data. Did you added "pickle" to the namespace\'s' \
