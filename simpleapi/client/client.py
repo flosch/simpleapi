@@ -42,7 +42,8 @@ class Client(object):
             data.update(kwargs)
 
             try:
-                response = urllib.urlopen(self.ns, urllib.urlencode(data)).read()
+                response = urllib.urlopen(self.ns,
+                                          urllib.urlencode(data)).read()
             except IOError, e:
                 raise ConnectionException(e)
 
