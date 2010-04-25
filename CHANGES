@@ -1,0 +1,30 @@
+simpleapi changelog
+===================
+
+Version 0.0.4
+-------------
+
+[current development version]
+
+- huge doc improvements (docs will be published on simpleapi.de)
+- new XML formatter (thanks to Digitalxero)
+
+Version 0.0.3
+-------------
+
+- various bugfixes
+- entirely rewritten from scratch
+- new Request/Response-objects
+- new Feature-system (with built-in features: throttling, caching)
+- new Wrapper-system (with built-in wrappers: ExtJSFormWrapper for use with 
+  ExtJS forms)
+
+Version 0.0.2
+-------------
+
+- various bugfixes
+
+Version 0.0.1
+-------------
+
+First initial release. 
