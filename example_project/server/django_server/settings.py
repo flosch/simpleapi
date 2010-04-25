@@ -8,7 +8,7 @@ sys.path.append("/Users/flosch/devlibs/3rdparty/")
 
 PROJECT_ROOT = os.path.dirname(__file__)
 
-ROOT_URLCONF = 'server.urls'
+ROOT_URLCONF = 'django_server.urls'
 
 DEBUG = True
 
