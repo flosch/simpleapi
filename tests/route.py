@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import re
 import copy
 import unittest
 try:
@@ -46,14 +47,23 @@ class RouteTest(unittest.TestCase):
             def power(self, a, b):
                 return a ** b
             power.published = True
+            power.constraints = {'a': lambda value: float(value), 'b': int}
             
-            def sum_up(self, **kwargs):
-                return sum(kwargs.values())
-            sum_up.constraints = lambda key, value: int(value)
+            def sum_up(self, a, d=0, **kwargs):
+                return a + sum(kwargs.values()) - d
+            sum_up.published = True
+            sum_up.constraints = lambda namespace, key, value: int(value)
             
             def get_version(self):
                 return self.__version__
             get_version.published = True
+            
+            def call_phone(self, phone_number):
+                return True
+            call_phone.published = True
+            call_phone.constraints = {
+                'phone_number': re.compile(r"^\+\d{1,} \d{2,} \d{2,}$"),
+            }
         
         class TestNamespace1(TestNamespace):
             __version__ = 1
@@ -161,7 +171,7 @@ class RouteTest(unittest.TestCase):
             version='2'
         )
         self.failIf(success)
-        self.failUnless(u'Authentication failed.' == errors[0])
+        self.failUnlessEqual(u'Authentication failed.', errors[0])
         
         success, errors, result = self.call(
             route=self.route2,
@@ -180,7 +190,7 @@ class RouteTest(unittest.TestCase):
             version='3'
         )
         self.failIf(success)
-        self.failUnless(u'Authentication failed.' == errors[0])
+        self.failUnlessEqual(u'Authentication failed.', errors[0])
         
         success, errors, result = self.call(
             route=self.route2,
@@ -196,13 +206,98 @@ class RouteTest(unittest.TestCase):
         # test: kwargs
         success, errors, result = self.call(
             route=self.route1,
-            method='power',
-            version='3'
+            method='sum_up',
+            a=5,
+            b=7,
+            c=99,
+            e=100
         )
-        # TODO
+        self.failUnless(success)
+        self.failUnlessEqual(result, 211)
+        
+        success, errors, result = self.call(
+            route=self.route1,
+            method='power',
+            a=5,
+            b=7,
+            c=99
+        )
+        self.failIf(success)
+        self.failUnlessEqual(u'Unused arguments: c', errors[0])
+
+    def test_default_args(self):
+        success, errors, result = self.call(
+            route=self.route1,
+            method='sum_up',
+            a='5',
+            d=5,
+            c='99',
+            e='100'
+        )
+        self.failUnless(success)
+        self.failUnlessEqual(result, 199)
     
     def test_constraints(self):
-        pass
+        # test: constraints[phone_number] = regular expression
+        success, errors, result = self.call(
+            route=self.route1,
+            method='call_phone',
+            phone_number='0176123456'
+        )
+        self.failIf(success)
+        self.failUnlessEqual(u'Constraint failed for argument: phone_number', errors[0])
+        
+        success, errors, result = self.call(
+            route=self.route1,
+            method='call_phone',
+            phone_number='+49 176 123456'
+        )
+        self.failUnless(success)
+        self.failUnlessEqual(result, True)
+        
+        # test: constraints = lambda namespace, key, value: int(value)
+        success, errors, result = self.call(
+            route=self.route1,
+            method='sum_up',
+            a='afs',
+            d=5,
+            c=99,
+            e=100
+        )
+        self.failIf(success)
+        self.failUnlessEqual(u'Constraint failed for argument: a', errors[0])
+        
+        # test: type conversion
+        success, errors, result = self.call(
+            route=self.route1,
+            method='sum_up',
+            a='19',
+            d='5',
+            c='99',
+            e='1020'
+        )
+        self.failUnless(success)
+        self.failUnlessEqual(result, 1133)
+        
+        # test: constraints[a] = lambda value: float(value), b = int
+        success, errors, result = self.call(
+            route=self.route1,
+            method='power',
+            a='19.95',
+            b='4'
+        )
+        self.failUnless(success)
+        self.failUnlessEqual(result, 158405.99000624998)
+        
+        success, errors, result = self.call(
+            route=self.route1,
+            method='power',
+            a='19.95',
+            b='4.5'
+        )
+        self.failIf(success)
+        self.failUnlessEqual(u'Constraint failed for argument: b', errors[0])
+        
     
     def test_versions(self):
         # test: __version__ 
@@ -289,9 +384,6 @@ class RouteTest(unittest.TestCase):
         del self.route3
     
     def test_global_options(self):
-        pass
-    
-    def test_namespace_versions(self):
         pass
         
     def tearDown(self):
