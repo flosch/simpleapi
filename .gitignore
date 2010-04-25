@@ -1,6 +1,7 @@
+*.egg-info
 *.pyc
 .DS_Store
 secret.txt
 dist/*
-django_simpleapi.egg-info
-doc/_build/*
+docs/_build/*
+build/*

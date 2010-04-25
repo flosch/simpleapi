@@ -2,7 +2,7 @@
 simpleapi
 =========
 
-:version: 0.0.2
+:version: 0.0.3
 :author: Florian Schlachter (http://www.fs-tools.de)
 :license: see LICENSE file for more (simpleapi is licensed under MIT license)
 
@@ -11,7 +11,7 @@ About
 
 simpleapi is an **easy to use, consistent and portable** way of providing an API within your django project. It supports **several output formats** (e. g. json, jsonp, xml) and provides a **client library** to access the API seamlessly from any python application. You can also use nearly every **Ajax framework** (e. g. jQuery, ExtJS, etc.) to access the API (see more at "Usage in web-apps" in this README).
 
-The server...
+Server features:
 
 * provides API-namespaces to bundle methods
 * has dynamic key authentication / ip restriction
@@ -19,15 +19,16 @@ The server...
 * provides inheritance (create abstract namespaces and use them as superclasses)
 * supports multiple versions of one API
 * provides several output formats (json, jsonp, xml, etc.)
+* can form output for several usages (ie. ExtJS forms, etc.)
 * has features for: *caching, throttling, pickling*
 * can be extended with your own features
 
-The client supports...
+Client features:
 
 * super simple access to server functions
 * an easy switch between different api versions
 
-`simpleapi` provides:
+`simpleapi` features:
 
 * an almost complete README which covers all functions and capabilities of `simpleapi`. :)
 * no REST - you can implement it in your own way if you want to.
@@ -36,12 +37,14 @@ Installation
 ============
 
 ::
+    
     easy_install -U django-simpleapi
 
 From GitHub
 -----------
 
 ::
+    
     git clone git://github.com/flosch/simpleapi.git
 
 Dependencies
@@ -524,10 +527,3 @@ Limitations
 ===========
 
 #. The output/return value of a method is limited to the formatter's restrictions. For instance, you cannot return datetime values since they aren't supported by JSON (use datetime.isotime() or datetime.ctime() instead). Applies only if you're not using cPickle in an trusted environment (which supports datetime-objects and more).
-
-TODO
-====
-
-#. method-based verification
-#. usage limitations (#/second, #/hour, etc.) per user
-#. cache return value when the arguments of one request are exactly the same

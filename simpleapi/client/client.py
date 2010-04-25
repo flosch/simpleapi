@@ -4,14 +4,16 @@ __all__ = ('Client', 'ClientException', 'ConnectionException', 'RemoteException'
 
 import urllib
 import cPickle
+
 try:
     import json
 except ImportError:
     import simplejson as json
 
-from xml.parsers.expat import ExpatError
-
-from response import Response
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 class ClientException(Exception): pass
 class ConnectionException(ClientException): pass
@@ -19,25 +21,29 @@ class RemoteException(ClientException): pass
 class Client(object):
 
     def __init__(self, ns, access_key=None, version='default',
-                 use_pickle=False, output='json'):
+                 transport_type='json'):
         self.ns = ns
         self.access_key = access_key
         self.version = version
-        self.output = use_pickle and 'pickle' or output
-        self.input = use_pickle and 'pickle' or 'value'
+
+        assert transport_type in ['value', 'pickle', 'json']
+        self.transport_type = transport_type
 
     def _handle_remote_call(self, fname):
         def do_call(**kwargs):
             data = {
                 '_call': fname,
-                '_output': self.output,
-                '_input': self.input,
+                '_output': self.transport_type,
+                '_input': self.transport_type,
                 '_access_key': self.access_key or '',
                 '_version': self.version
             }
-            if self.output == 'pickle':
+            if self.transport_type == 'pickle':
                 for key, value in kwargs.iteritems():
                     kwargs[key] = cPickle.dumps(value)
+            elif self.transport_type == 'json':
+                for key, value in kwargs.iteritems():
+                    kwargs[key] = json.dumps(value)
 
             data.update(kwargs)
 
@@ -47,35 +53,22 @@ class Client(object):
                 raise ConnectionException(e)
 
             try:
-                if self.output == 'pickle':
+                if self.transport_type == 'pickle':
                     try:
                         response = cPickle.loads(response)
-                        return response.get('result')
-                    except (cPickle.UnpicklingError, EOFError):
-                        raise ClientException(u'Couldn\'t unpickle response data. Did you added "pickle" to the namespace\'s __features__ list?')
-                elif self.output == 'json':
+                    except (cPickle.UnpicklingError, EOFError), e:
+                        raise ClientException(
+                            u'Couldn\'t unpickle response ' \
+                            'data. Did you added "pickle" to the namespace\'s' \
+                            ' __features__ list?'
+                        )
+                else:
                     response = json.loads(response)
-                    if response.get('sucess'):
-                        response = response.get('result')
-                        if response.get('simpleapi') == 'response':
-                            return Response.parse_json(response)
-
-                        return response
-                    else:
-                        raise RemoteException(". ".join(response.get('errors')))
-                elif self.output == 'xml':
-                    try:
-                        return Response.parse_xml(response)
-                    except ExpatError:
-                        raise RemoteException(". ".join(response.get('errors')))
             except ValueError, e:
                 raise ConnectionException, e
 
-            if self.output == 'json' and response.get('success'):
-                ret = response.get('result')
-                if '__type__' in ret:
-                    ret = Response.parse_json(ret)
-                return ret
+            if response.get('success'):
+                return response.get('result')
             else:
                 raise RemoteException(". ".join(response.get('errors')))
 

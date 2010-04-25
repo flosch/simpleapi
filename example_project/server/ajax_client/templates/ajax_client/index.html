@@ -3,19 +3,20 @@
 <html>
 <head>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="http://jquery-json.googlecode.com/files/jquery.json-2.2.min.js" type="text/javascript" charset="utf-8"></script>
     <script type="text/javascript" charset="utf-8">
         $(document).ready(function() {
-            $("input.call[type=button]").click(function() {
-                var a = $("#var_a").val();
-                var b = $("#var_b").val();
+            $("#example1 input.call[type=button]").click(function() {
+                var a = $("#example1 #var_a").val();
+                var b = $("#example1 #var_b").val();
                 var key = "91d9f7763572c7ebcce49b183454aeb0";
                 var method = $(this).attr("id");
-                var way = $("input[name=way]:checked").val();
+                var way = $("input[name=way1]:checked").val();
                 var data = {_call: method, _access_key: key, a: a, b: b};
                 
                 var callback_fn = function(result) {
                     if(result.success)
-                        $("#result").html("Result of calculation is: " + result.result);
+                        $("#example1 #result").html("Result of calculation is: " + result.result);
                     else
                         alert(result.errors);
                 }
@@ -31,25 +32,65 @@
                         success: callback_fn
                     })
                 }
-            })
-        })
+            });
+            $("#example2 input.call[type=button]").click(function() {
+                var a = $("#example2 #var_a").val();
+                var b = $("#example2 #var_b").val();
+                var key = "91d9f7763572c7ebcce49b183454aeb0";
+                var method = $(this).attr("id");
+                var way = $("input[name=way2]:checked").val();
+                var data = {_call: method, _access_key: key, _input: 'json', _data: $.toJSON({
+                    'a': a,
+                    'b': b
+                })};
+                
+                var callback_fn = function(result) {
+                    if(result.success)
+                        $("#example2 #result").html("Result of calculation is: " + result.result);
+                    else
+                        alert(result.errors);
+                }
+                
+                if (way == 'ajax')
+                    $.get("/api/calculator/one/", data, callback_fn);
+                else {
+                    $.ajax({
+                        url: "http://127.0.0.1:8888/api/calculator/one/",
+                        data: data,
+                        dataType: "jsonp",
+                        jsonp: "_callback",
+                        success: callback_fn
+                    })
+                }
+            });
+        });
     </script>
 </head>
 
 <body>
-    <fieldset>
+    <fieldset id="example1">
         <legend>Ajax via XMLHttpRequest/jQuery</legend>
         <label for="var_a">Var <strong>A</strong></label><input type="text" name="var_a" value="5" id="var_a">
         <label for="var_b">Var <strong>B</strong></label><input type="text" name="var_b" value="11" id="var_b">
         <input type="button" value="Power!" id="power" class="call" />
         <input type="button" value="Add!" id="add" class="call" />
         <input type="button" value="Multiply!" id="multiply" class="call" />
-        <input type="radio" name="way" value="ajax" checked /> XMLHttpRequest
-        <input type="radio" name="way" value="script" /> Script-Tag
+        <input type="radio" name="way1" value="ajax" checked /> XMLHttpRequest
+        <input type="radio" name="way1" value="script" /> Script-Tag
         <div id="result"></div>
     </fieldset>
     
-    
+    <fieldset id="example2">
+        <legend>Ajax with _data</legend>
+        <label for="var_a">Var <strong>A</strong></label><input type="text" name="var_a" value="5" id="var_a">
+        <label for="var_b">Var <strong>B</strong></label><input type="text" name="var_b" value="11" id="var_b">
+        <input type="button" value="Power!" id="power" class="call" />
+        <input type="button" value="Add!" id="add" class="call" />
+        <input type="button" value="Multiply!" id="multiply" class="call" />
+        <input type="radio" name="way2" value="ajax" checked /> XMLHttpRequest
+        <input type="radio" name="way2" value="script" /> Script-Tag
+        <div id="result"></div>
+    </fieldset>
 </body>
 
 </html>

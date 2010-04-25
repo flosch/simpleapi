@@ -18,15 +18,12 @@ Contents
 ========
 
 .. toctree::
+   :maxdepth: 2
    
    prepartion
    gettingstarted
-        server/route
-   server/namespace
-   server/features
-   client/*
-   client/javascript
-   client/php
+   server/index
+   client/index
    credits
 
 Easy example
