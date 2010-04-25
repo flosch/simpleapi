@@ -42,17 +42,43 @@ class RouteTest(unittest.TestCase):
             
             def non_published(self):
                 return True
+            
+            def power(self, a, b):
+                return a ** b
+            power.published = True
+            
+            def sum_up(self, **kwargs):
+                return sum(kwargs.values())
+            sum_up.constraints = lambda key, value: int(value)
+            
+            def get_version(self):
+                return self.__version__
+            get_version.published = True
         
         class TestNamespace1(TestNamespace):
             __version__ = 1
-
+        
         class TestNamespace2(TestNamespace):
             __version__ = 2
+            __authentication__ = "abc"
+        
+        class TestNamespace3(TestNamespace):
+            __version__ = 3
+            __authentication__ = lambda namespace, access_key: access_key == 'a' * 5
+        
+        class TestNamespace4(TestNamespace):
+            __version__ = 4
                 
         self.route1 = Route(TestNamespace)
-        self.route2 = Route(TestNamespace1, TestNamespace2)
+        self.route2 = Route(
+            TestNamespace1,
+            TestNamespace2,
+            TestNamespace3,
+            TestNamespace4
+        )
         
-    def call(self, route, method, **kwargs):
+    def call(self, route, method, version='default', access_key=None, 
+             transporttypes=None, **kwargs):
         """Simulates a call to the API."""
         
         class Request(object):
@@ -67,10 +93,13 @@ class RouteTest(unittest.TestCase):
         
         # set simpleapi parameters
         request.REQUEST['_call'] = method
+        request.REQUEST['_version'] = version
+        if access_key:
+            request.REQUEST['_access_key'] = access_key
         
         # make sure every transporttype returns the same result after
         # decoding the response content
-        transporttypes = ['json', 'pickle']
+        transporttypes = transporttypes or ['json', 'pickle']
         first_response = None
         for transporttype in transporttypes:
             # encode query parameters
@@ -86,8 +115,9 @@ class RouteTest(unittest.TestCase):
             # set encoding/decoding parameters
             request.REQUEST['_input'] = transporttype
             request.REQUEST['_output'] = transporttype
-            http_response = route(request)
             
+            # fire it up!
+            http_response = route(request)
             if transporttype == 'json':
                 response = json.loads(http_response.content)
             elif transporttype == 'pickle':
@@ -106,8 +136,8 @@ class RouteTest(unittest.TestCase):
             response.get('result')
         )
     
-    def test_local_options(self):
-        # test whether the published-flag works fine
+    def test_published(self):
+        # test: published-flag
         success, errors, result = self.call(self.route1, 'non_published')
         self.failIf(success)
         
@@ -115,6 +145,148 @@ class RouteTest(unittest.TestCase):
             val=self._value_complex)
         self.failUnless(success)
         self.failUnlessEqual(result, self._value_complex)
+    
+    def test_data(self):
+        # test: _data
+        success, errors, result = self.call(self.route1, 'power', _data={'a': 3, 'b': 10})
+        self.failUnlessEqual(result, 59049)
+    
+    def test_authentication(self):
+        # test: __authentication__
+        
+        # __authentication__ == "abc"
+        success, errors, result = self.call(
+            route=self.route2,
+            method='power',
+            version='2'
+        )
+        self.failIf(success)
+        self.failUnless(u'Authentication failed.' == errors[0])
+        
+        success, errors, result = self.call(
+            route=self.route2,
+            method='power',
+            version='2',
+            access_key='abc',
+            a=1,
+            b=2
+        )
+        self.failUnless(success)
+        
+        # __authentication__ == lambda namespace, access_key: access_key == 'a' * 5
+        success, errors, result = self.call(
+            route=self.route2,
+            method='power',
+            version='3'
+        )
+        self.failIf(success)
+        self.failUnless(u'Authentication failed.' == errors[0])
+        
+        success, errors, result = self.call(
+            route=self.route2,
+            method='power',
+            version='3',
+            access_key='a' * 5,
+            a=1,
+            b=2
+        )
+        self.failUnless(success)
+    
+    def test_kwargs(self):
+        # test: kwargs
+        success, errors, result = self.call(
+            route=self.route1,
+            method='power',
+            version='3'
+        )
+        # TODO
+    
+    def test_constraints(self):
+        pass
+    
+    def test_versions(self):
+        # test: __version__ 
+        success, errors, result = self.call(
+            route=self.route1,
+            method='power',
+            version='3'
+        )
+        self.failIf(success)
+        self.failUnless(u'Version 3 not found' in errors[0])
+        
+        success, errors, result = self.call(
+            route=self.route2,
+            method='get_version',
+            version='1'
+        )
+        self.failUnless(success)
+        self.failUnlessEqual(result, 1)
+        
+        success, errors, result = self.call(
+            route=self.route2,
+            method='get_version',
+            version='4'
+        )
+        self.failUnless(success)
+        self.failUnlessEqual(result, 4)
+        
+        success, errors, result = self.call(
+            route=self.route2,
+            method='get_version',
+            version='default'
+        )
+        self.failUnless(success)
+        self.failUnlessEqual(result, 4)
+        
+        # add new namespace with same version
+        class TestNamespace(Namespace):
+            __version__ = 4
+        self.failUnlessRaises(AssertionError, lambda: self.route2.add_namespace(TestNamespace))
+        
+        # add new namespace with new version
+        class TestNamespace(Namespace):
+            __version__ = 999
+            def get_version(self):
+                return self.__version__
+            get_version.published = True
+            
+        self.failUnlessEqual(self.route2.add_namespace(TestNamespace), 999)
+        
+        success, errors, result = self.call(
+            route=self.route2,
+            method='get_version',
+            version='default',
+            transporttypes=['json',]
+        )
+        self.failUnless(success)
+        self.failUnlessEqual(result, 999)
+        
+        # remove added namespace again
+        self.failUnless(self.route2.remove_namespace(999))
+        self.failIf(self.route2.remove_namespace(999))
+        
+        success, errors, result = self.call(
+            route=self.route2,
+            method='get_version',
+            version='default'
+        )
+        self.failUnless(success)
+        self.failUnlessEqual(result, 4)
+    
+    def test_pickle(self):
+        # test: pickle
+        # UnpicklingError
+        
+        class Test(Namespace):
+            def return_val(self, val):
+                return val
+            return_val.published = True
+        self.route3 = Route(Test)
+        self.failUnlessRaises(
+            cPickle.UnpicklingError,
+            lambda: self.call(route=self.route3, method='return_val')
+        )
+        del self.route3
     
     def test_global_options(self):
         pass
