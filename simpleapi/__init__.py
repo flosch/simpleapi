@@ -2,6 +2,7 @@
 
 from client import *
 from server import *
+from message import *
 
 __author__ = 'Florian Schlachter'
 

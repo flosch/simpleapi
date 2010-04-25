@@ -10,10 +10,7 @@ try:
 except ImportError:
     import simplejson as json
 
-try:
-    import json
-except ImportError:
-    import simplejson as json
+from simpleapi.message import formatters, wrappers
 
 class ClientException(Exception): pass
 class ConnectionException(ClientException): pass
@@ -21,13 +18,16 @@ class RemoteException(ClientException): pass
 class Client(object):
 
     def __init__(self, ns, access_key=None, version='default',
-                 transport_type='json'):
+                 transport_type='json', wrapper_type='default'):
         self.ns = ns
         self.access_key = access_key
         self.version = version
 
-        assert transport_type in ['value', 'pickle', 'json']
+        assert transport_type in formatters
         self.transport_type = transport_type
+
+        assert wrapper_type in wrappers
+        self.wrapper_type = wrapper_type
 
     def _handle_remote_call(self, fname):
         def do_call(**kwargs):
@@ -35,15 +35,15 @@ class Client(object):
                 '_call': fname,
                 '_output': self.transport_type,
                 '_input': self.transport_type,
+                '_wrapper': self.wrapper_type,
                 '_access_key': self.access_key or '',
                 '_version': self.version
             }
-            if self.transport_type == 'pickle':
-                for key, value in kwargs.iteritems():
-                    kwargs[key] = cPickle.dumps(value)
-            elif self.transport_type == 'json':
-                for key, value in kwargs.iteritems():
-                    kwargs[key] = json.dumps(value)
+
+            formatter = formatters[self.transport_type](None, None)
+
+            for key, value in kwargs.iteritems():
+                kwargs[key] = formatter.kwargs(value)
 
             data.update(kwargs)
 
@@ -53,17 +53,13 @@ class Client(object):
                 raise ConnectionException(e)
 
             try:
-                if self.transport_type == 'pickle':
-                    try:
-                        response = cPickle.loads(response)
-                    except (cPickle.UnpicklingError, EOFError), e:
-                        raise ClientException(
-                            u'Couldn\'t unpickle response ' \
-                            'data. Did you added "pickle" to the namespace\'s' \
-                            ' __features__ list?'
-                        )
-                else:
-                    response = json.loads(response)
+                response = formatter.parse(response)
+            except (cPickle.UnpicklingError, EOFError), e:
+                raise ClientException(
+                    u'Couldn\'t unpickle response ' \
+                    'data. Did you added "pickle" to the namespace\'s' \
+                    ' __features__ list?'
+                )
             except ValueError, e:
                 raise ConnectionException, e
 
