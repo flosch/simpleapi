@@ -12,7 +12,12 @@ To install, simply run:
     
     # easy_install -U django-simpleapi
 
-The source is available on `GitHub <http://github.com/flosch/simpleapi>`_.
+The source is available on `GitHub <http://github.com/flosch/simpleapi>`_. You 
+can als follow simpleapi on twitter `@simpleapi <http://twitter.com/simpleapi>`_
+to stay up-to-date.
+
+.. warning:: This documentation is uncomplete and will be finished over the next
+    few weeks. Please be patient. 
 
 Contents
 ========
@@ -25,6 +30,7 @@ Contents
    server/index
    client/index
    credits
+   impressum
 
 Easy example
 ============

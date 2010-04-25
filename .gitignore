@@ -6,3 +6,4 @@ dist/*
 docs/_build/*
 build/*
 *.wpr
+docs/impressum.rst
