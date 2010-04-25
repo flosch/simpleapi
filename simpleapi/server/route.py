@@ -163,19 +163,19 @@ class Route(object):
 
         # configure input formatters
         input_formatters = formatters.copy()
-        if hasattr(namespace, '__input__'):
-            allowed_formatters = namespace.__input__
-            input_formatters = filter(lambda i: i[0] in allowed_formatters,
-                input_formatters.items())
-            input_formatters = dict(input_formatters)
+        allowed_formatters = getattr(namespace, '__input__', 
+            formatters.get_defaults())
+        input_formatters = filter(lambda i: i[0] in allowed_formatters,
+            input_formatters.items())
+        input_formatters = dict(input_formatters)
 
         # configure output formatters
         output_formatters = formatters.copy()
-        if hasattr(namespace, '__output__'):
-            allowed_formatters = namespace.__output__
-            output_formatters = filter(lambda i: i[0] in allowed_formatters,
-                output_formatters.items())
-            output_formatters = dict(output_formatters)
+        allowed_formatters = getattr(namespace, '__output__',
+            formatters.get_defaults())
+        output_formatters = filter(lambda i: i[0] in allowed_formatters,
+            output_formatters.items())
+        output_formatters = dict(output_formatters)
 
         # configure wrappers
         useable_wrappers = wrappers.copy()
@@ -202,7 +202,9 @@ class Route(object):
             for feature in raw_features:
                 assert isinstance(feature, basestring) or issubclass(feature, Feature)
                 if isinstance(feature, basestring):
-                    assert feature in __features__.keys()
+                    assert feature in __features__.keys(), \
+                        u'%s is not a built-in feature' % feature
+                    
                     features.append(__features__[feature](self.nmap[version]))
                 elif issubclass(feature, Feature):
                     features.append(feature(self.nmap[version]))

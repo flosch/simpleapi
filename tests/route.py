@@ -35,7 +35,8 @@ class RouteTest(unittest.TestCase):
 
         class TestNamespace(Namespace):
 
-            __features__ = ['pickle',]
+            __input__ = ['pickle', 'json',]
+            __output__ = ['pickle', 'json',]
 
             def return_value(self, val):
                 return val
@@ -109,7 +110,7 @@ class RouteTest(unittest.TestCase):
 
         # make sure every transporttype returns the same result after
         # decoding the response content
-        transporttypes = transporttypes or ['json', 'pickle']
+        transporttypes = transporttypes or ['json', 'pickle',]
         first_response = None
         for transporttype in transporttypes:
             # encode query parameters

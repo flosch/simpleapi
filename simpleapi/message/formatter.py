@@ -25,12 +25,17 @@ class FormattersSingleton(object):
             Register the given formatter
         """
         if not isinstance(formatter(None, None), Formatter):
-            raise TypeError("You can only register a Formatter not a {item}".format(item=formatter))
+            raise TypeError(u"You can only register a Formatter not a {item}".format(item=formatter))
 
         if name in self._formatters and not override:
-            raise AttributeError("{name} is already a valid format type, try a new name".format(name=name))
+            raise AttributeError(u"{name} is already a valid format type, try a new name".format(name=name))
 
         self._formatters[name] = formatter
+
+    def get_defaults(self):
+        result = filter(lambda item: getattr(item[1], '__active_by_default__', True), 
+            self._formatters.items())
+        return dict(result).keys()
 
     def copy(self):
         return dict(**self._formatters)
@@ -109,6 +114,7 @@ class ValueFormatter(Formatter):
 
 class PickleFormatter(Formatter):
     __mime__ = "application/octet-stream"
+    __active_by_default__ = False
 
     def build(self, value):
         return cPickle.dumps(value)

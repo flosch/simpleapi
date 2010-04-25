@@ -3,6 +3,7 @@
 from response import Response
 from session import Session
 from feature import FeatureContentResponse
+from simpleapi.message import formatters
 
 __all__ = ('Request', 'RequestException')
 
@@ -62,7 +63,7 @@ class Request(object):
 
         # if data is set, make sure input formatter is not ValueFormatter
         if data:
-            if isinstance(self.input_formatter, self.namespace['input_formatters']['value']):
+            if isinstance(self.input_formatter, formatters['value']):
                 raise RequestException(u'If you\'re using _data please make ' \
                                         'sure you set _input and _input s not ' \
                                         '\'value\'.')

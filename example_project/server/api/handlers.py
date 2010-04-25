@@ -91,7 +91,7 @@ class NewCalculator(Calculator):
 
 class SomeFunctions(Namespace):
     
-    __features__ = ['throttling', 'pickle', 'caching']
+    __features__ = ['throttling', 'caching']
     __input__ = ['pickle'] # restrict input to pickle only (since we're using datetime objects as input and use only the simpleapi client)
     __output__ = ['pickle'] # restrict output to pickle only
     

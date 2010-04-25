@@ -1,5 +1,9 @@
+# -*- coding: utf-8 -*-
+
 from xml.etree import cElementTree as ET
 import base64
+
+__all__ = ('PythonToXML', 'type_methods')
 
 class PythonToXML(object):
     @classmethod

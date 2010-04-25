@@ -4,7 +4,7 @@ import cPickle
 import hashlib
 import warnings
 
-from simpleapi.message import formatters
+from simpleapi.message import formatters, Formatter
 
 try:
     from django.core.cache import cache
