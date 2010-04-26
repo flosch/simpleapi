@@ -8,6 +8,9 @@ simpleapi
 :website: http://simpleapi.de
 :mailinglist: subscribe: simpleapi@librelist.com
 
+This readme is a short (and messy) overview about simpleapi. There is still an 
+almost complete documentation work in progress which will be published on http://www.simpleapi.de soon.
+
 About
 =====
 
@@ -29,11 +32,6 @@ Client features:
 
 * super simple access to server functions
 * an easy switch between different api versions
-
-`simpleapi` features:
-
-* an almost complete README which covers all functions and capabilities of `simpleapi`. :)
-* no REST - you can implement it in your own way if you want to.
 
 Installation
 ============
@@ -161,24 +159,6 @@ urls.py::
 
 The namespace with the highest version is the default one which will be used when the client doesn't provide a version.
 
-Third example (which is restricted in use to the simpleapi client)
-------------------------------------------------------------------
-
-handlers.py::
-
-    import datetime
-    from simpleapi import Namespace
-
-    class SomeFunctions(Namespace):
-        __features__ = ['pickle',]
-
-        def today(self):
-            return datetime.datetime.now()
-        today.published = True
-        today.outputs = ['pickle',] # limit output format to pickle
-
-urls.py as above. You can call the method with the simpleapi client as usual, but calling the method for instance via Ajax won't work.
-
 Client example with simpleapi's client library
 ==============================================
 
@@ -247,7 +227,7 @@ You can configure your namespaces on an individual basis. This are the supported
 :__authentication__: either a string with a key or a callable which takes the access_key provided by the client. Must return `True` (allowed) or `False` (disallowed). If not given, no authentication is needed. It's recommended to use SSL if you plan to use `__authentication__`.
 :__outputs__: If given, the namespace is restricted to the given output formatters (a list of strings)
 :__inputs__: If given, the namespace is restricted to the given input formatters (a list of strings)
-:__features__: list of activated namespace-features (currently available: `pickle`, `throttling`, `caching`)
+:__features__: list of activated namespace-features (currently available: `throttling`, `caching`)
 
 All parameters are optional.
 
@@ -310,7 +290,8 @@ The following parameters are used by simpleapi:
 
 :_call: method to be called
 :_output: output format (e. g. xml, json; default is json)
-:_input: input format (possible: 'value' (default), 'json', 'pickle' (if allowed by the server))
+:_input: input format
+:_data: instead of passing every single argument as an own http parameter, you can pass a dictionary/array to _data instead (_input must be defined then; json is recommended). 
 :_version: version number of the API that should be used (see *`Route` configuration*)
 :_access_key: access key to the API (only if `__authentiation__` in `namespace` is defined)
 :_callback: defines the callback for JSONP (default is `simpleapiCallback`)
@@ -400,7 +381,7 @@ The constructor takes following optional arguments:
 
 :version: defines the version to be used (if no one is given, the default API version is used)
 :access_key: defines the access key to the API
-:transport_type: Change transport type (default is `json`). You can set 'pickle' here if the other side allows it.
+:transport_type: Change transport type (default is `json`). You can set 'pickle' here if the other side allows it (pickle must be added to `__output__`).
 
 Following methods are provided by client instances:
 
@@ -442,19 +423,19 @@ If you want to raise an error and abort execution of your method you can always 
 
 In simpleapi client: `self.error` raises a `simpleapi.RemoteException` which you can catch to handle the error on the client side (see example for more).
 
-Supported input formats
------------------------
+Supported formatters
+--------------------
 
-* raw value ("value", default)
-* pickle - **should only be used by trusted parties**
-
-Supported output formats
-------------------------
-
+* value ("value")
 * JSON ("json", default)
 * JSONP ("jsonp")
 * cPickle ("pickle") - **should only be used by trusted parties**
-* XML (*coming*) ("xml")
+* XML ("xml")
+
+Supported wrappers
+------------------
+
+
 
 Features (take your namespace to a higher level)
 ================================================
@@ -462,9 +443,9 @@ Features (take your namespace to a higher level)
 Features are adding more functionality and capability to your namespace. There are a few built-in features, but the `__features__`-configuration especially allows **you** to extend **your** namespace. It looks like this::
 
     class MyNamespace(Namespace):
-        __features__ = ['pickle', MyVeryOwnFeature]
+        __features__ = ['throttling', 'caching', MyVeryOwnFeature]
 
-The simpleapi feature system is work in progress. **As soon as it becomes usable for you, I will publish more information on that here.**
+Please see the example projects for a demo use and implementation of Features.
 
 Caching
 -------
@@ -494,18 +475,9 @@ A md5-generated fingerprint of the given arguments will be appended to the cachi
 Throttling
 ----------
 
-is coming.. please be patient. :)
+simpleapi supports throttling by default. Add `throttling` to `__features__` to activate. You can throttle both single methods and namespace calls in general by number of calls per second, minute and hour per client. Please see the example project for a demo implementation.
 
-Pickling (you should really read this!)
----------------------------------------
-
-Pickling of the data streams makes the developer life easier since JSON and others doesn't support (de)serializing of several native types, for example `date objects`. If your API will be used by unauthorized or unknown third-party users you should **NOT** enable pickle serialization because cPickle doesn't validates the pickle-dump. This could **cause to insecure or harmful method calls** (like `system("rm -rf /")`, you know ;) ).
-
-To enable cPickle, you have to enable it manually in your namespace by adding `pickle` to the list of activated features::
-
-    __features__ = ['pickle']
-
-For more details on insecurity of Pickle take look at http://nadiana.com/python-pickle-insecure
+simpleapi uses django's caching ability. It's recommended that you use a cache backend which supports atomic updates and is pretty fast (ie. memcached).
 
 How to run the demo
 ===================
