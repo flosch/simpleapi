@@ -69,9 +69,16 @@ class Request(object):
         if data:
             if isinstance(self.input_formatter, formatters['value']):
                 raise RequestException(u'If you\'re using _data please make ' \
-                                        'sure you set _input and _input s not ' \
+                                        'sure you set _input and _input is not ' \
                                         '\'value\'.')
-            request_items = self.input_formatter.parse(data)
+            try:
+                request_items = self.input_formatter.kwargs(data, 'parse')
+            except ValueError, e:
+                raise RequestException(u'Data couldn\'t be decoded. ' \
+                                        'Please check _input and your _data')
+            else:
+                if not isinstance(request_items, dict):
+                    raise RequestException(u'_data must be an array/dictionary')
 
         # check whether all obligatory arguments are given
         ungiven_obligatory_args = list(set(function['args']['obligatory']) - \
@@ -92,7 +99,11 @@ class Request(object):
         # decode incoming variables (only if _data is not set!)
         if not data:
             for key, value in request_items.iteritems():
-                request_items[key] = self.input_formatter.kwargs(value, 'parse')
+                try:
+                    request_items[key] = self.input_formatter.kwargs(value, 'parse')
+                except ValueError, e:
+                    raise RequestException(u'Value for %s couldn\'t be decoded.' % \
+                        key)
 
         # check constraints
         for key, value in request_items.iteritems():
