@@ -40,6 +40,10 @@ class Request(object):
             'nmap': self.namespace,
             'instance': local_namespace
         }
+        
+        # check the method
+        if not method:
+            raise RequestException(u'Method must be provided.')
 
         # check whether method exists
         if not self.namespace['functions'].has_key(method):
