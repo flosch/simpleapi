@@ -239,7 +239,7 @@ An individual connection-based `NamespaceSession` is provided within any method 
 :request: the original request object provided by django
 :access_key: client's access key
 :version: client's requested version
-:mimetype: if you want to override the default mimetype, you can set your own here.
+:mimetype: the mimetype which will be used for the response
 
 Note: All properties are **read-only**. Any changes made will be ignored.
 
