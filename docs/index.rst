@@ -29,6 +29,7 @@ Contents
    gettingstarted
    server/index
    client/index
+   api
    credits
    impressum
 

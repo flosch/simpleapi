@@ -14,7 +14,7 @@ except ImportError, e:
     if not 'DJANGO_SETTINGS_MODULE' in str(e):
         raise
 
-__all__ = ('__features__', 'FeatureException', 'FeatureContentResponse')
+__all__ = ('__features__', 'Feature', 'FeatureException', 'FeatureContentResponse')
 
 class FeatureException(Exception): pass
 class FeatureContentResponse(FeatureException): pass

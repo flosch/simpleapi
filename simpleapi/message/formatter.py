@@ -11,6 +11,9 @@ from py2xml import PythonToXML
 __all__ = ('formatters', 'Formatter')
 
 class FormattersSingleton(object):
+    """This singleton takes care of all registered formatters. You can easily 
+    register your own formatter for use in both the Namespace and python client.
+    """
     _formatters = {}
 
     def __new__(cls):
@@ -21,8 +24,8 @@ class FormattersSingleton(object):
         return it
 
     def register(self, name, formatter, override=False):
-        """
-            Register the given formatter
+        """Register the given formatter. If there's already an formatter with
+        the given `name`, you can override by setting `override` to ``True``.
         """
         if not isinstance(formatter(None, None), Formatter):
             raise TypeError(u"You can only register a Formatter not a {item}".format(item=formatter))
@@ -52,21 +55,31 @@ class FormattersSingleton(object):
 formatters = FormattersSingleton()
 
 class Formatter(object):
+    """Baseclass for Formatter-implementations"""
 
     def __init__(self, http_request, callback):
+        """A Formatter takes the original http request (Django's one) and a
+        callback name, e. g. for JSONP."""
         self.http_request = http_request
         self.callback = callback
 
     def build(self, value):
+        """Takes care of the building process and returns the encoded data."""
         raise NotImplemented
 
     def kwargs(self, value, action='build'):
+        """Is called within ``simpleapi``. This method invokes both the parse
+        and build function when needed."""
         raise NotImplemented
 
     def parse(self, value):
+        """Takes care of the parsing proccess and returns the decoded data."""
         raise NotImplemented
 
 class JSONFormatter(Formatter):
+    """Formatter for the JSON-format. Used by default by the python client and 
+    by many Javascript-Frameworks."""
+    
     __mime__ = "application/json"
 
     def build(self, value):
@@ -82,6 +95,9 @@ class JSONFormatter(Formatter):
         return json.loads(value)
 
 class JSONPFormatter(Formatter):
+    """Formatter for JSONP-format. Used for cross-domain requests. If `callback`
+    isn't provided, `simpleapiCallback` is used."""
+    
     __mime__ = "application/javascript"
 
     def build(self, value):
@@ -98,6 +114,9 @@ class JSONPFormatter(Formatter):
         return json.loads(value)
 
 class ValueFormatter(Formatter):
+    """Basic formatter for simple, fast and tiny transports (it has a lot of
+    limitations, though)."""
+    
     __mime__ = "text/html"
 
     def build(self, value):
@@ -113,6 +132,14 @@ class ValueFormatter(Formatter):
         return unicode(value)
 
 class PickleFormatter(Formatter):
+    """Formatter for use the cPickle python module which supports python object
+    serialization. It has the fewest limitations (ie. it can also serialize 
+    datetime objects), but is a security risk and should only be used in a 
+    trusted environment. It's strongly recommended that you use authentication
+    mechanismen to protect your namespace. The formatter is not activated by
+    default and can be enabled by putting 'pickle' into Namespace's ``__input__``
+    and ``__output__`` configuration. """
+    
     __mime__ = "application/octet-stream"
     __active_by_default__ = False
 

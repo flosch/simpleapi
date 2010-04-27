@@ -3,6 +3,10 @@
 __all__ = ('wrappers', 'Wrapper')
 
 class WrappersSingleton(object):
+    """This singleton takes care of all registered wrappers. You can easily 
+    register your own wrapper for use in both the Namespace and python client.
+    """
+
     _wrappers = {}
 
     def __new__(cls):
@@ -39,6 +43,7 @@ class WrappersSingleton(object):
 wrappers = WrappersSingleton()
 
 class Wrapper(object):
+    """The baseclass wrapper you can use as a basis for your own wrapper"""
 
     def __init__(self, errors, result):
         if isinstance(errors, basestring):

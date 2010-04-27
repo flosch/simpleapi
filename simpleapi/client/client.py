@@ -10,9 +10,19 @@ class ClientException(Exception): pass
 class ConnectionException(ClientException): pass
 class RemoteException(ClientException): pass
 class Client(object):
+    """simpleapi's client library. 
+    
+    :param ns: URL of your :class:`~simpleapi.Route`'s endpoint
+    :param access_key: string key used for authentication
+    :param version: Namespace version to be used (default is highest)
+    :param transport_type: encoding/decoding type for request/response (default
+                           is json)
+    :param wrapper_type: wrapper used for formatting the response
+    """
 
     def __init__(self, ns, access_key=None, version='default',
                  transport_type='json', wrapper_type='default'):
+
         self.ns = ns
         self.access_key = access_key
         self.version = version
@@ -69,7 +79,9 @@ class Client(object):
         return self._handle_remote_call(name)
 
     def set_version(self, version):
+        """uses a different version for further requests"""
         self.version = int(version)
 
     def set_ns(self, ns):
+        """changes the URL for the Route's endpoint"""
         self.ns = ns

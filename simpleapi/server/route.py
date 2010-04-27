@@ -13,10 +13,14 @@ from utils import glob_list
 
 __all__ = ('Route', )
 
+__doc__ = """blabla"""
+
 class RouteException(Exception): pass
 class Route(object):
 
     def __init__(self, *namespaces):
+        """Takes at least one namespace. 
+        """
         self.nmap = {}
 
         for namespace in namespaces:
