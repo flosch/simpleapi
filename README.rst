@@ -59,7 +59,7 @@ Screencasts
 
 You should watch the screencasts in full screen.
 
-:Contact-app: http://vimeo.com/11280195
+:Contact-app: http://vimeo.com/11280195 (good quality: http://bit.ly/cUdogY)
 
 Server example
 ==============
