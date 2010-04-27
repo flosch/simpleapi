@@ -4,6 +4,8 @@ try:
     from django.core import serializers
     from django.db.models import Model
     from django.db.models.query import QuerySet
+    from django.utils.encoding import smart_str, smart_unicode, is_protected_type
+    from django.utils import datetime_safe
 except ImportError, e:
     # FIXME: dirty hack? how can we prevent that the
     # Client library raises an error if django settings isn't present
@@ -27,10 +29,51 @@ class ModelSerializer(Serializer):
     def serialize(self):
         assert isinstance(self.obj, Model)
 
-        result = {}
+        self.result = {}
+
         for field in self.obj._meta.local_fields:
-            pass # TODO
-        return result
+            if field.serialize:
+                if field.rel is None:
+                    if not self.fields or field.attname in self.fields:
+                        self.handle_field(field)
+                else:
+                    if not self.fields or field.attname[:-3] in self.fields:
+                        self.handle_fk_field(field)
+        for field in self.obj._meta.many_to_many:
+            if field.serialize:
+                if not self.fields or field.attname in self.fields:
+                    self.handle_m2m_field(field)
+        return self.result
+
+    def handle_field(self, field):
+        value = field._get_val_from_obj(self.obj)
+        if is_protected_type(value):
+            self.result[field.name] = value
+        else:
+            self.result[field.name] = field.value_to_string(self.obj)
+
+    def handle_fk_field(self, field):
+        related = getattr(self.obj, field.name)
+        if related is not None:
+            if self.use_natural_keys and hasattr(related, 'natural_key'):
+                related = related.natural_key()
+            else:
+                if field.rel.field_name == related._meta.pk.name:
+                    # Related to remote object via primary key
+                    related = related._get_pk_val()
+                else:
+                    # Related to remote object via other field
+                    related = smart_unicode(getattr(related, field.rel.field_name), strings_only=True)
+        self.result[field.name] = related
+
+    def handle_m2m_field(self, field):
+        if field.rel.through._meta.auto_created:
+            if self.use_natural_keys and hasattr(field.rel.to, 'natural_key'):
+                m2m_value = lambda value: value.natural_key()
+            else:
+                m2m_value = lambda value: smart_unicode(value._get_pk_val(), strings_only=True)
+            self.result[field.name] = [m2m_value(related)
+                               for related in getattr(self.obj, field.name).iterator()]
 
 class QuerySerializer(Serializer):
 

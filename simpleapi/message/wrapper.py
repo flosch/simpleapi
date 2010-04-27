@@ -56,7 +56,7 @@ class Wrapper(object):
         self.result = result
 
     def build(self):
-        raise NotImplemented
+        raise NotImplementedError
 
 class DefaultWrapper(Wrapper):
 

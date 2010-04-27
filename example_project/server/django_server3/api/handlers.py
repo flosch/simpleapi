@@ -6,7 +6,7 @@ from simpleapi import Namespace, Feature
 from models import Contact
 
 class ContactAPI(Namespace):
-    
+
     def new(self, name, phone=None, fax=None):
         contact = Contact.objects.create(
             name=name,

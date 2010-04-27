@@ -65,16 +65,16 @@ class Formatter(object):
 
     def build(self, value):
         """Takes care of the building process and returns the encoded data."""
-        raise NotImplemented
+        raise NotImplementedError
 
     def kwargs(self, value, action='build'):
         """Is called within ``simpleapi``. This method invokes both the parse
         and build function when needed."""
-        raise NotImplemented
+        raise NotImplementedError
 
     def parse(self, value):
         """Takes care of the parsing proccess and returns the decoded data."""
-        raise NotImplemented
+        raise NotImplementedError
 
 class JSONFormatter(Formatter):
     """Formatter for the JSON-format. Used by default by the python client and 
