@@ -68,7 +68,7 @@ class DefaultWrapper(Wrapper):
             result['success'] = True
         if self.errors:
             result['errors'] = self.errors
-        if self.result:
+        if self.result is not None:
             result['result'] = self.result
         return result
 
@@ -87,7 +87,7 @@ class ExtJSFormWrapper(Wrapper):
 
             result['errormsg'] = errmsg
             result['errors'] = errors
-        if self.result:
+        if self.result is not None:
             result['data'] = self.result
         return result
 

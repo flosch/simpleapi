@@ -8,12 +8,19 @@ sys.path.append("/Users/flosch/devlibs/3rdparty/")
 
 PROJECT_ROOT = os.path.dirname(__file__)
 
-ROOT_URLCONF = 'django_server.urls'
+ROOT_URLCONF = 'django_server3.urls'
 
 DEBUG = True
 
 # used by simpleapi.features.CacheFeature:
 CACHE_BACKEND = 'locmem://'
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'testdb.db'
+    }
+}
 
 #
 # Language / localization
@@ -23,7 +30,6 @@ TIME_ZONE = 'Europe/Berlin'
 
 INSTALLED_APPS = (
     'api',
-    'ajax_client'
 )
 
 MIDDLEWARE_CLASSES = (
