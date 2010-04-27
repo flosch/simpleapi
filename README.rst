@@ -50,7 +50,7 @@ From GitHub
 Dependencies
 ============
 
-* Python 2.6.5 or greater
+* Python 2.5 or greater
 * simplejson (if you're using Python <= 2.5)
 
 Server example
