@@ -21,10 +21,10 @@ class WrappersSingleton(object):
             Register the given wrapper
         """
         if not isinstance(wrapper(None, None), Wrapper):
-            raise TypeError(u"You can only register a Wrapper not a {item|r}".format(item=wrapper))
+            raise TypeError(u"You can only register a Wrapper not a %s" % wrapper)
 
         if name in self._wrappers and not override:
-            raise AttributeError(u"{name} is already a valid wrapper type, try a new name".format(name=name))
+            raise AttributeError(u"%s is already a valid wrapper type, try a new name" % name)
 
         self._wrappers[name] = wrapper
 

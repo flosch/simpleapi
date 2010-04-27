@@ -12,7 +12,7 @@ class Example(Namespace):
 
         for i in xrange(random.randint(1, 10)):
             el = MessageElement('message')
-            el.text = 'Message #{num}'.format(num=random.randint(1, 5000))
+            el.text = 'Message #%s' % random.randint(1, 5000)
             el.set('type', 'public')
             if random.randint(1, 5000) > 3000:
                 el.set('type', 'private')

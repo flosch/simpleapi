@@ -60,10 +60,9 @@ class MessageElement(BaseMessage):
         if text:
             self.text = text
 
-
     def __repr__(self):
-        return "<MessageElement({tag}) at 0x{id:x}>".format(tag=self.tag,
-                                                       id=id(self))
+        return "<MessageElement(%(tag)s) at 0x%(id)x}>" % {'tag': self.tag,
+                                                           'id' : id(self)}
 
     def __len__(self):
         """
@@ -475,11 +474,8 @@ class Message(BaseMessage):
             super(Message, self).__setattr__(attr, value)
 
     def __repr__(self):
-        return '<Message at 0x{id:x}>'.format(
-            from_id=self.from_id,
-            to=self.to_id,
-            group=self.group_id,
-            id=id(self))
+        return '<Message at 0x%x>' % id(self)
+
 
     def to_json(self, as_dict=True):
         _ = {u'simpleapi': 'response',

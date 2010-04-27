@@ -28,10 +28,10 @@ class FormattersSingleton(object):
         the given `name`, you can override by setting `override` to ``True``.
         """
         if not isinstance(formatter(None, None), Formatter):
-            raise TypeError(u"You can only register a Formatter not a {item}".format(item=formatter))
+            raise TypeError(u"You can only register a Formatter not a %s" % formatter)
 
         if name in self._formatters and not override:
-            raise AttributeError(u"{name} is already a valid format type, try a new name".format(name=name))
+            raise AttributeError(u"%s is already a valid format type, try a new name" % name)
 
         self._formatters[name] = formatter
 
@@ -102,7 +102,7 @@ class JSONPFormatter(Formatter):
 
     def build(self, value):
         func = self.callback or 'simpleapiCallback'
-        return u'{func}({data})'.format(func=func, data=json.dumps(value))
+        return u'%(func)s(%(data)s)' % {'func': func, 'data': json.dumps(value)}
 
     def kwargs(self, value):
         if action == 'build':

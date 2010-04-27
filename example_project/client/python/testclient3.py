@@ -18,4 +18,4 @@ print client.new(name=u'Florian Maier', phone='+49 555 444', fax='+48 444 555')
 print
 print "Searching for 'Florian'..."
 for search_item in client.search(pattern='Florian'):
-    print "Found:", search_item
+    print u"Found: %(name)s (phone: %(phone)s, fax: %(fax)s)" % search_item

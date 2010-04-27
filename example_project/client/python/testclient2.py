@@ -9,7 +9,7 @@ from sapi import formatters, wrappers
 from simpleapi import Client
 
 def run(output='json'):
-    example = Client(ns='http://127.0.0.1:8000/api/example/', version=1,
+    example = Client(ns='http://127.0.0.1:8888/api/example/', version=1,
                      transport_type=output, wrapper_type='message')
 
     #messages should be a Message object, which is models after ElementTree
