@@ -11,11 +11,6 @@ simpleapi
 This readme is a short (and messy) overview about simpleapi. There is still an 
 almost complete documentation work in progress which will be published on http://www.simpleapi.de soon.
 
-Screencasts
-===========
-
-:Contact-app: http://vimeo.com/11280195
-
 About
 =====
 
@@ -57,6 +52,14 @@ Dependencies
 
 * Python 2.5 or greater
 * simplejson (if you're using Python <= 2.5)
+
+
+Screencasts
+===========
+
+You should watch the screencasts in full screen.
+
+:Contact-app: http://vimeo.com/11280195
 
 Server example
 ==============
