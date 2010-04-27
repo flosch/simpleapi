@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from django.core import serializers
-from django.db.models import Model
-from django.db.models.query import QuerySet
+try:
+    from django.core import serializers
+    from django.db.models import Model
+    from django.db.models.query import QuerySet
+except ImportError, e:
+    # FIXME: dirty hack? how can we prevent that the
+    # Client library raises an error if django settings isn't present
+    if not 'DJANGO_SETTINGS_MODULE' in str(e):
+        raise
 
 __all__ = ('ModelSerializer', 'QuerySerializer')
 

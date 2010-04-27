@@ -2,9 +2,15 @@
 
 import types
 
-from django.http import HttpResponse
-from django.db.models import Model
-from django.db.models.query import QuerySet
+try:
+    from django.http import HttpResponse
+    from django.db.models import Model
+    from django.db.models.query import QuerySet
+except ImportError, e:
+    # FIXME: dirty hack? how can we prevent that the
+    # Client library raises an error if django settings isn't present
+    if not 'DJANGO_SETTINGS_MODULE' in str(e):
+        raise
 
 from simpleapi.message import formatters, wrappers
 from serializer import ModelSerializer, QuerySerializer
