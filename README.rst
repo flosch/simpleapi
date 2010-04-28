@@ -17,7 +17,8 @@ simpleapi is an **easy to use, consistent, transparent and portable** way of pro
 
 * dynamic key authentication / ip restriction
 * type-conversion / constraints
-* object serialization
+* object serialization of django model instances, django queryset instances, 
+  mongoengine documents
 * inheritance / multiple versions of one API
 * several encoding/decoding formats (json, jsonp, xml, etc.)
 * several result formats (ie. for ExtJS forms, etc.)
