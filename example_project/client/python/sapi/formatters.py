@@ -55,9 +55,9 @@ class XMLFormatter(Formatter):
 
     def kwargs(self, value, action='build'):
         if action == 'build':
-            return PythonToXML.dumps(value)
+            return PythonToXML().build(value)
         elif action == 'parse':
-            return PythonToXML.loads(value)
+            return PythonToXML().parse(value)
 
     def parse(self, value):
         return Message.parse_xml(value)

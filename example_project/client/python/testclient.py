@@ -7,7 +7,10 @@ sys.path.append("/Users/flosch/devlibs/3rdparty/")
 
 from simpleapi.client import Client, RemoteException
 
-calculator = Client(ns='http://localhost:8888/api/calculator/multiple/', access_key="91d9f7763572c7ebcce49b183454aeb0")
+calculator = Client(ns='http://localhost:8888/api/calculator/multiple/',
+                    access_key="91d9f7763572c7ebcce49b183454aeb0",
+                    transport_type='xml')
+
 print "(v2) 5 + 5 =", calculator.add(a=5, b=5)
 
 # change api version to 1

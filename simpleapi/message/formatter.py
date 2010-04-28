@@ -161,7 +161,7 @@ class XMLFormatter(Formatter):
     __mime__ = "text/xml"
 
     def build(self, value):
-        return PythonToXML.dumps(value)
+        return PythonToXML().build(value)
 
     def kwargs(self, value, action='build'):
         if action == 'build':
@@ -170,7 +170,7 @@ class XMLFormatter(Formatter):
             return self.parse(value)
 
     def parse(self, value):
-        return PythonToXML.loads(value)
+        return PythonToXML().parse(value)
 
 formatters.register('json', JSONFormatter)
 formatters.register('jsonp', JSONPFormatter)
