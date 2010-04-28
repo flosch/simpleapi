@@ -63,9 +63,12 @@ SMS-System
 Server (handler.py)::
 
     from simpleapi import Namespace, serialize
-    from models import SMS
+    from models import SMS, APIUser
     
     class SMSAPI(Namespace):
+        __authentication__ = lambda namespace, access_key: \
+            APIUser.objects.filter(access_key=access_key).count() > 0
+
         def send(self, to, msg, from='testsender'):
             sms = SMS.objects.create(
                 to=to
@@ -100,7 +103,8 @@ Client (python)::
 
     from simpleapi import Client
     
-    client = Client(ns='http://remote.tld:8888/api/')
+    client = Client(ns='http://remote.tld:8888/api/', access_key='mysecret',
+                    transport_type='xml')
     
     sms = client.sms(to='555123', msg='Hey yo! This is simpleapi calling.')
     print "Sent successful?", sms['sent']
@@ -115,10 +119,57 @@ Client (jQuery)::
     jQuery.get(
         "/api/",
         {_call: 'send', to: '555123', 'msg': 'Hey ya!'},
-        function (result) {
-            if (result.result.sent)
+        function (return) {
+            if (return.result.sent)
                 alert('Sent successfully!');
             else
                 alert('Sending failed!');
+        }
+    )
+
+Calculator
+----------
+
+Server (handler.py)::
+
+    from simpleapi import Namespace
+    
+    class CalculatorAPI(Namespace):
+        __ip_restriction__ = ['127.0.0.*',]
+        __authentication = "lets_calc"
+        
+        def power(self, a, b):
+            return a ** b
+        power.published = True
+        power.constraints = lambda namespace, key, value: float(value)
+        
+        def sum(self, **kwargs)
+            return sum(kwargs.values())
+        sum.published = True
+        sum.constraints = lambda namespace, key, value: float(value)
+
+Server (urls.py)::
+
+    from handlers import CalculatorAPI
+    urlpatterns = patterns('',
+        (r'^api/$', Route(CalculatorAPI))
+    )
+
+Client (python)::
+
+    from simpleapi import Client
+    
+    client = Client(ns='http://remote.tld:8888/api/', access_key='lets_calc')
+    
+    print "5 ** 8 =", client.power(a=5, b=8)
+    print "1+2+3+4+5+6+7 =", client.sum(a=1, b=2, c=3, d=4, e=5, f=6, g=7)
+
+Client (jQuery)::
+
+    jQuery.get(
+        "/api/",
+        {_call: 'power', a: 5, b: 8, _access_key: "lets_calc"},
+        function (return) {
+            alert('5 ** 8 = ' + return.result)
         }
     )
