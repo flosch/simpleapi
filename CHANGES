@@ -8,6 +8,8 @@ Version 0.0.5
 
 - huge doc improvements (docs will be published on simpleapi.de)
 - various bugfixes
+- new requirement: python-dateutil
+- XML can now transport datetime-objects
 
 Version 0.0.4
 -------------

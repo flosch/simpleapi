@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import re
+
 try:
     from django.core import serializers
     from django.db.models import Model
@@ -19,19 +21,38 @@ class SerializedObject(object):
     def __init__(self, obj, **options):
         self.obj = obj
         self.options = options
+    
+    def to_python(self):
+        if isinstance(self.obj, Model):
+            serializer = ModelSerializer(self.obj, **self.options)
+        elif isinstance(self.obj, QuerySet):
+            serializer = QuerySetSerializer(self.obj, **self.options)
+        return serializer.serialize()
 
-def serialize(self, obj, **options):
+def serialize(obj, **options):
     return SerializedObject(
         obj=obj,
         **options
     )
 
+class SerializerList(list):
+    def __contains__(self, value):
+        for item in self:
+            if hasattr(item, 'match'):
+                # regular expression
+                if item.match(value):
+                    return True
+            else:
+                if item == value:
+                    return True
+        return False
+
 class Serializer(object):
     def __init__(self, obj, **options):
         self.obj = obj
         self.options = options
-        self.fields = options.get('fields', [])
-        self.excludes = options.get('excludes', [])
+        self.fields = SerializerList(options.get('fields', []))
+        self.excludes = SerializerList(options.get('excludes', []))
         
         assert isinstance(self.fields, (tuple, list))
         assert isinstance(self.excludes, (tuple, list))
@@ -46,14 +67,17 @@ class ModelSerializer(Serializer):
         for field in self.obj._meta.local_fields:
             if field.serialize:
                 if field.rel is None:
-                    if not self.fields or field.attname in self.fields:
+                    if (not self.fields or field.attname in self.fields) and \
+                        not field.attname in self.excludes:
                         self.handle_field(field)
                 else:
-                    if not self.fields or field.attname[:-3] in self.fields:
+                    if (not self.fields or field.attname[:-3] in self.fields) \
+                        and not field.attname in self.excludes:
                         self.handle_fk_field(field)
         for field in self.obj._meta.many_to_many:
             if field.serialize:
-                if not self.fields or field.attname in self.fields:
+                if (not self.fields or field.attname in self.fields) \
+                    and not field.attname in self.excludes:
                     self.handle_m2m_field(field)
         return self.result
 
@@ -87,7 +111,7 @@ class ModelSerializer(Serializer):
             self.result[field.name] = [m2m_value(related)
                                for related in getattr(self.obj, field.name).iterator()]
 
-class QuerySerializer(Serializer):
+class QuerySetSerializer(Serializer):
 
     def serialize(self):
         assert isinstance(self.obj, QuerySet)

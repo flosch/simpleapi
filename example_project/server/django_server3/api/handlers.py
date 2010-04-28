@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
-from simpleapi import Namespace, Feature
+from simpleapi import Namespace, Feature, serialize
 
 from models import Contact
 
@@ -13,11 +13,18 @@ class ContactAPI(Namespace):
             phone=phone,
             fax=fax
         )
-        return contact
+        return serialize(contact, excludes=[re.compile(r'^datetime_'),])
     new.published = True
 
     def search(self, pattern):
-        return Contact.objects.filter(
+        qs = Contact.objects.filter(
             name__icontains=pattern
         )
+        return {
+            'count': qs.count(),
+            'items': serialize(qs, excludes=['datetime_added',])
+        }
     search.published = True
+    
+    #def demo_inline_model(self, pattern)
+    #

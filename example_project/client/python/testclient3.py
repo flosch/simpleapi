@@ -17,5 +17,9 @@ print "Creating another contact..."
 print client.new(name=u'Florian Maier', phone='+49 555 444', fax='+48 444 555')
 print
 print "Searching for 'Florian'..."
-for search_item in client.search(pattern='Florian'):
+search_result = client.search(pattern='Florian')
+print " - Found %s results" % search_result['count']
+if search_result['count'] > 4:
+    print "(Showing only the first 4 items)"
+for search_item in search_result['items'][:4]:
     print u"Found: %(name)s (phone: %(phone)s, fax: %(fax)s)" % search_item

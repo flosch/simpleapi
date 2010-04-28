@@ -4,8 +4,6 @@ import types
 
 try:
     from django.http import HttpResponse
-    from django.db.models import Model
-    from django.db.models.query import QuerySet
 except ImportError, e:
     # FIXME: dirty hack? how can we prevent that the
     # Client library raises an error if django settings isn't present
@@ -13,7 +11,7 @@ except ImportError, e:
         raise
 
 from simpleapi.message import formatters, wrappers
-from serializer import ModelSerializer, QuerySerializer
+from preformat import Preformatter
 
 __all__ = ('Response', 'ResponseException')
 
@@ -48,14 +46,8 @@ class Response(object):
                 self.errors = [self.errors, errmsg]
 
     def _preformat(self, value):
-        if isinstance(value, Model):
-            serializer = ModelSerializer(value)
-            return serializer.serialize()
-        elif isinstance(value, QuerySet):
-            serializer = QuerySerializer(value)
-            return serializer.serialize()
-        else:
-            return value
+        preformatter = Preformatter()
+        return preformatter.run(value)
 
     def build(self, skip_features=False):
         # call feature: handle_response
