@@ -25,6 +25,16 @@ class PythonToXML(object):
         element = self.create_item('NoneType')
         return element
 
+    def build_time(self, value):
+        element = self.create_item('time')
+        element.text = value.isoformat()
+        return element
+
+    def build_date(self, value):
+        element = self.create_item('date')
+        element.text = value.isoformat()
+        return element
+
     def build_datetime(self, value):
         element = self.create_item('datetime')
         element.text = value.ctime()
@@ -82,10 +92,16 @@ class PythonToXML(object):
         return root
 
     # Parser methods
-    
+
     def parse_datetime(self, element):
         return parse(element.text)
-    
+
+    def parse_date(self, element):
+        return parse(element.text).date()
+
+    def parse_time(self, element):
+        return parse(element.text).time()
+
     def parse_dict(self, element):
         tmp = {}
         for item in element.getchildren():

@@ -10,3 +10,6 @@ class Contact(models.Model):
     phone = models.CharField(blank=True, null=True, max_length=50)
     fax = models.CharField(blank=True, null=True, max_length=50)
     datetime_added = models.DateTimeField(default=datetime.datetime.now)
+
+    time_changed = models.TimeField(auto_now=True, auto_now_add=True)
+    date_changed = models.DateField(auto_now=True, auto_now_add=True)
