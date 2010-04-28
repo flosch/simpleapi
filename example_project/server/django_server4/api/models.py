@@ -2,14 +2,19 @@
 
 import datetime
 
-from django.db import models
+from mongoengine import *
 
-class Contact(models.Model):
+class DetailedInformation(EmbeddedDocument):
+    status = StringField(choices=('sent', 'failed', 'progress'), default='progress')    
+
+class Contact(Document):
     
-    name = models.CharField(max_length=150)
-    phone = models.CharField(blank=True, null=True, max_length=50)
-    fax = models.CharField(blank=True, null=True, max_length=50)
-    datetime_added = models.DateTimeField(default=datetime.datetime.now)
-
-    time_changed = models.TimeField(auto_now=True, auto_now_add=True)
-    date_changed = models.DateField(auto_now=True, auto_now_add=True)
+    name = StringField()
+    phone = StringField()
+    fax = StringField()
+    datetime_added = DateTimeField(default=datetime.datetime.now)
+    
+    details = EmbeddedDocumentField(DetailedInformation,
+                                    default=DetailedInformation)
+    
+    testdict = DictField()

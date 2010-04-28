@@ -14,6 +14,13 @@ except ImportError, e:
     if not 'DJANGO_SETTINGS_MODULE' in str(e):
         raise
 
+try:
+    import mongoengine
+    import pymongo
+    has_mongoengine = True
+except ImportError:
+    has_mongoengine = False
+
 __all__ = ('serialize',)
 
 class SerializedObject(object):
@@ -24,9 +31,15 @@ class SerializedObject(object):
     
     def to_python(self):
         if isinstance(self.obj, Model):
-            serializer = ModelSerializer(self.obj, **self.options)
+            serializer = DjangoModelSerializer(self.obj, **self.options)
         elif isinstance(self.obj, QuerySet):
-            serializer = QuerySetSerializer(self.obj, **self.options)
+            serializer = DjangoQuerySetSerializer(self.obj, **self.options)
+        elif has_mongoengine and isinstance(self.obj, mongoengine.Document):
+            serializer = MongoDocumentSerializer(self.obj, **self.options)
+        elif has_mongoengine and isinstance(self.obj, mongoengine.queryset.QuerySet):
+            serializer = MongoQuerySetSerializer(self.obj, **self.options)
+        else:
+            raise NotImplementedError
         return serializer.serialize()
 
 def serialize(obj, **options):
@@ -57,7 +70,43 @@ class Serializer(object):
         assert isinstance(self.fields, (tuple, list))
         assert isinstance(self.excludes, (tuple, list))
 
-class ModelSerializer(Serializer):
+class MongoDocumentSerializer(Serializer):
+
+    def serialize(self):
+        assert isinstance(self.obj, mongoengine.Document)
+        
+        result = {}
+        self.handle_document(self.obj, result)
+        return result
+
+    def handle_field(self, doc, field, scope):
+        value = getattr(doc, field)
+        print value, type(value)
+        
+        if isinstance(value, pymongo.objectid.ObjectId):
+            value = str(value)
+        elif isinstance(value, mongoengine.EmbeddedDocument):
+            scope[field] = {}
+            self.handle_document(value, scope[field])
+        else:
+            scope[field] = value
+    
+    def handle_document(self, doc, scope):
+        for field in doc._fields:
+            self.handle_field(doc, field, scope)
+
+class MongoQuerySetSerializer(Serializer):
+    
+    def serialize(self):
+        assert isinstance(self.obj, mongoengine.queryset.QuerySet)
+
+        result = []
+        for obj in self.obj:
+            model_serializer = MongoDocumentSerializer(obj, **self.options)
+            result.append(model_serializer.serialize())
+        return result
+
+class DjangoModelSerializer(Serializer):
 
     def serialize(self):
         assert isinstance(self.obj, Model)
@@ -111,13 +160,13 @@ class ModelSerializer(Serializer):
             self.result[field.name] = [m2m_value(related)
                                for related in getattr(self.obj, field.name).iterator()]
 
-class QuerySetSerializer(Serializer):
+class DjangoQuerySetSerializer(Serializer):
 
     def serialize(self):
         assert isinstance(self.obj, QuerySet)
 
         result = []
         for obj in self.obj:
-            model_serializer = ModelSerializer(obj, **self.options)
+            model_serializer = DjangoModelSerializer(obj, **self.options)
             result.append(model_serializer.serialize())
         return result

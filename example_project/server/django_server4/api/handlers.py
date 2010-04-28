@@ -8,11 +8,12 @@ from models import Contact
 class ContactAPI(Namespace):
 
     def new(self, name, phone=None, fax=None):
-        contact = Contact.objects.create(
+        contact = Contact(
             name=name,
             phone=phone,
             fax=fax
         )
+        contact.save()
         return serialize(contact, excludes=[re.compile(r'^datetime_'),])
     new.published = True
 

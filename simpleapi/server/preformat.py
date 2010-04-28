@@ -9,6 +9,12 @@ except ImportError, e:
     if not 'DJANGO_SETTINGS_MODULE' in str(e):
         raise
 
+try:
+    import mongoengine
+    has_mongoengine = True
+except ImportError:
+    has_mongoengine = False
+
 from serializer import SerializedObject
 
 __all__ = ()
@@ -25,6 +31,10 @@ class Preformatter(object):
     
     def parse_value(self, value):
         if isinstance(value, (Model, QuerySet)):
+            value = SerializedObject(value)
+        
+        if has_mongoengine and isinstance(value, (mongoengine.Document,
+                                                  mongoengine.queryset.QuerySet)):
             value = SerializedObject(value)
         
         if isinstance(value, SerializedObject):
