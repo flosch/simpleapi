@@ -19,6 +19,7 @@ class Client(object):
     :param transport_type: encoding/decoding type for request/response (default
                            is json)
     :param wrapper_type: wrapper used for formatting the response
+    :param timeout: connection timeout in secs (default is system parameter)
     """
 
     def __init__(self, ns, access_key=None, version='default',

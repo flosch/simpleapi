@@ -103,6 +103,7 @@ class Request(object):
                 try:
                     new_request_items[str(key)] = self.input_formatter.kwargs(value, 'parse')
                 except ValueError, e:
+                    raise
                     raise RequestException(u'Value for %s couldn\'t be decoded.' % \
                         key)
             request_items = new_request_items

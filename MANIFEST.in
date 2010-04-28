@@ -4,5 +4,5 @@ include CHANGES
 include VISIONARY
 include README.rst
 include requirements.txt
-recursive-include docs *.txt *.html *.rst *.bat
-recursive-exclude docs/_build *.*
+#recursive-include docs *.txt *.html *.rst *.bat
+#recursive-exclude docs/_build *.*

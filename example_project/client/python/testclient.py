@@ -9,7 +9,7 @@ from simpleapi.client import Client, RemoteException
 
 calculator = Client(ns='http://localhost:8888/api/calculator/multiple/',
                     access_key="91d9f7763572c7ebcce49b183454aeb0",
-                    transport_type='xml')
+                    transport_type='xml', timeout=60)
 
 print "(v2) 5 + 5 =", calculator.add(a=5, b=5)
 

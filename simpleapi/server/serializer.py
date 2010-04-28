@@ -12,7 +12,19 @@ except ImportError, e:
     if not 'DJANGO_SETTINGS_MODULE' in str(e):
         raise
 
-__all__ = ('ModelSerializer', 'QuerySerializer')
+__all__ = ('serialize',)
+
+class SerializedObject(object):
+    
+    def __init__(self, obj, **options):
+        self.obj = obj
+        self.options = options
+
+def serialize(self, obj, **options):
+    return SerializedObject(
+        obj=obj,
+        **options
+    )
 
 class Serializer(object):
     def __init__(self, obj, **options):

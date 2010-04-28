@@ -2,6 +2,7 @@
 
 from xml.etree import cElementTree as ET
 import base64
+from dateutil.parser import parse
 
 __all__ = ('PythonToXML',)
 
@@ -20,6 +21,15 @@ class PythonToXML(object):
 
     # Builder methods
 
+    def build_NoneType(self, value):
+        element = self.create_item('NoneType')
+        return element
+
+    def build_datetime(self, value):
+        element = self.create_item('datetime')
+        element.text = value.ctime()
+        return element
+
     def build_str(self, value):
         element = self.create_item('str')
         element.text = str(value)
@@ -27,7 +37,7 @@ class PythonToXML(object):
 
     def build_unicode(self, value):
         element = self.create_item('unicode')
-        element.text = value.encode("utf-8")
+        element.text = value #.encode("utf-8")
         return element
 
     def build_int(self, value):
@@ -73,6 +83,9 @@ class PythonToXML(object):
 
     # Parser methods
     
+    def parse_datetime(self, element):
+        return parse(element.text)
+    
     def parse_dict(self, element):
         tmp = {}
         for item in element.getchildren():
@@ -98,7 +111,7 @@ class PythonToXML(object):
         return tuple(tmp)
 
     def parse_unicode(self, element):
-        return element.text.decode("utf-8")
+        return element.text
 
     def parse_str(self, element):
         return element.text
@@ -111,6 +124,9 @@ class PythonToXML(object):
 
     def parse_bool(self, element):
         return bool(int(element.text))
+    
+    def parse_NoneType(self, element):
+        return None
 
     # generic methods
 
