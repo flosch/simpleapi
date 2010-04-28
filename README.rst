@@ -30,7 +30,7 @@ Installation
 
 ::
     
-    easy_install -U django-simpleapi
+    pip install --upgrade django-simpleapi
 
 From GitHub
 -----------
