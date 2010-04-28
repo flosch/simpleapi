@@ -2,6 +2,7 @@
 
 __all__ = ('Client', 'ClientException', 'ConnectionException', 'RemoteException', )
 
+import socket
 import urllib
 import cPickle
 from simpleapi.message import formatters, wrappers
@@ -21,7 +22,10 @@ class Client(object):
     """
 
     def __init__(self, ns, access_key=None, version='default',
-                 transport_type='json', wrapper_type='default'):
+                 transport_type='json', wrapper_type='default', timeout=None):
+
+        if timeout is not None:
+            socket.setdefaulttimeout(timeout)
 
         self.ns = ns
         self.access_key = access_key
