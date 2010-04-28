@@ -98,17 +98,21 @@ class Request(object):
 
         # decode incoming variables (only if _data is not set!)
         if not data:
-            for key, value in request_items.iteritems():
+            new_request_items = {}
+            for key, value in request_items.items():
                 try:
-                    request_items[str(key)] = self.input_formatter.kwargs(value, 'parse')
+                    new_request_items[str(key)] = self.input_formatter.kwargs(value, 'parse')
                 except ValueError, e:
                     raise RequestException(u'Value for %s couldn\'t be decoded.' % \
                         key)
+            request_items = new_request_items
         else:
             # make sure all keys are strings, not unicodes (for compatibility 
             # issues: Python < 2.6.5)
-            for key, value in request_items.iteritems():
-                request_items[str(key)] = value
+            new_request_items = {}
+            for key, value in request_items.items():
+                new_request_items[str(key)] = value
+            request_items = new_request_items
 
         # check constraints
         for key, value in request_items.iteritems():
