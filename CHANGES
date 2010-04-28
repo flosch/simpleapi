@@ -1,15 +1,22 @@
 simpleapi changelog
 ===================
 
-Version 0.0.5
+Version 0.0.6
 -------------
 
 [current development version]
 
-- huge doc improvements (docs will be published on simpleapi.de)
 - various bugfixes
+- huge doc improvements (docs will be published on simpleapi.de)
+
+Version 0.0.5
+-------------
+
+- various bugfixes
+- added serialize()-method (see example project 3 for more)
+- added preformatter for inline objects like Model-instances, QuerySets, etc.
 - new requirement: python-dateutil
-- XML can now transport datetime-objects
+- XML can now transport datetime/date/time-objects
 
 Version 0.0.4
 -------------
