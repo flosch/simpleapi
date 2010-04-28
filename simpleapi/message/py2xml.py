@@ -64,7 +64,13 @@ class PythonToXML(object):
             element.set('name', key)
             root.append(element)
         return root
-    
+
+    def build_set(self, value):
+        root = self.create_item('set')
+        for item in list(value):
+            root.append(self.handle(item))
+        return root
+
     # Parser methods
     
     def parse_dict(self, element):
@@ -78,6 +84,12 @@ class PythonToXML(object):
         for item in element.getchildren():
             tmp.append(self.handle(item, 'parse'))
         return tmp
+
+    def parse_set(self, element):
+        tmp = []
+        for item in element.getchildren():
+            tmp.append(self.handle(item, 'parse'))
+        return set(tmp)
 
     def parse_tuple(self, element):
         tmp = []
@@ -109,30 +121,3 @@ class PythonToXML(object):
     def parse(self, value):
         root = ET.fromstring(value)
         return self.handle(root, op='parse')
-"""
-type_methods = {
-    dict: PythonToXML._dump_dict,
-    list: PythonToXML._dump_sequence,
-    tuple: PythonToXML._dump_sequence,
-    set: PythonToXML._dump_sequence,
-    frozenset: PythonToXML._dump_sequence,
-    str: PythonToXML._dump_string,
-    unicode: PythonToXML._dump_string,
-    int: PythonToXML._dump_int,
-    float: PythonToXML._dump_float,
-    hex: PythonToXML._dump_hex,
-    bytes: PythonToXML._dump_bytes,
-    bool: PythonToXML._dump_bool,
-    'dict': [PythonToXML._load_dict, None],
-    'list': [PythonToXML._load_sequence, 'list'],
-    'tuple': [PythonToXML._load_sequence, 'tuple'],
-    'set': [PythonToXML._load_sequence, 'set'],
-    'frozenset': [PythonToXML._load_sequence, 'frozenset'],
-    'string': [PythonToXML._load_string, None],
-    'int': [PythonToXML._load_int, None],
-    'float': [PythonToXML._load_float, None],
-    'hex': [PythonToXML._load_hex, None],
-    'bytes': [PythonToXML._load_bytes, None],
-    'bool': [PythonToXML._load_bool, None],
-}
-"""
