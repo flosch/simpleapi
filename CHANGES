@@ -1,15 +1,20 @@
 simpleapi changelog
 ===================
 
-Version 0.0.4
+Version 0.0.5
 -------------
 
 [current development version]
 
 - huge doc improvements (docs will be published on simpleapi.de)
-- new XML formatter (thanks to Digitalxero)
+- entirely new XML builder/parser
+
+Version 0.0.4
+-------------
+
 - method return values can now be Model-Objects or QuerySet-Objects (they will
   be automatically serialized)
+- new XML formatter (thanks to Digitalxero)
 
 Version 0.0.3
 -------------

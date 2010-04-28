@@ -1,5 +1,6 @@
 include LICENSE
 include AUTHORS
+include CHANGES
 include VISIONARY
 include README.rst
 recursive-include docs *.txt *.html *.rst *.bat
