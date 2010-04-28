@@ -304,8 +304,9 @@ class Route(object):
                 msgs.append(u'------- Traceback follows -------')
                 for idx, item in enumerate(trace):
                     msgs.append(u"(%s)\t%s:%s (%s)" % (idx+1, item[3], item[2], item[1]))
-                    for line in item[4]:
-                        msgs.append(u"\t\t%s" % line.strip())
+                    if item[4]:
+                        for line in item[4]:
+                            msgs.append(u"\t\t%s" % line.strip())
                     msgs.append('') # blank line
                 msgs.append('     -- End of traceback --     ')
                 msgs.append('')
