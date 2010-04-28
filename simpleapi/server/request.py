@@ -100,10 +100,15 @@ class Request(object):
         if not data:
             for key, value in request_items.iteritems():
                 try:
-                    request_items[key] = self.input_formatter.kwargs(value, 'parse')
+                    request_items[str(key)] = self.input_formatter.kwargs(value, 'parse')
                 except ValueError, e:
                     raise RequestException(u'Value for %s couldn\'t be decoded.' % \
                         key)
+        else:
+            # make sure all keys are strings, not unicodes (for compatibility 
+            # issues: Python < 2.6.5)
+            for key, value in request_items.iteritems():
+                request_items[str(key)] = value
 
         # check constraints
         for key, value in request_items.iteritems():
