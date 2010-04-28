@@ -53,12 +53,18 @@ class Client(object):
 
             try:
                 response = urllib.urlopen(self.ns,
-                                          urllib.urlencode(data)).read()
+                                          urllib.urlencode(data))
+
+                assert response.getcode() in [200,], \
+                    u'HTTP-Server returned http code %s (expected: 200) ' % \
+                    response.getcode()
+
+                response_buffer = response.read()
             except IOError, e:
                 raise ConnectionException(e)
 
             try:
-                response = formatter.parse(response)
+                response = formatter.parse(response_buffer)
             except (cPickle.UnpicklingError, EOFError), e:
                 raise ClientException(
                     u'Couldn\'t unpickle response ' \
