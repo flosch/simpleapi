@@ -22,9 +22,15 @@ class ContactAPI(Namespace):
         )
         return {
             'count': qs.count(),
-            'items': serialize(qs, excludes=['datetime_added',])
+            
+            # use serialize if you want to exclude or define fields
+            'items': serialize(qs, excludes=['datetime_added',]), 
+            
+            # inline objects are no problem without serialize
+            'first_item': (qs.count() > 0) and qs[0] or None,
+            
+            # define fields if you want to restrict output to specific fields
+            'second_item': (qs.count() > 1) and \
+                serialize(qs[1], fields=[re.compile('^name')]) or None
         }
     search.published = True
-    
-    #def demo_inline_model(self, pattern)
-    #

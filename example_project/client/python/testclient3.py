@@ -21,5 +21,13 @@ search_result = client.search(pattern='Florian')
 print " - Found %s results" % search_result['count']
 if search_result['count'] > 4:
     print "(Showing only the first 4 items)"
+print
+
+print "First item is:", search_result['first_item']
+print
+
+print "Second item is:", search_result['second_item']
+print
+
 for search_item in search_result['items'][:4]:
     print u"Found: %(name)s (phone: %(phone)s, fax: %(fax)s)" % search_item

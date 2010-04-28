@@ -16,9 +16,9 @@ __all__ = ()
 class Preformatter(object):
     
     def handle_value(self, value):
-        if getattr(value, '__name__', 'n/a') == 'dict':
+        if getattr(type(value), '__name__', 'n/a') == 'dict':
             return self.handle_dict(value)
-        elif getattr(value, '__name__', 'n/a') == 'list':
+        elif getattr(type(value), '__name__', 'n/a') == 'list':
             return self.handle_list(value)
         else:
             return self.parse_value(value)
@@ -26,6 +26,8 @@ class Preformatter(object):
     def parse_value(self, value):
         if isinstance(value, (Model, QuerySet)):
             value = SerializedObject(value)
+        
+        if isinstance(value, SerializedObject):
             return value.to_python()
         
         return value
