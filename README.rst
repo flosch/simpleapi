@@ -52,7 +52,9 @@ Dependencies
 
 * Python 2.5 or greater
 * simplejson (if you're using Python <= 2.5)
+* python-dateutil
 
+(see requirements.txt as well)
 
 Screencasts
 ===========
