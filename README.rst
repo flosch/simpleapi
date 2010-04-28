@@ -96,11 +96,11 @@ Server (urls.py)::
         (r'^api/$', Route(SMSAPI))
     )
 
-Client::
+Client (python)::
 
     from simpleapi import Client
     
-    client = Client(ns='http://remote.tld:8888')
+    client = Client(ns='http://remote.tld:8888/api/')
     
     sms = client.sms(to='555123', msg='Hey yo! This is simpleapi calling.')
     print "Sent successful?", sms['sent']
@@ -109,3 +109,16 @@ Client::
                      sender='simpleapi')
     print "Sent successful?", sms['sent']
     print "Which sender?", sms['obj']['sender']
+
+Client (jQuery)::
+
+    jQuery.get(
+        "/api/",
+        {_call: 'send', to: '555123', 'msg': 'Hey ya!'},
+        function (result) {
+            if (result.result.sent)
+                alert('Sent successfully!');
+            else
+                alert('Sending failed!');
+        }
+    )
