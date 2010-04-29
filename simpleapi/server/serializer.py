@@ -81,7 +81,6 @@ class MongoDocumentSerializer(Serializer):
 
     def handle_field(self, doc, field, scope):
         value = getattr(doc, field)
-        print value, type(value)
         
         if isinstance(value, pymongo.objectid.ObjectId):
             value = str(value)
