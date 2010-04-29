@@ -16,7 +16,6 @@ except ImportError:
     has_mongoengine = False
 
 from serializer import SerializedObject
-from streaming import StreamingObject
 
 __all__ = ()
 
