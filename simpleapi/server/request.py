@@ -5,13 +5,15 @@ from session import Session
 from feature import FeatureContentResponse
 from simpleapi.message import formatters
 
+from django.core.exceptions import ObjectDoesNotExist
+
 __all__ = ('Request', 'RequestException')
 
 class RequestException(Exception): pass
 class Request(object):
 
     def __init__(self, http_request, namespace, input_formatter,
-                 output_formatter, wrapper, callback, mimetype):
+                 output_formatter, wrapper, callback, mimetype, restful):
         self.http_request = http_request
         self.namespace = namespace
         self.input_formatter = input_formatter
@@ -19,13 +21,17 @@ class Request(object):
         self.wrapper = wrapper
         self.callback = callback
         self.mimetype = mimetype
-
+        self.restful = restful
         self.session = Session()
 
     def run(self, request_items):
         # set all required simpleapi arguments
         access_key = request_items.pop('_access_key', None)
         method = request_items.pop('_call', None)
+        
+        if self.restful:
+            method = self.http_request.method.lower()
+        
         data = request_items.pop('_data', None)
 
         # update session
@@ -99,7 +105,7 @@ class Request(object):
         # decode incoming variables (only if _data is not set!)
         if not data:
             new_request_items = {}
-            for key, value in request_items.items():
+            for key, value in request_items.iteritems():
                 try:
                     new_request_items[str(key)] = self.input_formatter.kwargs(value, 'parse')
                 except ValueError, e:
@@ -111,7 +117,7 @@ class Request(object):
             # make sure all keys are strings, not unicodes (for compatibility 
             # issues: Python < 2.6.5)
             new_request_items = {}
-            for key, value in request_items.items():
+            for key, value in request_items.iteritems():
                 new_request_items[str(key)] = value
             request_items = new_request_items
 
@@ -134,7 +140,13 @@ class Request(object):
             result = e
         else:
             # make the call
-            result = getattr(local_namespace, method)(**request_items)
+            try:
+                result = getattr(local_namespace, method)(**request_items)
+            except Exception, e:
+                if isinstance(e, ObjectDoesNotExist):
+                    raise RequestException(e)
+                else:
+                    raise
 
         # if result is not a Response, create one
         if not isinstance(result, Response):

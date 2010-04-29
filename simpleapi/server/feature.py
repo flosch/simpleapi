@@ -198,5 +198,5 @@ class ThrottlingFeature(Feature):
 
 __features__ = {
     'caching': CachingFeature,
-    'throttling': ThrottlingFeature,
+    'throttling': ThrottlingFeature
 }

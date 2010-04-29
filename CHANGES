@@ -7,6 +7,8 @@ Version 0.0.6
 [current development version]
 
 - various bugfixes
+- RESTful (add restful=True to your Route)
+- added in-url parameters (see example project 5)
 - huge doc improvements (docs will be published on simpleapi.de)
 
 Version 0.0.5

@@ -1,4 +1,4 @@
-- ResultWrapper (ie. for supporting ExtJS form output)
 - method-based verification
 - usage limitations (#/second, #/hour, etc.) per user
-- cache return value when the arguments of one request are exactly the same
+- for huge arguments make calls less memory intensive (chunks, etc.)
+  e.g. for uploads/files, etc.
