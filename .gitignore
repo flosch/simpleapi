@@ -8,3 +8,5 @@ build/*
 *.wpr
 docs/impressum.rst
 *.db
+*.mov
+bible.txt
