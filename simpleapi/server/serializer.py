@@ -92,7 +92,9 @@ class MongoDocumentSerializer(Serializer):
     
     def handle_document(self, doc, scope):
         for field in doc._fields:
-            self.handle_field(doc, field, scope)
+            if (not self.fields or field in self.fields) and \
+               not field in self.excludes:
+                self.handle_field(doc, field, scope)
 
 class MongoQuerySetSerializer(Serializer):
     
