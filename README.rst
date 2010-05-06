@@ -13,7 +13,12 @@ An almost complete documentation is still work in progress and will be published
 About
 =====
 
-simpleapi is an **easy to use, consistent, transparent and portable** way of providing an API within your django project. It supports **several output formats** (e. g. json, jsonp, xml) and provides a **client library** to access the API seamlessly from any python application. You can also use nearly every **Ajax framework** (e. g. jQuery, ExtJS, etc.) to access the API.
+simpleapi is an **easy to use, consistent, transparent and portable** way of
+providing an API within your django project. It supports **several output
+formats** (e. g. json, jsonp, xml) and provides **client libraries** (PHP,
+Python) to access the API seamlessly from any remote application. You can also
+use nearly every **Ajax framework** (e. g. jQuery, ExtJS, etc.) to access the
+API.
 
 * dynamic key authentication / ip restriction
 * type-conversion / constraints
@@ -115,6 +120,17 @@ Client (python)::
     print "Sent successful?", sms['sent']
     print "Which sender?", sms['obj']['sender']
 
+Client (PHP)::
+
+    require_once("class.client.php");
+    
+    $client = new Client($ns="http://localhost:8888/api/",
+                         $access_key='mysecret');
+    print("Sent? ".$client->sms(array(
+        'to' => '555123',
+        'msg' => 'Hey yo! This is the PHP client sending you a SMS.'
+    ))->{'sent'});
+
 Client (jQuery)::
 
     jQuery.get(
@@ -164,6 +180,14 @@ Client (python)::
     
     print "5 ** 8 =", client.power(a=5, b=8)
     print "1+2+3+4+5+6+7 =", client.sum(a=1, b=2, c=3, d=4, e=5, f=6, g=7)
+
+Client (PHP)::
+
+    require_once("class.client.php");
+    
+    $client = new Client($ns="http://localhost:8888/api/",
+                         $access_key='lets_calc');
+    print("5 ** 8 = ".$client->power(array('a'=>5, 'b'=>8)));
 
 Client (jQuery)::
 
