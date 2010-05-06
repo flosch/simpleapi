@@ -5,7 +5,13 @@ from session import Session
 from feature import FeatureContentResponse
 from simpleapi.message import formatters
 
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist as django_notexist
+
+try:
+    from mongoengine.queryset import DoesNotExist as mongoengine_notexist
+    has_mongoengine = True
+except ImportError:
+    has_mongoengine = False
 
 __all__ = ('Request', 'RequestException')
 
@@ -143,7 +149,9 @@ class Request(object):
             try:
                 result = getattr(local_namespace, method)(**request_items)
             except Exception, e:
-                if isinstance(e, ObjectDoesNotExist):
+                if isinstance(e, django_notexist):
+                    raise RequestException(e)
+                elif has_mongoengine and isinstance(e, mongoengine_notexist):
                     raise RequestException(e)
                 else:
                     raise
