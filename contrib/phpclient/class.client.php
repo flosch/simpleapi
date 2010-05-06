@@ -1,5 +1,4 @@
 <?php
-    error_reporting(E_ALL); 
     /***************************************
      * simpleapi PHP client library v0.1   *
      *                                     *
