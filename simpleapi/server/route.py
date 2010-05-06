@@ -117,6 +117,9 @@ class Route(object):
                 allowed_methods = None
                 method_function = lambda method: True
 
+            # determine format
+            format = getattr(function_method, 'format', lambda val: val)
+
             functions[function_name] = {
                 'method': function_method,
                 'name': function_name,
@@ -133,6 +136,7 @@ class Route(object):
                     'function': constraint_function,
                     'raw': constraints,
                 },
+                'format': format,
                 'methods': {
                     'function': method_function,
                     'allowed_methods': allowed_methods,

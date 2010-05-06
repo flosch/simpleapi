@@ -166,6 +166,7 @@ class Request(object):
                 wrapper=self.wrapper,
                 mimetype=self.mimetype,
                 session=self.session,
+                function=function
             )
         else:
             response = result

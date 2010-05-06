@@ -20,7 +20,7 @@ class Response(object):
 
     def __init__(self, http_request, namespace=None, output_formatter=None,
                  wrapper=None, errors=None, result=None, mimetype=None,
-                 callback=None, session=None):
+                 callback=None, session=None, function=None):
         assert isinstance(errors, (basestring, list)) or errors is None
 
         self.http_request = http_request
@@ -29,6 +29,7 @@ class Response(object):
         self.result = self._preformat(result)
         self.mimetype = mimetype
         self.callback = None
+        self.function = function
 
         self.output_formatter = output_formatter or formatters['json']
         self.wrapper = wrapper or wrappers['default']
@@ -54,6 +55,10 @@ class Response(object):
         if self.namespace and not skip_features:
             for feature in self.namespace['features']:
                 feature._handle_response(self)
+
+        # pass result to custom format function
+        if self.function:
+            self.result = self.function['format'](self.result)
 
         if isinstance(self.output_formatter, type):
             self.output_formatter = self.output_formatter(
