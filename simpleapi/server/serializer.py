@@ -3,12 +3,13 @@
 import re
 
 try:
-    from django.core import serializers
     from django.db.models import Model
     from django.db.models.query import QuerySet
-    from django.utils.encoding import smart_str, smart_unicode, is_protected_type
-    from django.utils import datetime_safe
+    from django.utils.encoding import smart_unicode, is_protected_type
+    has_django = True
 except ImportError, e:
+    has_django = False
+
     # FIXME: dirty hack? how can we prevent that the
     # Client library raises an error if django settings isn't present
     if not 'DJANGO_SETTINGS_MODULE' in str(e):
@@ -30,9 +31,9 @@ class SerializedObject(object):
         self.options = options
     
     def to_python(self):
-        if isinstance(self.obj, Model):
+        if has_django and isinstance(self.obj, Model):
             serializer = DjangoModelSerializer(self.obj, **self.options)
-        elif isinstance(self.obj, QuerySet):
+        elif has_django and isinstance(self.obj, QuerySet):
             serializer = DjangoQuerySetSerializer(self.obj, **self.options)
         elif has_mongoengine and isinstance(self.obj, mongoengine.Document):
             serializer = MongoDocumentSerializer(self.obj, **self.options)

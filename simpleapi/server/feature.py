@@ -8,11 +8,9 @@ from simpleapi.message import formatters, Formatter
 
 try:
     from django.core.cache import cache
+    has_django = True
 except ImportError, e:
-    # FIXME: dirty hack? how can we prevent that the
-    # Client library raises an error if django settings isn't present
-    if not 'DJANGO_SETTINGS_MODULE' in str(e):
-        raise
+    has_django = False
 
 __all__ = ('__features__', 'Feature', 'FeatureException', 'FeatureContentResponse')
 

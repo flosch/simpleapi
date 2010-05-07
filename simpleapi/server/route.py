@@ -4,6 +4,7 @@ import copy
 import inspect
 import re
 
+from sapirequest import SAPIRequest
 from request import Request, RequestException
 from response import Response, ResponseException
 from namespace import NamespaceException
@@ -21,6 +22,11 @@ class Route(object):
         """
         self.nmap = {}
         self.restful = kwargs.get('restful', False)
+        self.framework = kwargs.get('framework', 'django')
+        assert self.framework in ['flask', 'django']
+        
+        # for Flask support:
+        self.__name__ = 'Route'
 
         for namespace in namespaces:
             self.add_namespace(namespace)
@@ -221,8 +227,10 @@ class Route(object):
 
         return version
 
-    def __call__(self, http_request, **urlparameters):
-        request_items = dict(http_request.REQUEST.items())
+    def __call__(self, http_request=None, **urlparameters):
+        sapi_request = SAPIRequest(self, http_request)
+
+        request_items = dict(sapi_request.REQUEST.items())
         request_items.update(urlparameters)
         
         version = request_items.pop('_version', 'default')
@@ -261,7 +269,7 @@ class Route(object):
                                         'unknown: %s' % input_formatter)
 
             # get input formatter
-            input_formatter_instancec = namespace['input_formatters'][input_formatter](http_request, callback)
+            input_formatter_instancec = namespace['input_formatters'][input_formatter](sapi_request, callback)
 
             # check output formatter
             if output_formatter not in namespace['output_formatters']:
@@ -269,7 +277,7 @@ class Route(object):
                                         'unknown: %s' % output_formatter)
 
             # get output formatter
-            output_formatter_instance = namespace['output_formatters'][output_formatter](http_request, callback)
+            output_formatter_instance = namespace['output_formatters'][output_formatter](sapi_request, callback)
 
             # check wrapper
             if wrapper not in namespace['wrappers']:
@@ -285,7 +293,7 @@ class Route(object):
                     (version, ", ".join(map(lambda i: str(i), self.nmap.keys()))))
 
             request = Request(
-                http_request=http_request,
+                sapi_request=sapi_request,
                 namespace=namespace,
                 input_formatter=input_formatter_instancec,
                 output_formatter=output_formatter_instance,
@@ -322,7 +330,7 @@ class Route(object):
                 print "\n".join(msgs) # TODO: send it to the admins by email!
 
             response = Response(
-                http_request,
+                sapi_request,
                 errors=err_msg,
                 output_formatter=output_formatter_instance,
                 wrapper=wrapper_instance,

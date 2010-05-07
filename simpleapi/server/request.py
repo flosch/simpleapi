@@ -5,7 +5,11 @@ from session import Session
 from feature import FeatureContentResponse
 from simpleapi.message import formatters
 
-from django.core.exceptions import ObjectDoesNotExist as django_notexist
+try:
+    from django.core.exceptions import ObjectDoesNotExist as django_notexist
+    has_django = True
+except ImportError:
+    has_django = False
 
 try:
     from mongoengine.queryset import DoesNotExist as mongoengine_notexist
@@ -18,9 +22,9 @@ __all__ = ('Request', 'RequestException')
 class RequestException(Exception): pass
 class Request(object):
 
-    def __init__(self, http_request, namespace, input_formatter,
+    def __init__(self, sapi_request, namespace, input_formatter,
                  output_formatter, wrapper, callback, mimetype, restful):
-        self.http_request = http_request
+        self.sapi_request = sapi_request
         self.namespace = namespace
         self.input_formatter = input_formatter
         self.output_formatter = output_formatter
@@ -36,12 +40,12 @@ class Request(object):
         method = request_items.pop('_call', None)
         
         if self.restful:
-            method = self.http_request.method.lower()
+            method = self.sapi_request.method.lower()
         
         data = request_items.pop('_data', None)
 
         # update session
-        self.session.request = self.http_request
+        self.session.request = self.sapi_request
         self.session.mimetype = self.mimetype
         self.session.callback = self.callback
         self.session.access_key = access_key
@@ -67,15 +71,15 @@ class Request(object):
 
         # check ip address
         if not self.namespace['ip_restriction'](local_namespace, \
-                                                self.http_request.META.get('REMOTE_ADDR')):
+                                                self.sapi_request.META.get('REMOTE_ADDR')):
             raise RequestException(u'You are not allowed to access.')
 
         function = self.namespace['functions'][method]
         self.session.function = function
 
         # check allowed HTTP methods
-        if not function['methods']['function'](self.http_request.method):
-            raise RequestException(u'Method not allowed: %s' % self.http_request.method)
+        if not function['methods']['function'](self.sapi_request.method):
+            raise RequestException(u'Method not allowed: %s' % self.sapi_request.method)
 
         # if data is set, make sure input formatter is not ValueFormatter
         if data:
@@ -132,7 +136,7 @@ class Request(object):
             try:
                 request_items[key] = function['constraints']['function'](
                     local_namespace, key, value)
-            except:
+            except (ValueError,):
                 raise RequestException(u'Constraint failed for argument: %s' % key)
 
         # we're done working on arguments, pass it to the session
@@ -149,7 +153,7 @@ class Request(object):
             try:
                 result = getattr(local_namespace, method)(**request_items)
             except Exception, e:
-                if isinstance(e, django_notexist):
+                if has_django and isinstance(e, django_notexist):
                     raise RequestException(e)
                 elif has_mongoengine and isinstance(e, mongoengine_notexist):
                     raise RequestException(e)
@@ -159,7 +163,7 @@ class Request(object):
         # if result is not a Response, create one
         if not isinstance(result, Response):
             response = Response(
-                http_request=self.http_request,
+                sapi_request=self.sapi_request,
                 namespace=self.namespace,
                 result=result,
                 output_formatter=self.output_formatter,

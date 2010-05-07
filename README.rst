@@ -14,12 +14,13 @@ About
 =====
 
 simpleapi is an **easy to use, consistent, transparent and portable** way of
-providing an API within your django project. It supports **several output
-formats** (e. g. json, jsonp, xml) and provides **client libraries** (PHP,
-Python) to access the API seamlessly from any remote application. You can also
-use nearly every **Ajax framework** (e. g. jQuery, ExtJS, etc.) to access the
-API.
+providing an API. It supports **several transport formats** (e. g. json, jsonp,
+xml, yaml) and provides **server** (django, flask) and **client libraries**
+(PHP, Python) to interact seamlessly. You can also use nearly every **Ajax
+framework** (e. g. jQuery, ExtJS, etc.) to access the API.
 
+* server support for **django** and **flask**
+* client support for **python**, **php** and **javascript**
 * dynamic key authentication / ip restriction
 * type-conversion / constraints
 * object serialization of django model instances, django queryset instances, 
@@ -35,7 +36,7 @@ Installation
 
 ::
     
-    pip install --upgrade django-simpleapi
+    pip install --upgrade simpleapi
 
 From GitHub
 -----------
@@ -47,6 +48,7 @@ From GitHub
 Dependencies
 ============
 
+* **server**: django >= 1.1.1 or flask >= 0.1
 * Python 2.5 or greater
 * simplejson (if you're using Python <= 2.5)
 * python-dateutil
@@ -99,12 +101,24 @@ Server (handler.py)::
         last.published = True
         last.constraints = {'numbers': int}
 
-Server (urls.py)::
+**Django-Server** (urls.py)::
 
     from handlers import SMSAPI
     urlpatterns = patterns('',
         (r'^api/$', Route(SMSAPI))
     )
+
+**Flask-Server** (app.py)::
+
+    from flask import Flask
+    from simpleapi import Route
+    from handlers import SMSAPI
+
+    app = Flask(__name__)
+    app.route('/api/')(Route(SMSAPI, framework='flask'))
+
+    if __name__ == '__main__':
+        app.run()
 
 Client (python)::
 
@@ -166,12 +180,24 @@ Server (handler.py)::
         sum.published = True
         sum.constraints = lambda namespace, key, value: float(value)
 
-Server (urls.py)::
+**Django-Server** (urls.py)::
 
     from handlers import CalculatorAPI
     urlpatterns = patterns('',
         (r'^api/$', Route(CalculatorAPI))
     )
+
+**Flask-Server (app.py)**::
+
+    from flask import Flask
+    from simpleapi import Route
+    from handlers import CalculatorAPI
+
+    app = Flask(__name__)
+    app.route('/api/')(Route(CalculatorAPI, framework='flask'))
+
+    if __name__ == '__main__':
+        app.run()
 
 Client (python)::
 

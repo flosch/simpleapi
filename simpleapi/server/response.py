@@ -3,12 +3,16 @@
 import types
 
 try:
-    from django.http import HttpResponse
-except ImportError, e:
-    # FIXME: dirty hack? how can we prevent that the
-    # Client library raises an error if django settings isn't present
-    if not 'DJANGO_SETTINGS_MODULE' in str(e):
-        raise
+    from django.http import HttpResponse as DjangoHttpResponse
+    has_django = True
+except ImportError:
+    has_django = False
+
+try:
+    from flask import Response as FlaskResponse
+    has_flask = True
+except ImportError:
+    has_flask = False
 
 from simpleapi.message import formatters, wrappers
 from preformat import Preformatter
@@ -18,12 +22,12 @@ __all__ = ('Response', 'ResponseException')
 class ResponseException(object): pass
 class Response(object):
 
-    def __init__(self, http_request, namespace=None, output_formatter=None,
+    def __init__(self, sapi_request, namespace=None, output_formatter=None,
                  wrapper=None, errors=None, result=None, mimetype=None,
                  callback=None, session=None, function=None):
         assert isinstance(errors, (basestring, list)) or errors is None
 
-        self.http_request = http_request
+        self.sapi_request = sapi_request
         self.namespace = namespace
         self.errors = errors
         self.result = self._preformat(result)
@@ -62,7 +66,7 @@ class Response(object):
 
         if isinstance(self.output_formatter, type):
             self.output_formatter = self.output_formatter(
-                http_request=self.http_request,
+                sapi_request=self.sapi_request,
                 callback=self.callback
             )
 
@@ -74,8 +78,14 @@ class Response(object):
 
         wrapper_result = self.wrapper.build()
         formatter_result = self.output_formatter.build(wrapper_result)
-
-        return HttpResponse(
-            formatter_result,
-            mimetype=self.mimetype
-        )
+        
+        if self.sapi_request.is_flask():
+            return FlaskResponse(
+                response=formatter_result,
+                mimetype=self.mimetype
+            )
+        elif self.sapi_request.is_django():
+            return DjangoHttpResponse(
+                formatter_result,
+                mimetype=self.mimetype
+            )

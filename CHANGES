@@ -6,6 +6,8 @@ Version 0.0.7
 
 [current development version]
 
+- various bugfixes
+- added flask support (http://flask.pocoo.org/) -- see exampleproject for more
 - huge doc improvements (docs will be published on simpleapi.de)
 
 Version 0.0.6

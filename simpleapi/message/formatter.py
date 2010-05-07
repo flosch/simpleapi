@@ -63,10 +63,10 @@ formatters = FormattersSingleton()
 class Formatter(object):
     """Baseclass for Formatter-implementations"""
 
-    def __init__(self, http_request, callback):
+    def __init__(self, sapi_request, callback):
         """A Formatter takes the original http request (Django's one) and a
         callback name, e. g. for JSONP."""
-        self.http_request = http_request
+        self.sapi_request = sapi_request
         self.callback = callback
 
     def build(self, value):

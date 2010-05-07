@@ -3,11 +3,9 @@
 try:
     from django.db.models import Model
     from django.db.models.query import QuerySet
+    has_django = True
 except ImportError, e:
-    # FIXME: dirty hack? how can we prevent that the
-    # Client library raises an error if django settings isn't present
-    if not 'DJANGO_SETTINGS_MODULE' in str(e):
-        raise
+    has_django = False
 
 try:
     import mongoengine
@@ -29,7 +27,7 @@ class Preformatter(object):
             return self.parse_value(value)
 
     def parse_value(self, value):
-        if isinstance(value, (Model, QuerySet)):
+        if has_django and isinstance(value, (Model, QuerySet)):
             value = SerializedObject(value)
 
         if has_mongoengine and isinstance(value, (mongoengine.Document, \
