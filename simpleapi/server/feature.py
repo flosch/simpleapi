@@ -176,7 +176,7 @@ class ThrottlingFeature(Feature):
                 self.error(u'Throttling active (exceeded %s #/sec.)' % no)
             else:
                 try:
-                    cache.incr(rps_key)
+                    cache.incr(rps_key) # FIXME: using incr() eliminates the timeout!
                 except ValueError:
                     cache.set(rps_key, 1, 1)
 
