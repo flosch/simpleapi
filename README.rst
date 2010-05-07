@@ -25,7 +25,7 @@ API.
 * object serialization of django model instances, django queryset instances, 
   mongoengine documents, mongoengine queryset instances
 * inheritance / multiple versions of one API
-* several encoding/decoding formats (json, jsonp, xml, etc.)
+* several encoding/decoding formats (json, jsonp, xml, yaml, etc.)
 * several result formats (ie. for ExtJS forms, etc.)
 * features: caching, throttling
 * examples
