@@ -36,7 +36,9 @@ Installation
 
 ::
     
-    pip install --upgrade simpleapi
+    pip install --upgrade django-simpleapi
+
+*(Package will be renamed soon to `simpleapi`)*
 
 From GitHub
 -----------
