@@ -6,6 +6,12 @@ try:
 except ImportError:
     import simplejson as json
 
+try:
+    import yaml
+    has_yaml = True
+except ImportError:
+    has_yaml = False
+
 from py2xml import PythonToXML
 
 __all__ = ('formatters', 'Formatter')
@@ -172,8 +178,25 @@ class XMLFormatter(Formatter):
     def parse(self, value):
         return PythonToXML().parse(value)
 
+class YAMLFormatter(Formatter):
+    __mime__ = "application/x-yaml"
+
+    def build(self, value):
+        return yaml.dump(value)
+
+    def kwargs(self, value, action='build'):
+        if action == 'build':
+            return self.build(value)
+        elif action == 'parse':
+            return self.parse(value)
+
+    def parse(self, value):
+        return yaml.load(value)
+
 formatters.register('json', JSONFormatter)
 formatters.register('jsonp', JSONPFormatter)
 formatters.register('value', ValueFormatter)
 formatters.register('pickle', PickleFormatter)
 formatters.register('xml', XMLFormatter)
+if has_yaml:
+    formatters.register('yaml', YAMLFormatter)
