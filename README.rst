@@ -2,7 +2,7 @@
 simpleapi
 =========
 
-:version: 0.0.6-pre (alpha-stage)
+:version: 0.0.6
 :author: Florian Schlachter (http://www.fs-tools.de)
 :license: MIT-license / see LICENSE file for more
 :website: http://simpleapi.de
