@@ -50,6 +50,7 @@ Dependencies
 * Python 2.5 or greater
 * simplejson (if you're using Python <= 2.5)
 * python-dateutil
+* pyyaml (optional, for YAML-support)
 
 (see requirements.txt as well)
 
