@@ -102,6 +102,9 @@ class CachingFeature(Feature):
 
     __config__ = ('caching', (dict, bool))
 
+    def setup(self):
+        assert has_django, 'Works currently with django only'
+
     def handle_request(self, request):
         caching_config = self.get_config(request)
 
@@ -144,6 +147,9 @@ class CachingFeature(Feature):
 class ThrottlingFeature(Feature):
 
     __config__ = ('throttling', dict)
+
+    def setup(self):
+        assert has_django, 'Works currently with django only'
 
     def handle_request(self, request):
         throttling_config = self.get_config(request)
