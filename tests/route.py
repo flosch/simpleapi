@@ -9,6 +9,9 @@ except ImportError:
     import simplejson as json
 import cPickle
 
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'tests.settings'
+
 from simpleapi import *
 
 class RouteTest(unittest.TestCase):
