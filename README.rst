@@ -170,7 +170,7 @@ Server (handler.py)::
     
     class CalculatorAPI(Namespace):
         __ip_restriction__ = ['127.0.0.*',]
-        __authentication = "lets_calc"
+        __authentication__ = "lets_calc"
         
         def power(self, a, b):
             return a ** b
@@ -189,7 +189,7 @@ Server (handler.py)::
         (r'^api/$', Route(CalculatorAPI))
     )
 
-**Flask-Server (app.py)**::
+**Flask-Server** (app.py)::
 
     from flask import Flask
     from simpleapi import Route
