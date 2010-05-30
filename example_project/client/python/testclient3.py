@@ -8,7 +8,7 @@ sys.path.append(root)
 
 from simpleapi import Client
 
-client = Client(ns='http://localhost:8888/api/', transport_type='xml')
+client = Client(ns='http://localhost:8888/api/', transport_type='json')
 
 print "Creating new contact..."
 print client.new(name=u'Florian Müller', phone='+49 555 444')

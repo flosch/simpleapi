@@ -14,6 +14,8 @@ except ImportError:
 
 from py2xml import PythonToXML
 
+from sajson import SimpleAPIEncoder, SimpleAPIDecoder
+
 __all__ = ('formatters', 'Formatter')
 
 class FormattersSingleton(object):
@@ -89,7 +91,7 @@ class JSONFormatter(Formatter):
     __mime__ = "application/json"
 
     def build(self, value):
-        return json.dumps(value)
+        return json.dumps(value, cls=SimpleAPIEncoder)
 
     def kwargs(self, value, action='build'):
         if action == 'build':
@@ -98,7 +100,7 @@ class JSONFormatter(Formatter):
             return self.parse(value)
 
     def parse(self, value):
-        return json.loads(value)
+        return json.loads(value, cls=SimpleAPIDecoder)
 
 class JSONPFormatter(Formatter):
     """Formatter for JSONP-format. Used for cross-domain requests. If `callback`
@@ -112,12 +114,12 @@ class JSONPFormatter(Formatter):
 
     def kwargs(self, value):
         if action == 'build':
-            return json.dumps(value)
+            return json.dumps(value, cls=SimpleAPIEncoder)
         elif action == 'parse':
             return self.parse(value)
 
     def parse(self, value):
-        return json.loads(value)
+        return json.loads(value, cls=SimpleAPIDecoder)
 
 class ValueFormatter(Formatter):
     """Basic formatter for simple, fast and tiny transports (it has a lot of

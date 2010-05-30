@@ -45,7 +45,7 @@ class Request(object):
         data = request_items.pop('_data', None)
 
         # update session
-        self.session.request = self.sapi_request
+        self.session.request = self.sapi_request.request
         self.session.mimetype = self.mimetype
         self.session.callback = self.callback
         self.session.access_key = access_key
