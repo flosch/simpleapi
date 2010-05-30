@@ -1,15 +1,20 @@
 simpleapi changelog
 ===================
 
-Version 0.0.7
+Version 0.0.8
 -------------
 
 [current development version]
 
 - various bugfixes
+- huge doc improvements (docs will be published on simpleapi.de)
+
+Version 0.0.7
+-------------
+
+- various bugfixes
 - added flask support (http://flask.pocoo.org/) -- see exampleproject for more
 - added de/encoding of datetimes for JSON(P)
-- huge doc improvements (docs will be published on simpleapi.de)
 
 Version 0.0.6
 -------------

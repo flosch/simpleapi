@@ -2,7 +2,7 @@
 simpleapi
 =========
 
-:version: 0.0.7-pre
+:version: 0.0.7
 :author: Florian Schlachter (http://www.fs-tools.de)
 :license: MIT-license / see LICENSE file for more
 :website: http://simpleapi.de
@@ -36,9 +36,7 @@ Installation
 
 ::
     
-    pip install --upgrade django-simpleapi
-
-*(Version 0.0.7 of simpleapi will be released as `simpleapi` on PyPI)*
+    pip install --upgrade simpleapi
 
 From GitHub
 -----------
