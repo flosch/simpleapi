@@ -55,6 +55,7 @@ Dependencies
 * simplejson (if you're using Python <= 2.5)
 * python-dateutil
 * pyyaml (optional, for YAML-support)
+* sphinx (optional, for the docs)
 
 (see requirements.txt as well)
 

@@ -111,7 +111,7 @@ class MongoQuerySetSerializer(Serializer):
 class DjangoModelSerializer(Serializer):
     
     def __init__(self, *args, **kwargs):
-        self.use_natural_keys = False
+        self.use_natural_keys = True
         super(DjangoModelSerializer, self).__init__(*args, **kwargs)
 
     def serialize(self):
