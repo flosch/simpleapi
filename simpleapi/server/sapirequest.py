@@ -31,6 +31,20 @@ class SAPIRequest(object):
         return self.framework == 'django'
 
     @property
+    def GET(self):
+        if self.framework == 'flask':
+            return self.request.args
+        elif self.framework == 'django':
+            return self.request.GET
+
+    @property
+    def POST(self):
+        if self.framework == 'flask':
+            return self.request.args
+        elif self.framework == 'django':
+            return self.request.POST
+
+    @property
     def REQUEST(self):
         if self.framework == 'flask':
             return self.request.args

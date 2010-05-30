@@ -7,7 +7,7 @@ from dateutil.parser import parse
 
 __all__ = ('SimpleAPIEncoder', 'SimpleAPIDecoder')
 
-date_re = re.compile(r'\w {2,}\ \w{2,} \d{1,}')
+date_re = re.compile(r'\w{2,}\ \w{2,} \d{1,}')
 #Sun May 30 00:00:00 2010
 
 time_re = re.compile(r'\d{1,2}\:\d{1,2}\:\d{1,2}')
