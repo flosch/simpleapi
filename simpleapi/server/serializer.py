@@ -109,6 +109,10 @@ class MongoQuerySetSerializer(Serializer):
         return result
 
 class DjangoModelSerializer(Serializer):
+    
+    def __init__(self, *args, **kwargs):
+        self.use_natural_keys = False
+        super(DjangoModelSerializer, self).__init__(*args, **kwargs)
 
     def serialize(self):
         assert isinstance(self.obj, Model)

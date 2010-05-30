@@ -3,15 +3,17 @@
 import re
 from simpleapi import Namespace, Feature, serialize
 
-from models import Contact
+from models import Contact, Author
 
 class ContactAPI(Namespace):
 
     def new(self, name, phone=None, fax=None):
+        obj, created = Author.objects.get_or_create(name='Testauthor')
         contact = Contact.objects.create(
             name=name,
             phone=phone,
-            fax=fax
+            fax=fax,
+            author=obj
         )
         return serialize(contact, excludes=[re.compile(r'^datetime_'),])
     new.published = True
