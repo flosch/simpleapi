@@ -89,3 +89,5 @@ class Response(object):
                 formatter_result,
                 mimetype=self.mimetype
             )
+        else:
+            return {'result': formatter_result, 'mimetype': self.mimetype}

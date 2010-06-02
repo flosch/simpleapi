@@ -71,7 +71,7 @@ class Request(object):
 
         # check ip address
         if not self.namespace['ip_restriction'](local_namespace, \
-                                                self.sapi_request.META.get('REMOTE_ADDR')):
+                                                self.sapi_request.remote_addr):
             raise RequestException(u'You are not allowed to access.')
 
         function = self.namespace['functions'][method]

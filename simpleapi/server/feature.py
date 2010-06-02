@@ -163,7 +163,7 @@ class ThrottlingFeature(Feature):
         assert rpm >= 0
         assert rph >= 0
 
-        remote_addr = request.session.request.META.get('REMOTE_ADDR')
+        remote_addr = request.session.request.remote_addr
         key = 'simpleapi_throttling_%s:%s' % (scope, remote_addr)
         rps_key = '%s_rps' % key
         rpm_key = '%s_rpm' % key

@@ -15,6 +15,8 @@ class SAPIRequest(object):
             if route.is_flask():
                 assert has_flask
                 request = flask_request
+            elif route.is_appengine():
+                request = route.request
             else:
                 raise ValueError(u'HttpRequest-object is missing')
 
@@ -26,6 +28,9 @@ class SAPIRequest(object):
             return self.request.args
         elif self.route.is_django():
             return self.request.GET
+        elif self.route.is_appengine():
+            return self.request.REQUEST
+        raise NotImplementedError
 
     @property
     def POST(self):
@@ -33,6 +38,9 @@ class SAPIRequest(object):
             return self.request.args
         elif self.route.is_django():
             return self.request.POST
+        elif self.route.is_appengine():
+            return self.request.REQUEST
+        raise NotImplementedError
 
     @property
     def REQUEST(self):
@@ -40,6 +48,11 @@ class SAPIRequest(object):
             return self.request.args
         elif self.route.is_django():
             return self.request.REQUEST
+        elif self.route.is_appengine():
+            return dict(map(lambda i: (i, self.request.get(i)), \
+                self.request.arguments()))
+        
+        raise NotImplementedError
 
     @property
     def META(self):
@@ -47,6 +60,16 @@ class SAPIRequest(object):
             return self.request.environ
         elif self.route.is_django():
             return self.request.META
+        
+        raise NotImplementedError
+
+    @property
+    def remote_addr(self):
+        if self.route.is_flask() or self.route.is_django():
+            return self.META.get('REMOTE_ADDR')
+        elif self.route.is_appengine():
+            return self.request.remote_addr
+        raise NotImplementedError
 
     @property
     def method(self):
@@ -54,3 +77,6 @@ class SAPIRequest(object):
             return self.request.method
         elif self.route.is_django():
             return self.request.method
+        elif self.route.is_appengine():
+            return "get" # TODO XXX
+        raise NotImplementedError

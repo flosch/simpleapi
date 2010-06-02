@@ -5,6 +5,12 @@ import inspect
 import re
 import logging
 
+try:
+    from google.appengine.ext.webapp import RequestHandler as AE_RequestHandler
+    has_appengine = True
+except ImportError:
+    has_appengine = False
+
 from sapirequest import SAPIRequest
 from request import Request, RequestException
 from response import Response, ResponseException
@@ -15,8 +21,30 @@ from utils import glob_list
 
 __all__ = ('Route', )
 
-class RouteException(Exception): pass
 class Route(object):
+
+    def __new__(cls, *args, **kwargs):
+        if kwargs.get('framework') == 'appengine':
+            assert has_appengine
+            class AppEngineRouter(AE_RequestHandler):
+                def __init__(self):
+                    self.get = self
+                
+                def __call__(self):
+                    result = self.router(self.request)
+                    self.response.out.write(result['result'])
+            
+            AppEngineRouter.router = Router(*args, **kwargs)
+            return AppEngineRouter
+        elif kwargs.get('framework') == 'flask':
+            obj = Router(*args, **kwargs)
+            obj.__name__ = 'Route'
+            return obj
+        else:
+            return Router(*args, **kwargs)
+
+class RouterException(Exception): pass
+class Router(object):
 
     def __init__(self, *namespaces, **kwargs):
         """Takes at least one namespace. 
@@ -25,24 +53,10 @@ class Route(object):
         self.restful = kwargs.get('restful', False)
         self.framework = kwargs.get('framework', 'django')
         assert self.framework in ['flask', 'django', 'appengine']
-        
-        # Flask support
-        if self.is_flask():
-            self.__name__ = 'Route'
-
-        # AppEngine support
-        if self.is_appengine():
-            self.get = self
-            self.post = self
-            self.head = self
-            self.options = self
-            self.put = self
-            self.delete = self
-            self.trace = self
 
         for namespace in namespaces:
             self.add_namespace(namespace)
-    
+
     def is_appengine(self):
         return self.framework == 'appengine'
 
@@ -70,7 +84,8 @@ class Route(object):
 
     def add_namespace(self, namespace):
         version = getattr(namespace, '__version__', 1)
-        assert isinstance(version, int), u'version must be either an integer or not set'
+        assert isinstance(version, int), \
+            u'version must be either an integer or not set'
 
         # make sure no version is assigned twice
         assert not self.nmap.has_key(version), u'version is assigned twice'
@@ -249,7 +264,6 @@ class Route(object):
         return version
 
     def __call__(self, http_request=None, **urlparameters):
-        logging.info(u'Called!')
         sapi_request = SAPIRequest(self, http_request)
 
         request_items = dict(sapi_request.REQUEST.items())
@@ -311,7 +325,7 @@ class Route(object):
 
             # check whether version exists or not
             if not self.nmap.has_key(version):
-                raise RouteException(u'Version %s not found (possible: %s)' % \
+                raise RouterException(u'Version %s not found (possible: %s)' % \
                     (version, ", ".join(map(lambda i: str(i), self.nmap.keys()))))
 
             request = Request(
@@ -328,7 +342,7 @@ class Route(object):
             http_response = response.build()
         except Exception, e:
             if isinstance(e, (NamespaceException, RequestException,
-               ResponseException, RouteException, FeatureException)):
+               ResponseException, RouterException, FeatureException)):
                 err_msg = unicode(e)
             else:
                 err_msg = u'An internal error occurred during your request.'
