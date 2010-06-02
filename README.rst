@@ -200,6 +200,24 @@ Server (handler.py)::
     if __name__ == '__main__':
         app.run()
 
+**Google AppEngine** (main.py)::
+
+    from google.appengine.ext import webapp
+    from google.appengine.ext.webapp import util
+
+    from simpleapi import Route
+    from handlers import CalculatorAPI
+
+    def main():
+        application = webapp.WSGIApplication(
+            [('/api/', Route(CalculatorAPI, framework='appengine'))],
+            debug=True
+        )
+        util.run_wsgi_app(application)
+
+    if __name__ == '__main__':
+        main()
+
 Client (python)::
 
     from simpleapi import Client
