@@ -79,12 +79,12 @@ class Response(object):
         wrapper_result = self.wrapper.build()
         formatter_result = self.output_formatter.build(wrapper_result)
         
-        if self.sapi_request.is_flask():
+        if self.sapi_request.route.is_flask():
             return FlaskResponse(
                 response=formatter_result,
                 mimetype=self.mimetype
             )
-        elif self.sapi_request.is_django():
+        elif self.sapi_request.route.is_django():
             return DjangoHttpResponse(
                 formatter_result,
                 mimetype=self.mimetype

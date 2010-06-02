@@ -43,14 +43,14 @@ class SAPIRequest(object):
 
     @property
     def META(self):
-        if self.is_flask():
+        if self.route.is_flask():
             return self.request.environ
-        elif self.is_django():
+        elif self.route.is_django():
             return self.request.META
 
     @property
     def method(self):
-        if self.is_flask():
+        if self.route.is_flask():
             return self.request.method
-        elif self.is_django():
+        elif self.route.is_django():
             return self.request.method
