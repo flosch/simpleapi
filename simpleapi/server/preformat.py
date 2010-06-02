@@ -4,7 +4,7 @@ try:
     from django.db.models import Model
     from django.db.models.query import QuerySet
     has_django = True
-except ImportError, e:
+except:
     has_django = False
 
 try:

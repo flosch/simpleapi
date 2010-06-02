@@ -1,0 +1,9 @@
+# -*- coding: utf-8 -*-
+
+from simpleapi import Namespace
+
+class MyAPI(Namespace):
+    def add(self, a, b):
+        return a + b
+    add.published = True
+    add.constraints = lambda ns, key, value: int(value)

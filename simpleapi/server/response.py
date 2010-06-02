@@ -5,7 +5,7 @@ import types
 try:
     from django.http import HttpResponse as DjangoHttpResponse
     has_django = True
-except ImportError:
+except:
     has_django = False
 
 try:

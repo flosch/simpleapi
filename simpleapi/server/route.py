@@ -3,6 +3,7 @@
 import copy
 import inspect
 import re
+import logging
 
 from sapirequest import SAPIRequest
 from request import Request, RequestException
@@ -23,10 +24,21 @@ class Route(object):
         self.nmap = {}
         self.restful = kwargs.get('restful', False)
         self.framework = kwargs.get('framework', 'django')
-        assert self.framework in ['flask', 'django']
+        assert self.framework in ['flask', 'django', 'appengine']
         
-        # for Flask support:
-        self.__name__ = 'Route'
+        # Flask support
+        if self.framework == 'flask':
+            self.__name__ = 'Route'
+
+        # AppEngine support
+        if self.framework == 'appengine':
+            self.get = self
+            self.post = self
+            self.head = self
+            self.options = self
+            self.put = self
+            self.delete = self
+            self.trace = self
 
         for namespace in namespaces:
             self.add_namespace(namespace)
@@ -228,6 +240,7 @@ class Route(object):
         return version
 
     def __call__(self, http_request=None, **urlparameters):
+        logging.info(u'Called!')
         sapi_request = SAPIRequest(self, http_request)
 
         request_items = dict(sapi_request.REQUEST.items())
@@ -327,7 +340,8 @@ class Route(object):
                 msgs.append('     -- End of traceback --     ')
                 msgs.append('')
 
-                print "\n".join(msgs) # TODO: send it to the admins by email!
+                #print "\n".join(msgs) # TODO: send it to the admins by email!
+                logging.error("\n".join(msgs))
 
             response = Response(
                 sapi_request,

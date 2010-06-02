@@ -7,7 +7,7 @@ try:
     from django.db.models.query import QuerySet
     from django.utils.encoding import smart_unicode, is_protected_type
     has_django = True
-except ImportError, e:
+except Exception, e:
     has_django = False
 
     # FIXME: dirty hack? how can we prevent that the

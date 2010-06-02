@@ -9,7 +9,7 @@ from simpleapi.message import formatters, Formatter
 try:
     from django.core.cache import cache
     has_django = True
-except ImportError, e:
+except:
     has_django = False
 
 __all__ = ('__features__', 'Feature', 'FeatureException', 'FeatureContentResponse')

@@ -8,7 +8,7 @@ from simpleapi.message import formatters
 try:
     from django.core.exceptions import ObjectDoesNotExist as django_notexist
     has_django = True
-except ImportError:
+except:
     has_django = False
 
 try:
