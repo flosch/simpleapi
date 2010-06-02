@@ -15,11 +15,9 @@ About
 
 simpleapi is an **easy to use, consistent, transparent and portable** way of
 providing an API. It supports **several transport formats** (e. g. json, jsonp,
-xml, yaml) and provides **server** (django, flask) and **client libraries**
-(PHP, Python) to interact seamlessly. You can also use nearly every **Ajax
-framework** (e. g. jQuery, ExtJS, etc.) to access the API.
+xml, yaml) and provides **server** (django, Flask, Google AppEngine) and **client libraries** (PHP, Python) to interact seamlessly. You can also use nearly every **Ajax framework** (e. g. jQuery, ExtJS, etc.) to access the API.
 
-* server support for **django** and **flask**
+* server support for **django**, **Flask** and **Google AppEngine**
 * client support for **python**, **php** and **javascript**
 * dynamic key authentication / ip restriction
 * type-conversion / constraints
@@ -48,7 +46,7 @@ From GitHub
 Dependencies
 ============
 
-* **server**: django >= 1.1.1 or flask >= 0.1
+* **server**: django >= 1.1.1, Flask >= 0.1 or Google AppEngine
 * Python 2.5 or greater
 * simplejson (if you're using Python <= 2.5)
 * python-dateutil
@@ -120,6 +118,23 @@ Server (handler.py)::
 
     if __name__ == '__main__':
         app.run()
+
+**Google AppEngine** (main.py)::
+
+    from google.appengine.ext import webapp
+    from google.appengine.ext.webapp import util
+
+    from simpleapi import Route
+    from handlers import SMSAPI
+
+    def main():
+        application = webapp.WSGIApplication(
+            [('/api/', Route(SMSAPI, framework='appengine'))]
+        )
+        util.run_wsgi_app(application)
+
+    if __name__ == '__main__':
+        main()
 
 Client (python)::
 
@@ -210,8 +225,7 @@ Server (handler.py)::
 
     def main():
         application = webapp.WSGIApplication(
-            [('/api/', Route(CalculatorAPI, framework='appengine'))],
-            debug=True
+            [('/api/', Route(CalculatorAPI, framework='appengine'))]
         )
         util.run_wsgi_app(application)
 

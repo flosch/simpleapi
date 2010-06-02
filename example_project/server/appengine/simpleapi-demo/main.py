@@ -8,8 +8,7 @@ from handlers import MyAPI
 
 def main():
     application = webapp.WSGIApplication(
-        [('/api/', Route(MyAPI, framework='appengine'))],
-        debug=True
+        [('/api/', Route(MyAPI, framework='appengine'))]
     )
     util.run_wsgi_app(application)
 
