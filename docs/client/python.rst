@@ -11,9 +11,9 @@ Python client library
 
 ``ns`` takes the URL of your API. It can either be a ``http`` or  a ``https`` (preferred) address for a secure connection.
 
-As you can see ``simpleapi`` can work with data objects (for instance ``datetime``-objects). In special this depends on the used data protocol (for example JSON, XML, Pickle, etc.), but the common data types like ``strings``, ``integers``, ``floats``, ``lists``, ``dicts`` and ``datetimes`` are supported by all of them. 
+As you can see ``simpleapi`` can work with data objects (for instance ``datetime``-objects). In special this depends on the used data protocol (for example JSON, XML, Pickle, etc.), but the common data types like ``strings``, ``integers``, ``floats``, ``lists``, ``dicts`` and ``datetimes`` are supported by all of them. For more limitations on transport types see :ref:`limitations`.
 
-By default, the Python client library uses JSON as a transport type (for requests as well as responses), but you're free to change that by passing the ``transport_type`` parameter to the constructor containing your desired formatter name. For available built-in formatters (or writing your own ones), see the :ref:`messages <Messages>` documentation part.
+By default, the Python client library uses JSON as a transport type (for requests as well as responses), but you're free to change that by passing the ``transport_type`` parameter to the constructor containing your desired formatter name. For available built-in formatters (or writing your own ones), see the :ref:`messages` documentation part.
 
 Multiple versions of ``Namespaces``
 -----------------------------------
