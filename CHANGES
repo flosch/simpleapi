@@ -8,6 +8,7 @@ Version 0.0.8
 
 - various bugfixes
 - huge doc improvements (docs will be published on simpleapi.de)
+- added Google AppEngine support (+demo projects)
 
 Version 0.0.7
 -------------
