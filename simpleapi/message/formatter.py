@@ -4,7 +4,10 @@ import cPickle
 try:
     import json
 except ImportError:
-    import simplejson as json
+    try:
+        from django.utils import simplejson as json
+    except Exception, e:
+        import simplejson as json
 
 try:
     import yaml

@@ -1,6 +1,13 @@
 # -*- coding: utf-8 -*-
 
-import json
+try:
+    import json
+except ImportError, e:
+    try:
+        from django.utils import simplejson as json
+    except Exception, e:
+        import simplejson as json
+
 import re
 import datetime
 from dateutil.parser import parse

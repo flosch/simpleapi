@@ -27,11 +27,11 @@ class Route(object):
         assert self.framework in ['flask', 'django', 'appengine']
         
         # Flask support
-        if self.framework == 'flask':
+        if self.is_flask():
             self.__name__ = 'Route'
 
         # AppEngine support
-        if self.framework == 'appengine':
+        if self.is_appengine():
             self.get = self
             self.post = self
             self.head = self
@@ -42,6 +42,15 @@ class Route(object):
 
         for namespace in namespaces:
             self.add_namespace(namespace)
+    
+    def is_appengine(self):
+        return self.framework == 'appengine'
+
+    def is_flask(self):
+        return self.framework == 'flask'
+
+    def is_django(self):
+        return self.framework == 'django'
 
     def _redefine_default_namespace(self):
         # - recalculate default namespace version -

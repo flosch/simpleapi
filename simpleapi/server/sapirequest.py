@@ -12,43 +12,33 @@ class SAPIRequest(object):
         self.route = route
 
         if not request:
-            if route.framework == 'flask':
+            if route.is_flask():
                 assert has_flask
                 request = flask_request
-                framework = 'flask'
             else:
                 raise ValueError(u'HttpRequest-object is missing')
-        else:
-            framework = 'django'
 
-        self.framework = framework
         self.request = request
-
-    def is_flask(self):
-        return self.framework == 'flask'
-
-    def is_django(self):
-        return self.framework == 'django'
 
     @property
     def GET(self):
-        if self.is_flask():
+        if self.route.is_flask():
             return self.request.args
-        elif self.is_django():
+        elif self.route.is_django():
             return self.request.GET
 
     @property
     def POST(self):
-        if self.is_flask():
+        if self.route.is_flask():
             return self.request.args
-        elif self.is_django():
+        elif self.route.is_django():
             return self.request.POST
 
     @property
     def REQUEST(self):
-        if self.is_flask():
+        if self.route.is_flask():
             return self.request.args
-        elif self.is_django():
+        elif self.route.is_django():
             return self.request.REQUEST
 
     @property
