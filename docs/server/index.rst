@@ -1,10 +1,11 @@
 .. _server:
 
+======
 Server
 ======
 .. toctree::
    :maxdepth: 2
    
-   namespace
+   namespaces/index
    route
    features

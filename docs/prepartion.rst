@@ -5,10 +5,9 @@ Preparation
 Dependencies
 ============
 
-In order to use ``simpleapi``, you must have Python and django installed. If
-you're using Python <= 2.5 you have to install ``simplejson``::
+In order to use ``simpleapi``, you must have Python and at least django or Flask installed. If you're using Python <= 2.5 you have to install ``simplejson`` by::
 
-    pip install simplejson
+    pip install --upgrade simplejson
 
 Python >= 2.6 contains a built-in json module which already fits our needs.
 
@@ -20,12 +19,12 @@ PyPI
 
 You can either install a *stable* version of ``simpleapi`` from PyPI using ``easy_install`` or ``pip``::
 
-    easy_install -U django-simpleapi
+    easy_install -U simpleapi
 
 *or*
 ::
 
-    pip install django-simpleapi
+    pip install simpleapi
 
 GitHub
 ------
@@ -49,4 +48,4 @@ To install ``simpleapi`` on your computer, unpack the compressed file and run::
 
     python setup.py install
 
-Depending on your system configuration, you must be an administrator.
+Depending on your system's configuration, you must be an administrator to install ``simpleapi``.
