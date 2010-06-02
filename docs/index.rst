@@ -43,6 +43,7 @@ Developer's Reference
     :maxdepth: 2
     
     api
+    request
 
 Additional Pages
 ----------------
