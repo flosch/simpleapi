@@ -33,4 +33,6 @@ For remote calls which take long time to proceed (for example a newsletter which
 Exception handling
 ------------------
 
-To handle connection problems or remote exceptions the client raises two types of errors: ``ConnectionException`` and ``RemoteException``. 
+To handle connection problems or remote exceptions the client raises two types of errors: ``ConnectionException`` and ``RemoteException``. The client library throws a ``ConnectionException`` whenever there are problems with receiving the data from the given URL. These exceptions are covering all the network communication stuff, instead of ``RemoteException`` which basically raises when the client reaches the API but the specific call fails (in all situations like authentication failed, wrong parameters, user-generated errors).
+
+In both situations the exception message contains more information about the error (especially the error message in most cases).
