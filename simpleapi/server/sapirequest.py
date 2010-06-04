@@ -78,5 +78,5 @@ class SAPIRequest(object):
         elif self.route.is_django():
             return self.request.method
         elif self.route.is_appengine():
-            return "get" # TODO XXX
+            return self.request.method
         raise NotImplementedError

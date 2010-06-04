@@ -27,9 +27,14 @@ class Route(object):
         if kwargs.get('framework') == 'appengine':
             assert has_appengine
             class AppEngineRouter(AE_RequestHandler):
-                def __init__(self):
-                    self.get = self
-                
+                def __getattribute__(self, name):
+                    if name in ['get', 'post', 'put', 'head', 'options', \
+                        'delete', 'trace']:
+                        self.request.method = name
+                        return self
+                    else:
+                        return AE_RequestHandler.__getattribute__(self, name)
+                                
                 def __call__(self):
                     result = self.router(self.request)
                     self.response.out.write(result['result'])
