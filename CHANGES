@@ -9,6 +9,7 @@ Version 0.0.8
 - various bugfixes
 - huge doc improvements (docs will be published on simpleapi.de)
 - added Google AppEngine support (+demo projects)
+- added DummyClient for local in-app access to the API (+demo project)
 
 Version 0.0.7
 -------------
