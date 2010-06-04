@@ -14,4 +14,4 @@ app = Flask(__name__)
 app.route('/api/')(Route(MyAPI, framework='flask'))
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

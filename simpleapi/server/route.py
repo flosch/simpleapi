@@ -57,10 +57,13 @@ class Router(object):
         self.nmap = {}
         self.restful = kwargs.get('restful', False)
         self.framework = kwargs.get('framework', 'django')
-        assert self.framework in ['flask', 'django', 'appengine']
+        assert self.framework in ['flask', 'django', 'appengine', 'dummy']
 
         for namespace in namespaces:
             self.add_namespace(namespace)
+
+    def is_dummy(self):
+        return self.framework == 'dummy'
 
     def is_appengine(self):
         return self.framework == 'appengine'
