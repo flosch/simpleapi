@@ -136,12 +136,28 @@ Server (handler.py)::
     if __name__ == '__main__':
         main()
 
-Client (python)::
+Client (python/**remote**)::
 
     from simpleapi import Client
     
     client = Client(ns='http://remote.tld:8888/api/', access_key='mysecret',
                     transport_type='xml')
+    
+    sms = client.sms(to='555123', msg='Hey yo! This is simpleapi calling.')
+    print "Sent successful?", sms['sent']
+    
+    sms = client.sms(to='555123', msg='2nd test with own sender',
+                     sender='simpleapi')
+    print "Sent successful?", sms['sent']
+    print "Which sender?", sms['obj']['sender']
+
+Client (python/**local**)::
+
+    from simpleapi import DummyClient
+    from handlers import SMSAPI
+    
+    client = DummyClient(Route(SMSAPI, framework='dummy'),
+                         access_key='mysecret')
     
     sms = client.sms(to='555123', msg='Hey yo! This is simpleapi calling.')
     print "Sent successful?", sms['sent']
@@ -232,11 +248,22 @@ Server (handler.py)::
     if __name__ == '__main__':
         main()
 
-Client (python)::
+Client (python/**remote**)::
 
     from simpleapi import Client
     
     client = Client(ns='http://remote.tld:8888/api/', access_key='lets_calc')
+    
+    print "5 ** 8 =", client.power(a=5, b=8)
+    print "1+2+3+4+5+6+7 =", client.sum(a=1, b=2, c=3, d=4, e=5, f=6, g=7)
+
+Client (python/**local**)::
+
+    from simpleapi import DummyClient
+    from handlers import CalculatorAPI
+    
+    client = DummyClient(Route(CalculatorAPI, framework='dummy'),
+                         access_key='lets_calc')
     
     print "5 ** 8 =", client.power(a=5, b=8)
     print "1+2+3+4+5+6+7 =", client.sum(a=1, b=2, c=3, d=4, e=5, f=6, g=7)
