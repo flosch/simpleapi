@@ -3,7 +3,8 @@
 import copy
 import inspect
 import re
-import logging
+import sys
+import pdb
 
 try:
     from google.appengine.ext.webapp import RequestHandler as AE_RequestHandler
@@ -18,6 +19,7 @@ from namespace import NamespaceException
 from feature import __features__, Feature, FeatureException
 from simpleapi.message import formatters, wrappers
 from utils import glob_list
+import logging
 
 __all__ = ('Route', )
 
@@ -55,9 +57,15 @@ class Router(object):
         """Takes at least one namespace. 
         """
         self.nmap = {}
+        self.debug = kwargs.get('debug', False)
         self.restful = kwargs.get('restful', False)
         self.framework = kwargs.get('framework', 'django')
         assert self.framework in ['flask', 'django', 'appengine', 'dummy']
+
+        if self.debug:
+            logging.basicConfig(level=logging.DEBUG)
+        else:
+            logging.basicConfig(level=logging.WARNING)
 
         for namespace in namespaces:
             self.add_namespace(namespace)
@@ -344,7 +352,8 @@ class Router(object):
                 wrapper=wrapper_instance,
                 callback=callback,
                 mimetype=mimetype,
-                restful=self.restful
+                restful=self.restful,
+                debug=self.debug
             )
             response = request.run(request_items)
             http_response = response.build()
@@ -370,9 +379,11 @@ class Router(object):
                     msgs.append('') # blank line
                 msgs.append('     -- End of traceback --     ')
                 msgs.append('')
-
-                #print "\n".join(msgs) # TODO: send it to the admins by email!
                 logging.error("\n".join(msgs))
+
+                if self.debug:
+                    e, m, tb = sys.exc_info()
+                    pdb.post_mortem(tb)
 
             response = Response(
                 sapi_request,

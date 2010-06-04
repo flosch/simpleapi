@@ -23,7 +23,9 @@ class DummyClient(object):
             data = {
                 '_call': fname,
                 '_access_key': self.access_key or '',
-                '_version': self.version
+                '_version': self.version,
+                '_input': TRANSPORT_TYPE,
+                '_output': TRANSPORT_TYPE
             }
 
             formatter = formatters[TRANSPORT_TYPE](None, None)

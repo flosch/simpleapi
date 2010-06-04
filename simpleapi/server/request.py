@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import tempfile
+import pprint
+import hotshot
+import hotshot.stats
+
+from debug import logging
 from response import Response
 from session import Session
 from feature import FeatureContentResponse
@@ -23,7 +29,8 @@ class RequestException(Exception): pass
 class Request(object):
 
     def __init__(self, sapi_request, namespace, input_formatter,
-                 output_formatter, wrapper, callback, mimetype, restful):
+                 output_formatter, wrapper, callback, mimetype, restful,
+                 debug):
         self.sapi_request = sapi_request
         self.namespace = namespace
         self.input_formatter = input_formatter
@@ -32,6 +39,7 @@ class Request(object):
         self.callback = callback
         self.mimetype = mimetype
         self.restful = restful
+        self.debug = debug
         self.session = Session()
 
     def run(self, request_items):
@@ -151,7 +159,26 @@ class Request(object):
         else:
             # make the call
             try:
-                result = getattr(local_namespace, method)(**request_items)
+                if self.debug:
+                    _, fname = tempfile.mkstemp()
+                    logging.debug(u"Profiling call '%s': %s" % \
+                        (method, fname))
+
+                    logging.debug(u"Calling parameters: %s" % \
+                        pprint.pformat(request_items))
+
+                    profile = hotshot.Profile(fname)
+                    result = profile.runcall(getattr(local_namespace, method),
+                        **request_items)
+                    profile.close()
+
+                    logging.debug(u"Loading stats...")
+                    stats = hotshot.stats.load(fname)
+                    stats.strip_dirs()
+                    stats.sort_stats('time', 'calls')
+                    stats.print_stats(25)
+                else:
+                    result = getattr(local_namespace, method)(**request_items)
             except Exception, e:
                 if has_django and isinstance(e, django_notexist):
                     raise RequestException(e)

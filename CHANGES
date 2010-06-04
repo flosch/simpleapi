@@ -10,6 +10,7 @@ Version 0.0.8
 - huge doc improvements (docs will be published on simpleapi.de)
 - added Google AppEngine support (+demo projects)
 - added DummyClient for local in-app access to the API (+demo project)
+- added debug-Mode for Route (python debugger, function profiling)
 
 Version 0.0.7
 -------------
