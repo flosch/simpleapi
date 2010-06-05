@@ -96,7 +96,6 @@ class Router(object):
         self.profile.dump_stats(SIMPLEAPI_DEBUG_FILENAME)
 
     def profile_stats(self):
-        print
         logging.debug(u"Loading stats...")
         stats = pstats.Stats(SIMPLEAPI_DEBUG_FILENAME)
         stats.strip_dirs().sort_stats('time', 'calls') \
@@ -242,8 +241,11 @@ class Router(object):
         if hasattr(namespace, '__authentication__'):
             authentication = namespace.__authentication__
             if isinstance(authentication, basestring):
-                authentication = lambda namespace, access_key: \
-                    namespace.__authentication__ == access_key
+                if hasattr(namespace, authentication):
+                    authentication = getattr(namespace, authentication)
+                else:
+                    authentication = lambda namespace, access_key: \
+                        namespace.__authentication__ == access_key
         else:
             # grant allow everyone access
             authentication = lambda namespace, access_key: True
