@@ -2,8 +2,8 @@
 
 import tempfile
 import pprint
-import hotshot
-import hotshot.stats
+import cProfile
+import pstats
 
 from debug import logging
 from response import Response
@@ -167,16 +167,15 @@ class Request(object):
                     logging.debug(u"Calling parameters: %s" % \
                         pprint.pformat(request_items))
 
-                    profile = hotshot.Profile(fname)
+                    profile = cProfile.Profile()
                     result = profile.runcall(getattr(local_namespace, method),
                         **request_items)
-                    profile.close()
-
+                    profile.dump_stats(fname)
+                    
                     logging.debug(u"Loading stats...")
-                    stats = hotshot.stats.load(fname)
-                    stats.strip_dirs()
-                    stats.sort_stats('time', 'calls')
-                    stats.print_stats(25)
+                    stats = pstats.Stats(fname)
+                    stats.strip_dirs().sort_stats('time', 'calls') \
+                        .print_stats(25)
                 else:
                     result = getattr(local_namespace, method)(**request_items)
             except Exception, e:

@@ -10,3 +10,4 @@ docs/impressum.rst
 *.db
 *.mov
 bible.txt
+*.profile

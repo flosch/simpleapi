@@ -2,9 +2,20 @@
 
 import copy
 import inspect
+import pprint
 import re
 import sys
+import os
 import pdb
+import cProfile
+import pstats
+
+SIMPLEAPI_DEBUG = bool(int(os.environ.get('SIMPLEAPI_DEBUG', 0)))
+SIMPLEAPI_DEBUG_FILENAME = os.environ.get('SIMPLEAPI_DEBUG_FILENAME',
+    'simpleapi.profile')
+SIMPLEAPI_DEBUG_LEVEL = os.environ.get('SIMPLEAPI_DEBUG_LEVEL', 'all')
+assert SIMPLEAPI_DEBUG_LEVEL in ['all', 'call'], \
+    u'SIMPLEAPI_DEBUG_LEVEL must be one of these: all, call'
 
 try:
     from google.appengine.ext.webapp import RequestHandler as AE_RequestHandler
@@ -61,14 +72,40 @@ class Router(object):
         self.restful = kwargs.get('restful', False)
         self.framework = kwargs.get('framework', 'django')
         assert self.framework in ['flask', 'django', 'appengine', 'dummy']
+        assert (self.debug ^ SIMPLEAPI_DEBUG) or \
+            not (self.debug and SIMPLEAPI_DEBUG), \
+            u'You can either activate Route-debug or simpleapi-debug, not both.'
 
-        if self.debug:
+        if self.debug or SIMPLEAPI_DEBUG:
             logging.basicConfig(level=logging.DEBUG)
         else:
             logging.basicConfig(level=logging.WARNING)
+        
+        if SIMPLEAPI_DEBUG and SIMPLEAPI_DEBUG_LEVEL == 'all':
+            self.profile_start()
 
         for namespace in namespaces:
             self.add_namespace(namespace)
+
+    def profile_start(self):
+        self.profile = cProfile.Profile()
+        self.profile.enable()
+    
+    def profile_stop(self):
+        self.profile.disable()
+        self.profile.dump_stats(SIMPLEAPI_DEBUG_FILENAME)
+
+    def profile_stats(self):
+        print
+        logging.debug(u"Loading stats...")
+        stats = pstats.Stats(SIMPLEAPI_DEBUG_FILENAME)
+        stats.strip_dirs().sort_stats('time', 'calls') \
+            .print_stats()
+
+    def __del__(self):
+        if SIMPLEAPI_DEBUG and SIMPLEAPI_DEBUG_LEVEL == 'all':
+            self.profile_stop()
+            self.profile_stats()
 
     def is_dummy(self):
         return self.framework == 'dummy'
@@ -218,10 +255,12 @@ class Router(object):
 
             if isinstance(ip_restriction, list):
                 # make the ip address list wildcard searchable
-                namespace.__ip_restriction__ = glob_list(namespace.__ip_restriction__)
+                namespace.__ip_restriction__ = \
+                    glob_list(namespace.__ip_restriction__)
 
                 # restrict access to the given ip address list
-                ip_restriction = lambda namespace, ip: ip in namespace.__ip_restriction__
+                ip_restriction = lambda namespace, ip: ip in \
+                    namespace.__ip_restriction__
         else:
             # accept every ip address
             ip_restriction = lambda namespace, ip: True
@@ -265,11 +304,13 @@ class Router(object):
         if hasattr(namespace, '__features__'):
             raw_features = namespace.__features__
             for feature in raw_features:
-                assert isinstance(feature, basestring) or issubclass(feature, Feature)
+                assert isinstance(feature, basestring) or \
+                    issubclass(feature, Feature)
+                
                 if isinstance(feature, basestring):
                     assert feature in __features__.keys(), \
                         u'%s is not a built-in feature' % feature
-                    
+
                     features.append(__features__[feature](self.nmap[version]))
                 elif issubclass(feature, Feature):
                     features.append(feature(self.nmap[version]))
@@ -284,7 +325,11 @@ class Router(object):
 
         request_items = dict(sapi_request.REQUEST.items())
         request_items.update(urlparameters)
-        
+
+        if SIMPLEAPI_DEBUG and SIMPLEAPI_DEBUG_LEVEL == 'call':
+            logging.info(pprint.pformat(request_items))
+            self.profile_start()
+
         version = request_items.pop('_version', 'default')
         callback = request_items.pop('_callback', None)
         output_formatter = request_items.pop('_output', None)
@@ -393,5 +438,9 @@ class Router(object):
                 mimetype=mimetype
             )
             http_response = response.build(skip_features=True)
+
+        if SIMPLEAPI_DEBUG and SIMPLEAPI_DEBUG_LEVEL == 'call':
+            self.profile_stop()
+            self.profile_stats()
 
         return http_response
