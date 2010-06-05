@@ -11,6 +11,7 @@ Version 0.0.8
 - added Google AppEngine support (+demo projects)
 - added DummyClient for local in-app access to the API (+demo project)
 - added debug-Mode for Route (python debugger, function profiling)
+- added simpleapi-wide profiling capabilities (see debug2 demo project)
 
 Version 0.0.7
 -------------
