@@ -152,7 +152,8 @@ class Router(object):
                 for key in fs:
                     query_post[key] = fs.getvalue(key)
             elif content_type == 'multipart/form-data':
-                print "unsupported"
+                # XXX TODO
+                raise NotImplementedError, u'Currently not supported.' 
             
             # GET + POST 
             query_data = query_get
