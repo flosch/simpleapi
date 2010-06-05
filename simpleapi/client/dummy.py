@@ -7,9 +7,7 @@ __all__ = ('DummyClient', )
 
 TRANSPORT_TYPE = 'json'
 
-class DummyRequest(object):
-    pass
-
+class DummyRequest(object): pass
 class DummyClientException(Exception): pass
 class DummyClient(object):
     

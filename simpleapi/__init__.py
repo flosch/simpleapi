@@ -6,7 +6,7 @@ from message import *
 
 __author__ = 'Florian Schlachter'
 
-VERSION = (0, 0, 7)
+VERSION = (0, 0, 8)
 
 def get_version():
     version = '%s.%s' % (VERSION[0], VERSION[1])

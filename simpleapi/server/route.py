@@ -9,6 +9,9 @@ import os
 import pdb
 import cProfile
 import pstats
+import urlparse
+import cgi
+from wsgiref.simple_server import make_server
 
 SIMPLEAPI_DEBUG = bool(int(os.environ.get('SIMPLEAPI_DEBUG', 0)))
 SIMPLEAPI_DEBUG_FILENAME = os.environ.get('SIMPLEAPI_DEBUG_FILENAME',
@@ -16,6 +19,10 @@ SIMPLEAPI_DEBUG_FILENAME = os.environ.get('SIMPLEAPI_DEBUG_FILENAME',
 SIMPLEAPI_DEBUG_LEVEL = os.environ.get('SIMPLEAPI_DEBUG_LEVEL', 'all')
 assert SIMPLEAPI_DEBUG_LEVEL in ['all', 'call'], \
     u'SIMPLEAPI_DEBUG_LEVEL must be one of these: all, call'
+
+TRIGGERED_METHODS = ['get', 'post', 'put', 'delete']
+FRAMEWORKS = ['flask', 'django', 'appengine', 'dummy', 'standalone', 'wsgi']
+MAX_CONTENT_LENGTH = 1024 * 1024 * 16 # 16 megabytes
 
 try:
     from google.appengine.ext.webapp import RequestHandler as AE_RequestHandler
@@ -41,8 +48,7 @@ class Route(object):
             assert has_appengine
             class AppEngineRouter(AE_RequestHandler):
                 def __getattribute__(self, name):
-                    if name in ['get', 'post', 'put', 'head', 'options', \
-                        'delete', 'trace']:
+                    if name in TRIGGERED_METHODS:
                         self.request.method = name
                         return self
                     else:
@@ -58,9 +64,18 @@ class Route(object):
             obj = Router(*args, **kwargs)
             obj.__name__ = 'Route'
             return obj
+        elif kwargs.get('framework') == 'wsgi':
+            router = Router(*args, **kwargs)
+            class WSGIHandler(object):
+                def __call__(self, *args, **kwargs):
+                    return self.router.handle_request(*args, **kwargs)
+            handler = WSGIHandler()
+            handler.router = router
+            return handler
         else:
             return Router(*args, **kwargs)
 
+class StandaloneRequest(object): pass
 class RouterException(Exception): pass
 class Router(object):
 
@@ -71,7 +86,12 @@ class Router(object):
         self.debug = kwargs.get('debug', False)
         self.restful = kwargs.get('restful', False)
         self.framework = kwargs.get('framework', 'django')
-        assert self.framework in ['flask', 'django', 'appengine', 'dummy']
+        self.path = re.compile(kwargs.get('path', r'^/'))
+        
+        # make shortcut 
+        self._caller = self.__call__
+        
+        assert self.framework in FRAMEWORKS
         assert (self.debug ^ SIMPLEAPI_DEBUG) or \
             not (self.debug and SIMPLEAPI_DEBUG), \
             u'You can either activate Route-debug or simpleapi-debug, not both.'
@@ -86,6 +106,79 @@ class Router(object):
 
         for namespace in namespaces:
             self.add_namespace(namespace)
+
+    def handle_request(self, environ, start_response):
+        if not self.path.match(environ.get('PATH_INFO')): 
+            status = '404 Not found'
+            start_response(status, [])
+            return ["Entry point not found"]
+        else:
+            content_type = environ.get('CONTENT_TYPE')
+            try:
+                content_length = int(environ['CONTENT_LENGTH'])
+            except (KeyError, ValueError):
+                content_length = 0
+
+            # make sure we ignore too large requests for security and stability
+            # reasons
+            if content_length > MAX_CONTENT_LENGTH:
+                status = '413 Request entity too large'
+                start_response(status, [])
+                return ["Request entity too large"]
+
+            request_method = environ.get('REQUEST_METHOD', '').lower()
+
+            # make sure we only support methods we care
+            if not request_method in TRIGGERED_METHODS:
+                status = '501 Not Implemented'
+                start_response(status, [])
+                return ["Not Implemented"]
+
+            query_get = urlparse.parse_qs(environ.get('QUERY_STRING'))
+            for key, value in query_get.iteritems():
+                query_get[key] = value[0] # respect the first value only
+
+            query_post = {}
+            if content_type in ['application/x-www-form-urlencoded', 
+                'application/x-url-encoded']:
+                post_env = environ.copy()
+                post_env['QUERY_STRING'] = ''
+                fs = cgi.FieldStorage(
+                    fp=environ['wsgi.input'],
+                    environ=post_env,
+                    keep_blank_values=True
+                )
+                query_post = {}
+                for key in fs:
+                    query_post[key] = fs.getvalue(key)
+            elif content_type == 'multipart/form-data':
+                print "unsupported"
+            
+            # GET + POST 
+            query_data = query_get
+            query_data.update(query_post)
+
+            # Make request
+            request = StandaloneRequest()
+            request.method = request_method
+            request.data = query_data
+            request.remote_addr = environ.get('REMOTE_ADDR', '')
+
+            # Make call
+            result = self._caller(request)
+
+            status = '200 OK'
+            headers = [('Content-type', result['mimetype'])]
+            start_response(status, headers)
+            return [result['result'],]
+
+    def serve(self, host='', port=5050):
+        httpd = make_server(host, port, self.handle_request)
+        logging.info(u"Started serving on port %d..." % port)
+        try:
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            logging.info(u"Server stopped.")
 
     def profile_start(self):
         self.profile = cProfile.Profile()
@@ -105,6 +198,9 @@ class Router(object):
         if SIMPLEAPI_DEBUG and SIMPLEAPI_DEBUG_LEVEL == 'all':
             self.profile_stop()
             self.profile_stats()
+
+    def is_standalone(self):
+        return self.framework in ['standalone', 'wsgi']
 
     def is_dummy(self):
         return self.framework == 'dummy'
@@ -308,7 +404,7 @@ class Router(object):
             for feature in raw_features:
                 assert isinstance(feature, basestring) or \
                     issubclass(feature, Feature)
-                
+
                 if isinstance(feature, basestring):
                     assert feature in __features__.keys(), \
                         u'%s is not a built-in feature' % feature
@@ -419,7 +515,8 @@ class Router(object):
                 msgs.append('')
                 msgs.append(u'------- Traceback follows -------')
                 for idx, item in enumerate(trace):
-                    msgs.append(u"(%s)\t%s:%s (%s)" % (idx+1, item[3], item[2], item[1]))
+                    msgs.append(u"(%s)\t%s:%s (%s)" % 
+                        (idx+1, item[3], item[2], item[1]))
                     if item[4]:
                         for line in item[4]:
                             msgs.append(u"\t\t%s" % line.strip())

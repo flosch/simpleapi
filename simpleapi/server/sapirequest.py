@@ -30,7 +30,7 @@ class SAPIRequest(object):
             return self.request.GET
         elif self.route.is_appengine():
             return self.request.REQUEST
-        elif self.route.is_dummy():
+        elif self.route.is_dummy() or self.route.is_standalone():
             return self.request.data
         raise NotImplementedError
 
@@ -42,7 +42,7 @@ class SAPIRequest(object):
             return self.request.POST
         elif self.route.is_appengine():
             return self.request.REQUEST
-        elif self.route.is_dummy():
+        elif self.route.is_dummy() or self.route.is_standalone():
             return self.request.data
         raise NotImplementedError
 
@@ -55,7 +55,7 @@ class SAPIRequest(object):
         elif self.route.is_appengine():
             return dict(map(lambda i: (i, self.request.get(i)), \
                 self.request.arguments()))
-        elif self.route.is_dummy():
+        elif self.route.is_dummy() or self.route.is_standalone():
             return self.request.data
         raise NotImplementedError
 
@@ -74,7 +74,7 @@ class SAPIRequest(object):
             return self.META.get('REMOTE_ADDR')
         elif self.route.is_appengine():
             return self.request.remote_addr
-        elif self.route.is_dummy():
+        elif self.route.is_dummy() or self.route.is_standalone():
             return self.request.remote_addr
         raise NotImplementedError
 
@@ -86,6 +86,6 @@ class SAPIRequest(object):
             return self.request.method
         elif self.route.is_appengine():
             return self.request.method
-        elif self.route.is_dummy():
+        elif self.route.is_dummy() or self.route.is_standalone():
             return self.request.method
         raise NotImplementedError
