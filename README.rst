@@ -15,7 +15,7 @@ About
 
 simpleapi is an **easy to use, consistent, transparent and portable** way of
 providing an API. It supports **several transport formats** (e. g. json, jsonp,
-xml, yaml) and provides **server** (django, Flask, Google AppEngine) and **client libraries** (PHP, Python) to interact seamlessly. You can also use nearly every **Ajax framework** (e. g. jQuery, ExtJS, etc.) to access the API.
+xml, yaml) and provides **server** (standalone and also django, Flask, Google AppEngine and any WSGI-compatible implementation like gunicorn) and **client libraries** (PHP, Python) to interact seamlessly. You can also use nearly every **Ajax framework** (e. g. jQuery, ExtJS, etc.) to access the API.
 
 * server support for **django**, **Flask** and **Google AppEngine**
 * client support for **python**, **php** and **javascript**
@@ -100,6 +100,24 @@ Server (handler.py)::
             return SMS.objects.all()[:numbers]
         last.published = True
         last.constraints = {'numbers': int}
+
+**Standalone-Server** (app.py)::
+
+    from simpleapi import Route
+    from handlers import SMSAPI
+
+    route = Route(SMSAPI, framework='standalone', path=r'^/api/')
+    route.serve() # serves on port 5050 by default
+
+Gunicorn (**WSGI-compatible implementation**) (app.py)::
+
+    from simpleapi import Route
+    from handlers import SMSAPI
+
+    route = Route(SMSAPI, framework='wsgi', path=r'^/api/')
+    
+    # start Gunicorn (with 5 workers):
+    # gunicorn -w 5 app:route
 
 **Django-Server** (urls.py)::
 
@@ -212,6 +230,24 @@ Server (handler.py)::
             return sum(kwargs.values())
         sum.published = True
         sum.constraints = lambda namespace, key, value: float(value)
+
+**Standalone-Server** (app.py)::
+
+    from simpleapi import Route
+    from handlers import CalculatorAPI
+
+    route = Route(CalculatorAPI, framework='standalone', path=r'^/api/')
+    route.serve() # serves on port 5050 by default
+
+Gunicorn (**WSGI-compatible implementation**) (app.py)::
+
+    from simpleapi import Route
+    from handlers import CalculatorAPI
+
+    route = Route(CalculatorAPI, framework='wsgi', path=r'^/api/')
+    
+    # start Gunicorn (with 5 workers):
+    # gunicorn -w 5 app:route
 
 **Django-Server** (urls.py)::
 
