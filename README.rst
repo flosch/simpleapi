@@ -27,7 +27,7 @@ xml, yaml) and provides **server** (django, Flask, Google AppEngine) and **clien
 * several encoding/decoding formats (json, jsonp, xml, yaml, etc.)
 * several result formats (ie. for ExtJS forms, etc.)
 * features: caching, throttling
-* debugging capabilities
+* debugging and profiling capabilities
 * examples
 
 Installation
