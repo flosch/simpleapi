@@ -169,9 +169,6 @@ class Router(object):
             # Make call
             result = self._caller(request)
 
-            if isinstance(result['result'], unicode):
-                result['result'] = result['result'].encode("utf-8")
-
             status = '200 OK'
             headers = [('Content-type', result['mimetype'])]
             start_response(status, headers)

@@ -113,7 +113,8 @@ class JSONPFormatter(Formatter):
 
     def build(self, value):
         func = self.callback or 'simpleapiCallback'
-        return u'%(func)s(%(data)s)' % {'func': func, 'data': json.dumps(value)}
+        result = u'%(func)s(%(data)s)' % {'func': func.decode("utf-8"), 'data': json.dumps(value)}
+        return result.encode("utf-8")
 
     def kwargs(self, value):
         if action == 'build':
