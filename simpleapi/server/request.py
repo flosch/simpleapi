@@ -4,8 +4,8 @@ import tempfile
 import pprint
 import cProfile
 import pstats
+import logging
 
-from debug import logging
 from response import Response
 from session import Session
 from feature import FeatureContentResponse

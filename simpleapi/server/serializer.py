@@ -10,11 +10,6 @@ try:
 except Exception, e:
     has_django = False
 
-    # FIXME: dirty hack? how can we prevent that the
-    # Client library raises an error if django settings isn't present
-    if not 'DJANGO_SETTINGS_MODULE' in str(e):
-        raise
-
 try:
     import mongoengine
     import pymongo

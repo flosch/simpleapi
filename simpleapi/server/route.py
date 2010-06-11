@@ -12,6 +12,7 @@ import pstats
 import urlparse
 import cgi
 from wsgiref.simple_server import make_server
+from wsgiref.handlers import SimpleHandler
 
 SIMPLEAPI_DEBUG = bool(int(os.environ.get('SIMPLEAPI_DEBUG', 0)))
 SIMPLEAPI_DEBUG_FILENAME = os.environ.get('SIMPLEAPI_DEBUG_FILENAME',
