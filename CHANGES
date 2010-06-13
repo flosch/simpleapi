@@ -14,6 +14,7 @@ Version 0.0.8
 - added simpleapi-wide profiling capabilities (see debug2 demo project)
 - added standalone server (route.serve())
 - added support for WSGI-compatible server (like gunicorn)
+- added handling of long-types in the XML-formatter
 
 Version 0.0.7
 -------------
