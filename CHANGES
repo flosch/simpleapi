@@ -1,10 +1,15 @@
 simpleapi changelog
 ===================
 
-Version 0.0.8
+Version 0.0.9
 -------------
 
 [current development version]
+
+- various bugfixes
+
+Version 0.0.8
+-------------
 
 - various bugfixes
 - huge doc improvements (docs will be published on simpleapi.de)
