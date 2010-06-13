@@ -55,6 +55,11 @@ class PythonToXML(object):
         element.text = str(int(value))
         return element
 
+    def build_long(self, value):
+        element = self.create_item('long')
+        element.text = str(long(value))
+        return element
+
     def build_float(self, value):
         element = self.create_item('float')
         element.text = str(float(value))
@@ -135,12 +140,15 @@ class PythonToXML(object):
     def parse_int(self, element):
         return int(element.text)
 
+    def parse_long(self, element):
+        return long(element.text)
+
     def parse_float(self, element):
         return float(element.text)
 
     def parse_bool(self, element):
         return bool(int(element.text))
-    
+
     def parse_NoneType(self, element):
         return None
 
