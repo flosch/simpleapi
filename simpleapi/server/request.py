@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import warnings
 import tempfile
 import pprint
-import cProfile
-import pstats
-import logging
+try:
+    import cProfile
+    import pstats
+    has_debug = True
+except ImportError:
+    has_debug = False
 
 from response import Response
 from session import Session
@@ -30,7 +34,7 @@ class Request(object):
 
     def __init__(self, sapi_request, namespace, input_formatter,
                  output_formatter, wrapper, callback, mimetype, restful,
-                 debug):
+                 debug, route):
         self.sapi_request = sapi_request
         self.namespace = namespace
         self.input_formatter = input_formatter
@@ -40,6 +44,7 @@ class Request(object):
         self.mimetype = mimetype
         self.restful = restful
         self.debug = debug
+        self.route = route
         self.session = Session()
 
     def run(self, request_items):
@@ -161,10 +166,10 @@ class Request(object):
             try:
                 if self.debug:
                     _, fname = tempfile.mkstemp()
-                    logging.debug(u"Profiling call '%s': %s" % \
+                    self.route.logger.debug(u"Profiling call '%s': %s" % \
                         (method, fname))
 
-                    logging.debug(u"Calling parameters: %s" % \
+                    self.route.logger.debug(u"Calling parameters: %s" % \
                         pprint.pformat(request_items))
 
                     profile = cProfile.Profile()
@@ -172,7 +177,7 @@ class Request(object):
                         **request_items)
                     profile.dump_stats(fname)
                     
-                    logging.debug(u"Loading stats...")
+                    self.route.logger.debug(u"Loading stats...")
                     stats = pstats.Stats(fname)
                     stats.strip_dirs().sort_stats('time', 'calls') \
                         .print_stats(25)

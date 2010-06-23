@@ -7,8 +7,16 @@ import re
 import sys
 import os
 import pdb
-import cProfile
-import pstats
+import warnings
+import logging
+
+try:
+    import cProfile
+    import pstats
+    has_debug = True
+except ImportError:
+    has_debug = False
+
 import urlparse
 import cgi
 from wsgiref.simple_server import make_server
@@ -20,6 +28,10 @@ SIMPLEAPI_DEBUG_FILENAME = os.environ.get('SIMPLEAPI_DEBUG_FILENAME',
 SIMPLEAPI_DEBUG_LEVEL = os.environ.get('SIMPLEAPI_DEBUG_LEVEL', 'all')
 assert SIMPLEAPI_DEBUG_LEVEL in ['all', 'call'], \
     u'SIMPLEAPI_DEBUG_LEVEL must be one of these: all, call'
+
+if SIMPLEAPI_DEBUG and not has_debug:
+    SIMPLEAPI_DEBUG = False
+    warnings.warn("Debugging disabled since packages pstats/cProfile not found (maybe you have to install it).")
 
 TRIGGERED_METHODS = ['get', 'post', 'put', 'delete']
 FRAMEWORKS = ['flask', 'django', 'appengine', 'dummy', 'standalone', 'wsgi']
@@ -38,7 +50,6 @@ from namespace import NamespaceException
 from feature import __features__, Feature, FeatureException
 from simpleapi.message import formatters, wrappers
 from utils import glob_list
-import logging
 
 __all__ = ('Route', )
 
@@ -83,8 +94,15 @@ class Router(object):
     def __init__(self, *namespaces, **kwargs):
         """Takes at least one namespace. 
         """
+        logger_name = kwargs.get('name', str(id(self)))
+        self.logger = logging.getLogger("simpleapi.%s" % logger_name)
         self.nmap = {}
         self.debug = kwargs.get('debug', False)
+        
+        if self.debug and not has_debug:
+            self.debug = False
+            warnings.warn("Debugging disabled since packages pstats/cProfile not found (maybe you have to install it).")
+        
         self.restful = kwargs.get('restful', False)
         self.framework = kwargs.get('framework', 'django')
         self.path = re.compile(kwargs.get('path', r'^/'))
@@ -98,9 +116,14 @@ class Router(object):
             u'You can either activate Route-debug or simpleapi-debug, not both.'
 
         if self.debug or SIMPLEAPI_DEBUG:
-            logging.basicConfig(level=logging.DEBUG)
+            self.logger.setLevel(logging.DEBUG)
+            handler = logging.StreamHandler()
+            formatter = logging.Formatter(
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+            handler.setFormatter(formatter)
+            self.logger.addHandler(handler)
         else:
-            logging.basicConfig(level=logging.WARNING)
+            self.logger.setLevel(logging.WARNING)
         
         if SIMPLEAPI_DEBUG and SIMPLEAPI_DEBUG_LEVEL == 'all':
             self.profile_start()
@@ -176,22 +199,25 @@ class Router(object):
 
     def serve(self, host='', port=5050):
         httpd = make_server(host, port, self.handle_request)
-        logging.info(u"Started serving on port %d..." % port)
+        self.logger.info(u"Started serving on port %d..." % port)
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
-            logging.info(u"Server stopped.")
+            self.logger.info(u"Server stopped.")
 
     def profile_start(self):
+        assert has_debug
         self.profile = cProfile.Profile()
         self.profile.enable()
     
     def profile_stop(self):
+        assert has_debug
         self.profile.disable()
         self.profile.dump_stats(SIMPLEAPI_DEBUG_FILENAME)
 
     def profile_stats(self):
-        logging.debug(u"Loading stats...")
+        assert has_debug
+        self.logger.debug(u"Loading stats...")
         stats = pstats.Stats(SIMPLEAPI_DEBUG_FILENAME)
         stats.strip_dirs().sort_stats('time', 'calls') \
             .print_stats()
@@ -427,7 +453,7 @@ class Router(object):
         request_items.update(urlparameters)
 
         if SIMPLEAPI_DEBUG and SIMPLEAPI_DEBUG_LEVEL == 'call':
-            logging.info(pprint.pformat(request_items))
+            self.logger.info(pprint.pformat(request_items))
             self.profile_start()
 
         version = request_items.pop('_version', 'default')
@@ -498,7 +524,8 @@ class Router(object):
                 callback=callback,
                 mimetype=mimetype,
                 restful=self.restful,
-                debug=self.debug
+                debug=self.debug,
+                route=self,
             )
             response = request.run(request_items)
             http_response = response.build()
@@ -525,7 +552,7 @@ class Router(object):
                     msgs.append('') # blank line
                 msgs.append('     -- End of traceback --     ')
                 msgs.append('')
-                logging.error("\n".join(msgs))
+                self.logger.error("\n".join(msgs))
 
                 if self.debug:
                     e, m, tb = sys.exc_info()
