@@ -81,12 +81,20 @@ class ExtJSFormWrapper(Wrapper):
         else:
             result['success'] = True
         if self.errors:
-            errmsg, errors = self.errors[0], self.errors[1]
-            assert isinstance(errmsg, basestring)
-            assert isinstance(errors, dict)
+            assert isinstance(self.errors, (basestring, tuple, list))
+            
+            if isinstance(self.errors, basestring) or \
+                (isinstance(self.errors, (tuple, list)) and \
+                len(self.errors) == 1):
+                result['errormsg'] = self.errors
+            elif isinstance(self.errors, (tuple, list)) and \
+                len(self.errors) > 0:
+                errmsg, errors = self.errors[0], self.errors[1]
+                assert isinstance(errmsg, basestring)
+                assert isinstance(errors, dict)
 
-            result['errormsg'] = errmsg
-            result['errors'] = errors
+                result['errormsg'] = errmsg
+                result['errors'] = errors
         if self.result is not None:
             result['data'] = self.result
         return result

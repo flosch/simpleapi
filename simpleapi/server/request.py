@@ -34,7 +34,7 @@ class Request(object):
 
     def __init__(self, sapi_request, namespace, input_formatter,
                  output_formatter, wrapper, callback, mimetype, restful,
-                 debug, route):
+                 debug, route, ignore_unused_args):
         self.sapi_request = sapi_request
         self.namespace = namespace
         self.input_formatter = input_formatter
@@ -45,6 +45,7 @@ class Request(object):
         self.restful = restful
         self.debug = debug
         self.route = route
+        self.ignore_unused_args = ignore_unused_args
         self.session = Session()
 
     def run(self, request_items):
@@ -118,12 +119,16 @@ class Request(object):
 
         # check whether there are more arguments than needed
         if not function['args']['kwargs_allowed']:
-            unsued_arguments = list(set(request_items.keys()) - \
+            unused_arguments = list(set(request_items.keys()) - \
                 set(function['args']['all']))
 
-            if unsued_arguments:
-                raise RequestException(u'Unused arguments: %s' % \
-                ", ".join(unsued_arguments))
+            if unused_arguments:
+                if not self.ignore_unused_args:
+                    raise RequestException(u'Unused arguments: %s' % \
+                    ", ".join(unused_arguments))
+                else:
+                    for key in unused_arguments:
+                        del request_items[key]
 
         # decode incoming variables (only if _data is not set!)
         if not data:

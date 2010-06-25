@@ -98,6 +98,7 @@ class Router(object):
         self.logger = logging.getLogger("simpleapi.%s" % logger_name)
         self.nmap = {}
         self.debug = kwargs.get('debug', False)
+        self.ignore_unused_args = kwargs.get('ignore_unused_args', False)
         
         if self.debug and not has_debug:
             self.debug = False
@@ -526,6 +527,7 @@ class Router(object):
                 restful=self.restful,
                 debug=self.debug,
                 route=self,
+                ignore_unused_args=self.ignore_unused_args,
             )
             response = request.run(request_items)
             http_response = response.build()
