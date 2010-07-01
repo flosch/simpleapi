@@ -27,7 +27,7 @@ class Response(object):
 
     def __init__(self, sapi_request, namespace=None, output_formatter=None,
                  wrapper=None, errors=None, result=None, mimetype=None,
-                 callback=None, session=None, function=None):
+                 callback=None, function=None):
         assert isinstance(errors, (basestring, list)) or errors is None
 
         self.sapi_request = sapi_request
@@ -42,7 +42,7 @@ class Response(object):
         self.wrapper = wrapper or wrappers['default']
         self.mimetype = mimetype or self.output_formatter.__mime__
 
-        self.session = session
+        self.session = sapi_request.session
 
     def add_error(self, errmsg):
         if self.errors is None:
@@ -79,11 +79,13 @@ class Response(object):
 
             if isinstance(self.wrapper, type):
                 self.wrapper = self.wrapper(
-                    errors=self.errors,
-                    result=self.result
+                    sapi_request=self.sapi_request
                 )
 
-            wrapper_result = self.wrapper.build()
+            wrapper_result = self.wrapper._build(
+                errors=self.errors,
+                result=self.result,
+            )
             formatter_result = self.output_formatter.build(wrapper_result)
         else:
             self.mimetype = self.result.mimetype

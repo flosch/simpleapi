@@ -8,5 +8,5 @@ from handlers import Example
 from sapi import formatters, wrappers
 
 urlpatterns = patterns('',
-    (r'^example/$', Route(Example))
+    (r'^example/$', Route(Example, debug=True))
 )

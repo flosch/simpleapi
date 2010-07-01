@@ -43,6 +43,7 @@ try:
 except ImportError:
     has_appengine = False
 
+from simpleapi.message.common import SAException
 from sapirequest import SAPIRequest
 from request import Request, RequestException
 from response import Response, ResponseException
@@ -88,7 +89,7 @@ class Route(object):
             return Router(*args, **kwargs)
 
 class StandaloneRequest(object): pass
-class RouterException(Exception): pass
+class RouterException(SAException): pass
 class Router(object):
 
     def __init__(self, *namespaces, **kwargs):
@@ -335,10 +336,10 @@ class Router(object):
             if hasattr(function_method, 'methods'):
                 allowed_methods = function_method.methods
                 assert isinstance(allowed_methods, (list, tuple))
-                method_function = lambda method: method in allowed_methods
+                method_function = lambda method, methods: method in methods
             else:
                 allowed_methods = None
-                method_function = lambda method: True
+                method_function = lambda method, methods: True
 
             # determine format
             format = getattr(function_method, 'format', lambda val: val)
@@ -453,7 +454,6 @@ class Router(object):
 
     def __call__(self, http_request=None, **urlparameters):
         sapi_request = SAPIRequest(self, http_request)
-
         request_items = dict(sapi_request.REQUEST.items())
         request_items.update(urlparameters)
 
@@ -538,7 +538,7 @@ class Router(object):
         except Exception, e:
             if isinstance(e, (NamespaceException, RequestException,
                ResponseException, RouterException, FeatureException)):
-                err_msg = unicode(e)
+                err_msg = e.message
             else:
                 err_msg = u'An internal error occurred during your request.'
                 trace = inspect.trace()

@@ -6,9 +6,16 @@ try:
 except ImportError:
     has_flask = False
 
+from session import Session
+
+__all__ = ('SAPIRequest', )
+
 class SAPIRequest(object):
     
     def __init__(self, route, request=None):
+        self.session = Session()
+        self.session._internal = Session()
+
         self.route = route
 
         if not request:
@@ -88,4 +95,15 @@ class SAPIRequest(object):
             return self.request.method
         elif self.route.is_dummy() or self.route.is_standalone():
             return self.request.method
+        raise NotImplementedError
+    
+    @property
+    def path_info(self):
+        if self.route.is_flask() or self.route.is_django():
+            return self.META.get('PATH_INFO')
+        # TODO XXX FIXME:
+        #elif self.route.is_appengine():
+        #    return self.request.path_info
+        #elif self.route.is_dummy() or self.route.is_standalone():
+        #    return self.request.path_info
         raise NotImplementedError

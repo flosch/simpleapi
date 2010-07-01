@@ -8,6 +8,6 @@ from handlers import OldCalculator, NewCalculator, SomeFunctions, Misc
 urlpatterns = patterns('',
     (r'^calculator/multiple/$', Route(OldCalculator, NewCalculator)),
     (r'^calculator/one/$', Route(OldCalculator)),
-    (r'^functions/$', Route(SomeFunctions)),
+    (r'^functions/$', Route(SomeFunctions, debug=True)),
     (r'^misc/$', Route(Misc))
 )

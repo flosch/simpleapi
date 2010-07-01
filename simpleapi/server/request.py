@@ -11,9 +11,9 @@ except ImportError:
     has_debug = False
 
 from response import Response
-from session import Session
 from feature import FeatureContentResponse
 from simpleapi.message import formatters
+from simpleapi.message.common import SAException
 
 try:
     from django.core.exceptions import ObjectDoesNotExist as django_notexist
@@ -29,7 +29,7 @@ except ImportError:
 
 __all__ = ('Request', 'RequestException')
 
-class RequestException(Exception): pass
+class RequestException(SAException): pass
 class Request(object):
 
     def __init__(self, sapi_request, namespace, input_formatter,
@@ -46,16 +46,21 @@ class Request(object):
         self.debug = debug
         self.route = route
         self.ignore_unused_args = ignore_unused_args
-        self.session = Session()
+        self.session = sapi_request.session
 
     def run(self, request_items):
+        # map request items to the correct names
+        wi = self.wrapper(sapi_request=self.sapi_request)
+        request_items = wi._parse(request_items)
+        del wi
+
         # set all required simpleapi arguments
         access_key = request_items.pop('_access_key', None)
         method = request_items.pop('_call', None)
-        
+
         if self.restful:
             method = self.sapi_request.method.lower()
-        
+
         data = request_items.pop('_data', None)
 
         # update session
@@ -70,7 +75,7 @@ class Request(object):
             'nmap': self.namespace,
             'instance': local_namespace
         }
-        
+
         # check the method
         if not method:
             raise RequestException(u'Method must be provided.')
@@ -92,7 +97,7 @@ class Request(object):
         self.session.function = function
 
         # check allowed HTTP methods
-        if not function['methods']['function'](self.sapi_request.method):
+        if not function['methods']['function'](self.sapi_request.method, function['methods']['allowed_methods']):
             raise RequestException(u'Method not allowed: %s' % self.sapi_request.method)
 
         # if data is set, make sure input formatter is not ValueFormatter
@@ -205,7 +210,6 @@ class Request(object):
                 output_formatter=self.output_formatter,
                 wrapper=self.wrapper,
                 mimetype=self.mimetype,
-                session=self.session,
                 function=function
             )
         else:

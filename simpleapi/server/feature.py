@@ -5,6 +5,7 @@ import hashlib
 import warnings
 
 from simpleapi.message import formatters, Formatter
+from simpleapi.message.common import SAException
 
 try:
     from django.core.cache import cache

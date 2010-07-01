@@ -7,6 +7,8 @@ Version 0.0.9
 [current development version]
 
 - various bugfixes
+- added UnformattedResponse
+- added Ext.Direct support
 
 Version 0.0.8
 -------------
