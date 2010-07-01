@@ -1,0 +1,19 @@
+from django.core.mail import mail_admins
+import logging
+ 
+class DjangoMailAdminsHandler(logging.Handler):
+    def __init__(self, subject):
+        logging.Handler.__init__(self)
+        self.subject = subject
+ 
+    def get_subject(self, record):
+        return self.subject
+ 
+    def emit(self, record):
+        try:
+            mail_admins(self.get_subject(record), self.format(record),
+                fail_silently=False)
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except:
+            self.handleError(record)

@@ -94,8 +94,8 @@ class Router(object):
     def __init__(self, *namespaces, **kwargs):
         """Takes at least one namespace. 
         """
-        logger_name = kwargs.get('name', str(id(self)))
-        self.logger = logging.getLogger("simpleapi.%s" % logger_name)
+        self.name = kwargs.get('name', str(id(self)))
+        self.logger = logging.getLogger("simpleapi.%s" % self.name)
         self.nmap = {}
         self.debug = kwargs.get('debug', False)
         self.ignore_unused_args = kwargs.get('ignore_unused_args', False)
@@ -275,6 +275,10 @@ class Router(object):
         # determine arguments of each function
         functions = dict(functions)
         for function_name, function_method in functions.iteritems():
+            # check for reserved function names
+            assert function_name not in ['error', '__init__', 'get_name'],\
+                u'Name %s is reserved.' % function_name
+            
             # ArgSpec(args=['self', 'a', 'b'], varargs=None, keywords=None, defaults=None)
             raw_args = inspect.getargspec(function_method)
 

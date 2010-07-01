@@ -72,8 +72,8 @@ class DefaultWrapper(Wrapper):
             result['result'] = self.result
         return result
 
-class ExtJSFormWrapper(Wrapper):
-
+class ExtJSWrapper(Wrapper):
+    
     def build(self):
         result = {}
         if self.errors:
@@ -82,7 +82,6 @@ class ExtJSFormWrapper(Wrapper):
             result['success'] = True
         if self.errors:
             assert isinstance(self.errors, (basestring, tuple, list))
-            
             if isinstance(self.errors, basestring) or \
                 (isinstance(self.errors, (tuple, list)) and \
                 len(self.errors) == 1):
@@ -95,9 +94,24 @@ class ExtJSFormWrapper(Wrapper):
 
                 result['errormsg'] = errmsg
                 result['errors'] = errors
+
         if self.result is not None:
-            result['data'] = self.result
+            for key, value in self.build_result():
+                result[key] = value
+        
         return result
+
+class ExtJSFormWrapper(ExtJSWrapper):
+
+    def build_result(self):
+        yield ('data', self.result)
+
+class ExtJSStoreWrapper(ExtJSWrapper):
+
+    def build_result(self):
+        yield ('rows', self.result)
+        yield ('results', len(self.result))
 
 wrappers.register('default', DefaultWrapper)
 wrappers.register('extjsform', ExtJSFormWrapper)
+wrappers.register('extjsstore', ExtJSStoreWrapper)

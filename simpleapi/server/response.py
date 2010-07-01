@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import types
-
 try:
     from django.http import HttpResponse as DjangoHttpResponse
     has_django = True
@@ -17,7 +15,12 @@ except ImportError:
 from simpleapi.message import formatters, wrappers
 from preformat import Preformatter
 
-__all__ = ('Response', 'ResponseException')
+__all__ = ('Response', 'ResponseException', 'UnformattedResponse')
+
+class UnformattedResponse(object):
+    def __init__(self, content, mimetype="text/html"):
+        self.content = content
+        self.mimetype = mimetype
 
 class ResponseException(object): pass
 class Response(object):
@@ -51,8 +54,11 @@ class Response(object):
                 self.errors = [self.errors, errmsg]
 
     def _preformat(self, value):
-        preformatter = Preformatter()
-        return preformatter.run(value)
+        if not isinstance(value, UnformattedResponse):
+            # don't preformat UnformattedResponse
+            preformatter = Preformatter()
+            return preformatter.run(value)
+        return value
 
     def build(self, skip_features=False):
         # call feature: handle_response
@@ -60,25 +66,29 @@ class Response(object):
             for feature in self.namespace['features']:
                 feature._handle_response(self)
 
-        # pass result to custom format function
-        if self.function:
-            self.result = self.function['format'](self.result)
+        if not isinstance(self.result, UnformattedResponse):
+            # pass result to custom format function
+            if self.function:
+                self.result = self.function['format'](self.result)
 
-        if isinstance(self.output_formatter, type):
-            self.output_formatter = self.output_formatter(
-                sapi_request=self.sapi_request,
-                callback=self.callback
-            )
+            if isinstance(self.output_formatter, type):
+                self.output_formatter = self.output_formatter(
+                    sapi_request=self.sapi_request,
+                    callback=self.callback
+                )
 
-        if isinstance(self.wrapper, type):
-            self.wrapper = self.wrapper(
-                errors=self.errors,
-                result=self.result
-            )
+            if isinstance(self.wrapper, type):
+                self.wrapper = self.wrapper(
+                    errors=self.errors,
+                    result=self.result
+                )
 
-        wrapper_result = self.wrapper.build()
-        formatter_result = self.output_formatter.build(wrapper_result)
-        
+            wrapper_result = self.wrapper.build()
+            formatter_result = self.output_formatter.build(wrapper_result)
+        else:
+            self.mimetype = self.result.mimetype
+            formatter_result = self.result.content
+
         if self.sapi_request.route.is_flask():
             return FlaskResponse(
                 response=formatter_result,
