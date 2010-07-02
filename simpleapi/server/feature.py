@@ -15,7 +15,7 @@ except:
 
 __all__ = ('__features__', 'Feature', 'FeatureException', 'FeatureContentResponse')
 
-class FeatureException(Exception): pass
+class FeatureException(SAException): pass
 class FeatureContentResponse(FeatureException): pass
 class Feature(object):
 

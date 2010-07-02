@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import types
 import copy
 import inspect
 import pprint
@@ -46,7 +47,7 @@ except ImportError:
 from simpleapi.message.common import SAException
 from sapirequest import SAPIRequest
 from request import Request, RequestException
-from response import Response, ResponseException
+from response import Response, ResponseMerger, ResponseException
 from namespace import NamespaceException
 from feature import __features__, Feature, FeatureException
 from simpleapi.message import formatters, wrappers
@@ -540,36 +541,69 @@ class Router(object):
                 route=self,
                 ignore_unused_args=self.ignore_unused_args,
             )
-            response = request.run(request_items)
-            http_response = response.build()
+
+            # map request items to the correct names
+            wi = wrapper_instance(sapi_request=sapi_request)
+            request_items = wi._parse(request_items)
+            if not isinstance(request_items,
+                (list, tuple, types.GeneratorType)):
+                request_items = [request_items, ]
+
+            responses = []
+            for request_item in request_items:
+                # clear session (except _internal)
+                sapi_request.session.clear()
+
+                # process request
+                try:
+                    responses.append(request.process_request(request_item))
+                except (NamespaceException, RequestException, \
+                        ResponseException, RouterException, FeatureException),e:
+                    err_msg = e.message
+                    response = Response(
+                        sapi_request,
+                        errors=err_msg,
+                        output_formatter=output_formatter_instance,
+                        wrapper=wrapper_instance,
+                        mimetype=mimetype
+                    )
+                    responses.append(response)
+
+            rm = ResponseMerger(
+                sapi_request=sapi_request,
+                responses=responses,
+            )
+            http_response = rm.build()
         except Exception, e:
-            if isinstance(e, (NamespaceException, RequestException,
-               ResponseException, RouterException, FeatureException)):
-                err_msg = e.message
+            if isinstance(e, (NamespaceException, RequestException, \
+                              ResponseException, RouterException, \
+                              FeatureException)):
+                err_msg = repr(e)
             else:
                 err_msg = u'An internal error occurred during your request.'
-                trace = inspect.trace()
-                msgs = []
-                msgs.append('')
-                msgs.append(u"******* Exception raised *******")
-                msgs.append(u'Exception type: %s' % type(e))
-                msgs.append(u'Exception msg: %s' % e)
-                msgs.append('')
-                msgs.append(u'------- Traceback follows -------')
-                for idx, item in enumerate(trace):
-                    msgs.append(u"(%s)\t%s:%s (%s)" % 
-                        (idx+1, item[3], item[2], item[1]))
-                    if item[4]:
-                        for line in item[4]:
-                            msgs.append(u"\t\t%s" % line.strip())
-                    msgs.append('') # blank line
-                msgs.append('     -- End of traceback --     ')
-                msgs.append('')
-                self.logger.error("\n".join(msgs))
+            
+            trace = inspect.trace()
+            msgs = []
+            msgs.append('')
+            msgs.append(u"******* Exception raised *******")
+            msgs.append(u'Exception type: %s' % type(e))
+            msgs.append(u'Exception msg: %s' % repr(e))
+            msgs.append('')
+            msgs.append(u'------- Traceback follows -------')
+            for idx, item in enumerate(trace):
+                msgs.append(u"(%s)\t%s:%s (%s)" % 
+                    (idx+1, item[3], item[2], item[1]))
+                if item[4]:
+                    for line in item[4]:
+                        msgs.append(u"\t\t%s" % line.strip())
+                msgs.append('') # blank line
+            msgs.append('     -- End of traceback --     ')
+            msgs.append('')
+            self.logger.error("\n".join(msgs))
 
-                if self.debug:
-                    e, m, tb = sys.exc_info()
-                    pdb.post_mortem(tb)
+            if self.debug:
+                e, m, tb = sys.exc_info()
+                pdb.post_mortem(tb)
 
             response = Response(
                 sapi_request,

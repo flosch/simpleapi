@@ -12,8 +12,8 @@ __all__ = ('json', 'SAException')
 
 class SAException(Exception):
     def __init__(self, msg=None):
+        super(Exception, self).__init__()
         self._message = msg
-        super(Exception, self).__init__(self)
 
     def _get_message(self):
         return self._message
@@ -22,3 +22,6 @@ class SAException(Exception):
         self._message = message
 
     message = property(_get_message, _set_message)
+
+    def __repr__(self):
+        return self.message

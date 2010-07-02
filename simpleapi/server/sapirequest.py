@@ -14,8 +14,6 @@ class SAPIRequest(object):
     
     def __init__(self, route, request=None):
         self.session = Session()
-        self.session._internal = Session()
-
         self.route = route
 
         if not request:

@@ -48,12 +48,7 @@ class Request(object):
         self.ignore_unused_args = ignore_unused_args
         self.session = sapi_request.session
 
-    def run(self, request_items):
-        # map request items to the correct names
-        wi = self.wrapper(sapi_request=self.sapi_request)
-        request_items = wi._parse(request_items)
-        del wi
-
+    def process_request(self, request_items):
         # set all required simpleapi arguments
         access_key = request_items.pop('_access_key', None)
         method = request_items.pop('_call', None)
@@ -79,8 +74,6 @@ class Request(object):
         # check the method
         if not method:
             raise RequestException(u'Method must be provided.')
-
-        print self.namespace['functions']
 
         # check whether method exists
         if not self.namespace['functions'].has_key(method):

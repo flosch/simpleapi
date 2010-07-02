@@ -136,12 +136,18 @@ class ExtJSStoreWrapper(ExtJSWrapper):
 
 class ExtJSDirectWrapper(Wrapper):
     def build(self, errors, result):
-        if getattr(self.session._internal, 'formHandler', False):
+        if hasattr(self.session._internal, 'extdirect'):
+            db = self.session._internal.extdirect[0]
+            self.session._internal.extdirect = \
+                self.session._internal.extdirect[1:]
+        else:
+            db = {}
+        if db['formHandler'] == True:
             r = {
-                'type': self.session._internal.type,
-                'tid': self.session._internal.tid,
-                'action': self.session._internal.action,
-                'method': self.session._internal.method,
+                'type': db['type'],
+                'tid': db['tid'],
+                'action': db['action'],
+                'method': db['method'],
                 'result': {}
             }
             
@@ -155,39 +161,67 @@ class ExtJSDirectWrapper(Wrapper):
             return r
         else:
             if errors:
+                errors = ExtJSWrapper.build_errors(errors)
                 return {
                     'type': 'exception',
-                    'message': ". ".join(errors),
+                    'message': errors['msg'],
                     'where': 'n/a'
                 }
             else:
                 return {
                     'result': result,
-                    'type': self.session._internal.type,
-                    'tid': self.session._internal.tid,
-                    'action': self.session._internal.action,
-                    'method': self.session._internal.method
+                    'type': db['type'],
+                    'tid': db['tid'],
+                    'action': db['action'],
+                    'method': db['method'],
                 }
 
     def parse(self, items):
-        if items.has_key('extUpload'):
+        if len(items) == 1:
+            # check for a batch request
+            key, value = items.items()[0]
+            if value == '':
+                data = json.loads(key)
+                if isinstance(data, dict):
+                    yield self.parse_item(data)
+                elif isinstance(data, (tuple, list)):
+                    for item in data:
+                        yield self.parse_item(item)
+                else:
+                    raise ValueError(u'Unsupported input format.')
+            else:
+                raise ValueError(u'Unsupported input format.')
+        else:
+            s = self.parse_item(items)
+            yield s
+    
+    def parse_item(self, data):
+        if data.has_key('extMethod'):
             # formHandler true
             d = {
-                '_call': items.pop('extMethod', ''),
+                '_call': data.pop('extMethod', ''),
             }
+            
+            tid = data.pop('extTID', '')
+            action = data.pop('extAction', '')
+            method = d['_call']
+            type = data.pop('extType', '')
 
-            self.session._internal.formHandler = True
-            self.session._internal.type = items.pop('extType', '')
-            self.session._internal.tid = items.pop('extTID', '')
-            self.session._internal.action = items.pop('extAction', '') # class
-            self.session._internal.method = d['_call']# method
+            if not hasattr(self.session._internal, 'extdirect'):
+                self.session._internal.extdirect = []
 
-            d.update(items)
+            db = {}
+            db['formHandler'] = True
+            db['type'] = type
+            db['action'] = action
+            db['method'] = method
+            db['tid'] = tid
+            self.session._internal.extdirect.append(db)
+
+            d.update(data)
             return d
         else:
             # formHandle false
-            data = items.keys()[0]
-            data = json.loads(data)
             d = {
                 '_call': data.pop('method', ''),
             }
@@ -196,11 +230,21 @@ class ExtJSDirectWrapper(Wrapper):
                 not isinstance(data['data'][0], dict):
                 raise ValueError(u'data must be a hashable/an array of key/value arguments')
 
-            self.session._internal.formHandler = False
-            self.session._internal.type = data.pop('type', '')
-            self.session._internal.tid = data.pop('tid', '')
-            self.session._internal.action = data.pop('action', '') # class
-            self.session._internal.method = d['_call']# method
+            tid = data.pop('tid', '')
+            action = data.pop('action', '')
+            method = d['_call']
+            type = data.pop('type', '')
+
+            if not hasattr(self.session._internal, 'extdirect'):
+                self.session._internal.extdirect = []
+
+            db = {}
+            db['formHandler'] = False
+            db['type'] = type
+            db['action'] = action
+            db['method'] = method
+            db['tid'] = tid
+            self.session._internal.extdirect.append(db)
 
             data = data.get('data')
             if data:

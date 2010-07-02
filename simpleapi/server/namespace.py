@@ -22,30 +22,32 @@ class Namespace(object):
         if framework not in ['default', 'extjsdirect']:
             self.error('Framework unknown.')
 
-        functions = []
-        
         version = getattr(self, '__version__', 'default')
         function_map = self.request.route.nmap[version]['functions']
-        
+
         if framework == 'extjsdirect':
-            for fn in function_map.iterkeys():
-                if len(function_map[fn]['args']['all']) > 0:
-                    fnlen = 1
-                else:
-                    fnlen = 0
-            
-                functions.append({
-                    'name': fn,
-                    'len': fnlen,
-                    'formHandler': True,
-                })
+            functions = {}
+            for cls in ('forms', 'direct'):
+                functions[cls] = []
+                for fn in function_map.iterkeys():
+                    if len(function_map[fn]['args']['all']) > 0:
+                        fnlen = 1
+                    else:
+                        fnlen = 0
+
+                    functions[cls].append({
+                        'name': fn,
+                        'len': fnlen,
+                        'formHandler': cls == 'forms',
+                    })
 
             result = {
                 'actions': {
-                    self.request.route.name: functions
+                    self.request.route.name: functions['direct'],
+                    u'%sForms' % self.request.route.name: functions['forms'],
                 }
             }
-            
+
             result['type'] = 'remoting'
             result['url'] = u'%s?_wrapper=extjsdirect' % \
                 self.session.request.path_info
@@ -57,6 +59,7 @@ class Namespace(object):
                 mimetype='text/javascript'
             )
         else:
+            functions = []
             for fn in function_map.iterkeys():
                 print function_map[fn]['args']
                 optionals = list(set(function_map[fn]['args']['all']) - \
