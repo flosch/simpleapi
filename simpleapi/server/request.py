@@ -80,6 +80,8 @@ class Request(object):
         if not method:
             raise RequestException(u'Method must be provided.')
 
+        print self.namespace['functions']
+
         # check whether method exists
         if not self.namespace['functions'].has_key(method):
             raise RequestException(u'Method %s does not exist.' % method)

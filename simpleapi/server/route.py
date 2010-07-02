@@ -268,9 +268,16 @@ class Router(object):
         # make sure no version is assigned twice
         assert not self.nmap.has_key(version), u'version is assigned twice'
 
+        allowed_functions = []
+
+        # check for introspection allowed
+        if getattr(namespace, '__introspection__', False):
+            allowed_functions.append('introspect')
+
         # determine public and published functions
         functions = filter(lambda item: '__' not in item[0] and
-            getattr(item[1], 'published', False) == True,
+            ((getattr(item[1], 'published', False) == True) or item[0] in
+            allowed_functions),
             inspect.getmembers(namespace))
 
         # determine arguments of each function

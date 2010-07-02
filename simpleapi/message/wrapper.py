@@ -171,8 +171,6 @@ class ExtJSDirectWrapper(Wrapper):
 
     def parse(self, items):
         if items.has_key('extUpload'):
-            # {u'username': u'a', u'extAction': u'users', u'extUpload': u'false', u'uid': u'123', u'extMethod': u'login', u'extTID': u'4', u'password': u'b', u'extType': u'rpc'}
-
             # formHandler true
             d = {
                 '_call': items.pop('extMethod', ''),

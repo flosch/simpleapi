@@ -27,27 +27,25 @@ class Namespace(object):
         version = getattr(self, '__version__', 'default')
         function_map = self.request.route.nmap[version]['functions']
         
-        for fn in function_map.iterkeys():
-            if fn in ['introspect', ]: continue
-            
-            if len(function_map[fn]['args']['all']) > 0:
-                fnlen = 1
-            else:
-                fnlen = 0
-            
-            functions.append({
-                'name': fn,
-                'len': fnlen,
-                'formHandler': True,
-            })
-
-        result = {
-            'actions': {
-                self.request.route.name: functions
-            }
-        }
-
         if framework == 'extjsdirect':
+            for fn in function_map.iterkeys():
+                if len(function_map[fn]['args']['all']) > 0:
+                    fnlen = 1
+                else:
+                    fnlen = 0
+            
+                functions.append({
+                    'name': fn,
+                    'len': fnlen,
+                    'formHandler': True,
+                })
+
+            result = {
+                'actions': {
+                    self.request.route.name: functions
+                }
+            }
+            
             result['type'] = 'remoting'
             result['url'] = u'%s?_wrapper=extjsdirect' % \
                 self.session.request.path_info
@@ -58,6 +56,31 @@ class Namespace(object):
                     (provider, json.dumps(result)),
                 mimetype='text/javascript'
             )
+        else:
+            for fn in function_map.iterkeys():
+                print function_map[fn]['args']
+                optionals = list(set(function_map[fn]['args']['all']) - \
+                    set(function_map[fn]['args']['obligatory']))
+                functions.append({
+                    'name': fn,
+                    'args': {
+                        'len': len(function_map[fn]['args']['all']),
+                        'obligatory': {
+                            'len': len(function_map[fn]['args']['obligatory']),
+                            'names': function_map[fn]['args']['obligatory'],
+                        },
+                        'optional': {
+                            'len': len(optionals),
+                            'names': optionals,
+                        },
+                        'kwargs_allowed': function_map[fn]['args']['kwargs_allowed'],
+                    },
+                })
+
+            result = {
+                'actions': {
+                    self.request.route.name: functions
+                }
+            }
 
         return result
-    introspect.published = True
