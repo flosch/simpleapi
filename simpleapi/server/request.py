@@ -66,7 +66,7 @@ class Request(object):
 
         # instantiate namespace
         local_namespace = self.namespace['class'](self)
-        self.session.namespace = {
+        self.session._internal.namespace = {
             'nmap': self.namespace,
             'instance': local_namespace
         }
@@ -167,6 +167,9 @@ class Request(object):
         except FeatureContentResponse, e:
             result = e
         else:
+            # call before_request
+            getattr(local_namespace, 'before_request')(self, self.session)
+            
             # make the call
             try:
                 if self.debug:

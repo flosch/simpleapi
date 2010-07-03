@@ -564,10 +564,9 @@ class Router(object):
                     responses.append(request.process_request(request_item))
                 except (NamespaceException, RequestException, \
                         ResponseException, RouterException, FeatureException),e:
-                    err_msg = e.message
                     response = Response(
                         sapi_request,
-                        errors=err_msg,
+                        errors=e.message,
                         output_formatter=output_formatter_instance,
                         wrapper=wrapper_instance,
                         mimetype=mimetype
