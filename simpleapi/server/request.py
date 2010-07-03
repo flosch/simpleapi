@@ -168,7 +168,8 @@ class Request(object):
             result = e
         else:
             # call before_request
-            getattr(local_namespace, 'before_request')(self, self.session)
+            if hasattr(local_namespace, 'before_request'):
+                getattr(local_namespace, 'before_request')(self, self.session)
             
             # make the call
             try:

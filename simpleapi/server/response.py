@@ -97,8 +97,9 @@ class Response(object):
 
     def build(self, skip_features=False, managed=False):
         # call after_request
-        getattr(self.session._internal.namespace['instance'],
-            'after_request')(self, self.session)
+        namespace_instance = self.session._internal.namespace['instance']
+        if hasattr(namespace_instance, 'after_request'):
+            getattr(namespace_instance, 'after_request')(self, self.session)
         
         # call feature: handle_response
         if self.namespace and not skip_features:

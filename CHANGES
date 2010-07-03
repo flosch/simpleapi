@@ -13,6 +13,8 @@ Version 0.0.9
 - added Ext.Direct support
 - added batched-request-handling (execute multiple calls within the same HTTP
   request)
+- added before_request/after_request support for Namespaces (works like Features
+  but for custom Namespaces for which the Feature-support is unnecessary)
 
 Version 0.0.8
 -------------

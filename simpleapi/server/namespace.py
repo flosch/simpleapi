@@ -18,7 +18,8 @@ class Namespace(object):
             errors = errors[0]
         raise NamespaceException(errors)
 
-    def introspect(self, framework='default', provider='Ext.app', namespace=None):
+    def introspect(self, framework='default', provider='Ext.app',
+                   namespace=None):
         if framework not in ['default', 'extjsdirect']:
             self.error('Framework unknown.')
 
@@ -54,8 +55,9 @@ class Namespace(object):
             if namespace:
                 result['namespace'] = namespace
             return UnformattedResponse(
-                content=u'%s.REMOTING_API = %s;' %\
-                    (provider, json.dumps(result)),
+                content=u'%s.%s_REMOTING_API = %s;' %\
+                    (provider, self.request.route.name.upper(),
+                     json.dumps(result)),
                 mimetype='text/javascript'
             )
         else:

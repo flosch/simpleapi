@@ -101,23 +101,26 @@ class Router(object):
     def __init__(self, *namespaces, **kwargs):
         """Takes at least one namespace. 
         """
-        self.name = kwargs.get('name', str(id(self)))
+        self.name = kwargs.pop('name', str(id(self)))
         self.logger = logging.getLogger("simpleapi.%s" % self.name)
         self.nmap = {}
-        self.debug = kwargs.get('debug', False)
-        self.ignore_unused_args = kwargs.get('ignore_unused_args', False)
-        
+        self.debug = kwargs.pop('debug', False)
+        self.ignore_unused_args = kwargs.pop('ignore_unused_args', False)
+
         if self.debug and not has_debug:
             self.debug = False
             warnings.warn("Debugging disabled since packages pstats/cProfile not found (maybe you have to install it).")
-        
-        self.restful = kwargs.get('restful', False)
-        self.framework = kwargs.get('framework', 'django')
-        self.path = re.compile(kwargs.get('path', r'^/'))
-        
+
+        self.restful = kwargs.pop('restful', False)
+        self.framework = kwargs.pop('framework', 'django')
+        self.path = re.compile(kwargs.pop('path', r'^/'))
+
+        assert len(kwargs) == 0, u'Unknown Route configuration(s) (%s)' % \
+            ", ".join(kwargs.keys())
+
         # make shortcut 
         self._caller = self.__call__
-        
+
         assert self.framework in FRAMEWORKS
         assert (self.debug ^ SIMPLEAPI_DEBUG) or \
             not (self.debug and SIMPLEAPI_DEBUG), \

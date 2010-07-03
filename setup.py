@@ -5,7 +5,7 @@ from simpleapi import get_version
 setup(
     name='simpleapi',
     version=get_version(),
-    description='A simple API-framework to provide an easy to use, consistent and portable client/server-architecture (for django and flask).',
+    description='A simple API-framework to provide an easy to use, consistent and portable client/server-architecture (for django, flask and a lot more).',
     long_description=open('README.rst').read(),
     author='Florian Schlachter',
     author_email='flori@n-schlachter.de',
