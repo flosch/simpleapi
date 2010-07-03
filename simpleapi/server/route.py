@@ -38,6 +38,11 @@ TRIGGERED_METHODS = ['get', 'post', 'put', 'delete']
 FRAMEWORKS = ['flask', 'django', 'appengine', 'dummy', 'standalone', 'wsgi']
 MAX_CONTENT_LENGTH = 1024 * 1024 * 16 # 16 megabytes
 
+restricted_functions = [
+    'before_request',
+    'after_request'
+]
+
 try:
     from google.appengine.ext.webapp import RequestHandler as AE_RequestHandler
     has_appengine = True
@@ -276,9 +281,9 @@ class Router(object):
             allowed_functions.append('introspect')
 
         # determine public and published functions
-        functions = filter(lambda item: '__' not in item[0] and
-            ((getattr(item[1], 'published', False) == True) or item[0] in
-            allowed_functions),
+        functions = filter(lambda item: '__' not in item[0] and item[0] not in 
+            restricted_functions and ((getattr(item[1], 'published', False) ==
+            True) or item[0] in allowed_functions),
             inspect.getmembers(namespace))
 
         # determine arguments of each function

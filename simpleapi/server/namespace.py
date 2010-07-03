@@ -44,7 +44,7 @@ class Namespace(object):
             result = {
                 'actions': {
                     self.request.route.name: functions['direct'],
-                    u'%sForms' % self.request.route.name: functions['forms'],
+                    u'%s_forms' % self.request.route.name: functions['forms'],
                 }
             }
 

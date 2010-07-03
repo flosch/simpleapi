@@ -7,8 +7,12 @@ Version 0.0.9
 [current development version]
 
 - various bugfixes
+- added RouteManager (RouteMgr-class) for managing multiple Routes via an
+  URL pattern, e.g. in django: (r'^api/(?P<name>.*)/$', RouteMgr(r1, r2, r3))
 - added UnformattedResponse
 - added Ext.Direct support
+- added batched-request-handling (execute multiple calls within the same HTTP
+  request)
 
 Version 0.0.8
 -------------
