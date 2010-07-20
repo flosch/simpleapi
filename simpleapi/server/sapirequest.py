@@ -65,6 +65,16 @@ class SAPIRequest(object):
         raise NotImplementedError
 
     @property
+    def FILES(self):
+        if self.route.is_django():
+            return self.request.FILES
+        
+        # TODO XXX
+        # FILES access to other frameworks? flask? GAE?
+        
+        raise NotImplementedError
+
+    @property
     def META(self):
         if self.route.is_flask():
             return self.request.environ

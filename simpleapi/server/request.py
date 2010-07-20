@@ -64,6 +64,10 @@ class Request(object):
         self.session.callback = self.callback
         self.session.access_key = access_key
 
+        # make all uploaded files available
+        if self.route.is_django():
+            self.session.files = self.sapi_request.FILES
+
         # instantiate namespace
         local_namespace = self.namespace['class'](self)
         self.session._internal.namespace = {
