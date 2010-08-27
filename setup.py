@@ -1,10 +1,8 @@
 from setuptools import setup, find_packages
 
-from simpleapi import get_version
-
 setup(
     name='simpleapi',
-    version=get_version(),
+    version='0.0.9',
     description='A simple API-framework to provide an easy to use, consistent and portable client/server-architecture (for django, flask and a lot more).',
     long_description=open('README.rst').read(),
     author='Florian Schlachter',
@@ -21,4 +19,5 @@ setup(
     ],
     zip_safe=False,
     test_suite='tests',
+    install_requires=open("requirements.txt", "r").read().split()
 )

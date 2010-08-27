@@ -35,6 +35,7 @@ Installation
 
 ::
     
+    pip install -r http://github.com/flosch/simpleapi/raw/master/requirements.txt
     pip install --upgrade simpleapi
 
 From GitHub
@@ -172,7 +173,7 @@ Client (python/**remote**)::
 
 Client (python/**local**)::
 
-    from simpleapi import DummyClient
+    from simpleapi import DummyClient, Route
     from handlers import SMSAPI
     
     client = DummyClient(Route(SMSAPI, framework='dummy'),
@@ -296,7 +297,7 @@ Client (python/**remote**)::
 
 Client (python/**local**)::
 
-    from simpleapi import DummyClient
+    from simpleapi import DummyClient, Route
     from handlers import CalculatorAPI
     
     client = DummyClient(Route(CalculatorAPI, framework='dummy'),
