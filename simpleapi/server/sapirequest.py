@@ -42,7 +42,7 @@ class SAPIRequest(object):
     @property
     def POST(self):
         if self.route.is_flask():
-            return self.request.args
+            return self.request.form
         elif self.route.is_django():
             return self.request.POST
         elif self.route.is_appengine():
@@ -54,7 +54,7 @@ class SAPIRequest(object):
     @property
     def REQUEST(self):
         if self.route.is_flask():
-            return self.request.args
+            return self.request.form
         elif self.route.is_django():
             return self.request.REQUEST
         elif self.route.is_appengine():
