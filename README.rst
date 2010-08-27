@@ -35,7 +35,6 @@ Installation
 
 ::
     
-    pip install -r http://github.com/flosch/simpleapi/raw/master/requirements.txt
     pip install --upgrade simpleapi
 
 From GitHub
