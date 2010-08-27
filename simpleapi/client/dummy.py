@@ -59,4 +59,8 @@ class DummyClient(object):
 
     def set_version(self, version):
         """uses a different version for further requests"""
-        self.version = int(version)
+        self.version = version
+
+    def set_access_key(self, access_key):
+        """uses a different access key for further requests"""
+        self.access_key = access_key

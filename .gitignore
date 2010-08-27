@@ -11,3 +11,4 @@ docs/impressum.rst
 *.mov
 bible.txt
 *.profile
+*.egg

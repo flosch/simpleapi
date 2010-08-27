@@ -97,9 +97,10 @@ class Response(object):
 
     def build(self, skip_features=False, managed=False):
         # call after_request
-        namespace_instance = self.session._internal.namespace['instance']
-        if hasattr(namespace_instance, 'after_request'):
-            getattr(namespace_instance, 'after_request')(self, self.session)
+        if hasattr(self.session._internal, 'namespace'):
+            namespace_instance = self.session._internal.namespace['instance']
+            if hasattr(namespace_instance, 'after_request'):
+                getattr(namespace_instance, 'after_request')(self, self.session)
         
         # call feature: handle_response
         if self.namespace and not skip_features:
@@ -140,11 +141,15 @@ class Response(object):
     @staticmethod
     def _build_response_obj(sapi_request, response):
         if sapi_request.route.is_flask():
+            assert has_flask, \
+                'Flask is required (or change framework Route-setting)'
             return FlaskResponse(
                 response=response['result'],
                 mimetype=response['mimetype']
             )
         elif sapi_request.route.is_django():
+            assert has_django, \
+                'Django is required (or change framework Route-setting)'
             return DjangoHttpResponse(
                 response['result'],
                 mimetype=response['mimetype']
