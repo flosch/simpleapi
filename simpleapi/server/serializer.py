@@ -77,12 +77,22 @@ class MongoDocumentSerializer(Serializer):
 
     def handle_field(self, doc, field, scope):
         value = getattr(doc, field)
-        
+
         if isinstance(value, pymongo.objectid.ObjectId):
             value = str(value)
+            # ??? is this really correct (value = ...?)
         elif isinstance(value, mongoengine.EmbeddedDocument):
             scope[field] = {}
             self.handle_document(value, scope[field])
+        elif isinstance(value, list):
+            scope[field] = []
+            for item in value:
+                if isinstance(item, mongoengine.EmbeddedDocument):
+                    new_doc_scope = {}
+                    self.handle_document(item, new_doc_scope)
+                    scope[field].append(new_doc_scope)
+                else:
+                    scope[field].append(item)
         else:
             scope[field] = value
     

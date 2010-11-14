@@ -83,7 +83,8 @@ class RouteTest(unittest.TestCase):
 
         class TestNamespace3(TestNamespace):
             __version__ = 3
-            __authentication__ = lambda namespace, access_key: access_key == 'a' * 5
+            __authentication__ = lambda namespace, access_key: \
+                access_key == 'a' * 5
 
         class TestNamespace4(TestNamespace):
             __version__ = 4
