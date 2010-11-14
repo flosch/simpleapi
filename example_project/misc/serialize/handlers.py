@@ -15,9 +15,10 @@ class MyAPI(Namespace):
         info = InfoDoc(title='testtitel', owner='myTitle')
         m = Table(info=info, schema=schema)
         m.save()
+        return m
     add.published = True
     
     def get(self):
         t = Table.objects[Table.objects.count()-1]
-        return t
+        return t.info
     get.published = True

@@ -30,8 +30,9 @@ class Preformatter(object):
         if has_django and isinstance(value, (Model, QuerySet)):
             value = SerializedObject(value)
 
-        if has_mongoengine and isinstance(value, (mongoengine.Document, \
-            mongoengine.queryset.QuerySet)):
+        if has_mongoengine and isinstance(value,
+           (mongoengine.document.BaseDocument,
+                mongoengine.queryset.QuerySet)):
             value = SerializedObject(value)
 
         if isinstance(value, SerializedObject):

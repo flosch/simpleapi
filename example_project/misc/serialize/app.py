@@ -12,6 +12,6 @@ sys.path.append(root)
 from simpleapi import Route, DummyClient, RemoteException
 from handlers import MyAPI
 
-client = DummyClient(Route(MyAPI, framework='dummy', debug=True))
+client = DummyClient(Route(MyAPI, framework='dummy'))
 print "Add?", client.add()
 print "Get?", client.get()
