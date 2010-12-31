@@ -81,8 +81,7 @@ class MongoDocumentSerializer(Serializer):
         value = getattr(doc, field)
 
         if isinstance(value, pymongo.objectid.ObjectId):
-            value = str(value)
-            # ??? is this really correct (value = ...?)
+            scope[field] = str(value)
         elif isinstance(value, mongoengine.document.BaseDocument):
             scope[field] = {}
             self.handle_document(value, scope[field])
