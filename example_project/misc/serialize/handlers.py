@@ -17,7 +17,7 @@ class MyAPI(Namespace):
         m.save()
         return m
     add.published = True
-    
+
     def get(self):
         t = Table.objects[Table.objects.count()-1]
         return t.info

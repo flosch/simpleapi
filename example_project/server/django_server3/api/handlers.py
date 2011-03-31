@@ -15,7 +15,7 @@ class ContactAPI(Namespace):
             fax=fax,
             author=obj
         )
-        return serialize(contact, excludes=[re.compile(r'^datetime_'),])
+        return serialize(contact, excludes=[re.compile(r'^datetime_'),], include_pk=True)
     new.published = True
 
     def search(self, pattern):
@@ -24,13 +24,13 @@ class ContactAPI(Namespace):
         )
         return {
             'count': qs.count(),
-            
+
             # use serialize if you want to exclude or define fields
-            'items': serialize(qs, excludes=['datetime_added',]), 
-            
+            'items': serialize(qs, excludes=['datetime_added',]),
+
             # inline objects are no problem without serialize
             'first_item': (qs.count() > 0) and qs[0] or None,
-            
+
             # define fields if you want to restrict output to specific fields
             'second_item': (qs.count() > 1) and \
                 serialize(qs[1], fields=[re.compile('^name')]) or None

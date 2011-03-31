@@ -20,20 +20,21 @@ except ImportError:
 __all__ = ('serialize',)
 
 class SerializedObject(object):
-    
+
     def __init__(self, obj, **options):
         self.obj = obj
         self.options = options
-    
+
     def to_python(self):
         if has_django and isinstance(self.obj, Model):
             serializer = DjangoModelSerializer(self.obj, **self.options)
         elif has_django and isinstance(self.obj, QuerySet):
             serializer = DjangoQuerySetSerializer(self.obj, **self.options)
-        elif has_mongoengine and isinstance(self.obj,
+        elif has_mongoengine and isinstance(self.obj, \
             mongoengine.document.BaseDocument):
             serializer = MongoDocumentSerializer(self.obj, **self.options)
-        elif has_mongoengine and isinstance(self.obj, mongoengine.queryset.QuerySet):
+        elif has_mongoengine and isinstance(self.obj, \
+            mongoengine.queryset.QuerySet):
             serializer = MongoQuerySetSerializer(self.obj, **self.options)
         else:
             raise NotImplementedError
@@ -63,7 +64,7 @@ class Serializer(object):
         self.options = options
         self.fields = SerializerList(options.get('fields', []))
         self.excludes = SerializerList(options.get('excludes', []))
-        
+
         assert isinstance(self.fields, (tuple, list))
         assert isinstance(self.excludes, (tuple, list))
 
@@ -71,7 +72,7 @@ class MongoDocumentSerializer(Serializer):
 
     def serialize(self):
         assert isinstance(self.obj, mongoengine.document.BaseDocument)
-        
+
         result = {}
         self.handle_document(self.obj, result)
         return result
@@ -92,7 +93,7 @@ class MongoDocumentSerializer(Serializer):
                 self.handle_list_field(value, scope[field])
         else:
             scope[field] = value
-    
+
     def handle_list_field(self, items, scope=[]):
         for i, item in enumerate(items):
             if isinstance(item, mongoengine.document.BaseDocument):
@@ -100,7 +101,7 @@ class MongoDocumentSerializer(Serializer):
                 self.handle_document(item, scope[i])
             else:
                 scope.append(item)
-    
+
     def handle_document(self, doc, scope):
         for field in doc._fields:
             if (not self.fields or field in self.fields) and \
@@ -108,7 +109,7 @@ class MongoDocumentSerializer(Serializer):
                 self.handle_field(doc, field, scope)
 
 class MongoQuerySetSerializer(Serializer):
-    
+
     def serialize(self):
         assert isinstance(self.obj, mongoengine.queryset.QuerySet)
 
@@ -119,7 +120,7 @@ class MongoQuerySetSerializer(Serializer):
         return result
 
 class DjangoModelSerializer(Serializer):
-    
+
     def __init__(self, *args, **kwargs):
         self.use_natural_keys = True
         super(DjangoModelSerializer, self).__init__(*args, **kwargs)
@@ -128,7 +129,6 @@ class DjangoModelSerializer(Serializer):
         assert isinstance(self.obj, Model)
 
         self.result = {}
-
         for field in self.obj._meta.local_fields:
             if field.serialize:
                 if field.rel is None:
@@ -144,6 +144,9 @@ class DjangoModelSerializer(Serializer):
                 if (not self.fields or field.attname in self.fields) \
                     and not field.attname in self.excludes:
                     self.handle_m2m_field(field)
+
+        if self.options.get('include_pk'):
+            self.result['pk'] = self.obj.pk
         return self.result
 
     def handle_field(self, field):
@@ -177,7 +180,6 @@ class DjangoModelSerializer(Serializer):
                                for related in getattr(self.obj, field.name).iterator()]
 
 class DjangoQuerySetSerializer(Serializer):
-
     def serialize(self):
         assert isinstance(self.obj, QuerySet)
 

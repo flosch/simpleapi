@@ -4,7 +4,7 @@ import sys
 import os
 
 # just for me: :-)
-sys.path.append("/Users/flosch/devlibs/3rdparty/")
+sys.path.append("/Users/flosch/dev/simpleapi/")
 
 PROJECT_ROOT = os.path.dirname(__file__)
 
