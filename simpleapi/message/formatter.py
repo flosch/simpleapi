@@ -182,7 +182,7 @@ class YAMLFormatter(Formatter):
     __mime__ = "application/x-yaml"
 
     def build(self, value):
-        return yaml.dump(value)
+        return yaml.safe_dump(value)
 
     def kwargs(self, value, action='build'):
         if action == 'build':
@@ -191,7 +191,7 @@ class YAMLFormatter(Formatter):
             return self.parse(value)
 
     def parse(self, value):
-        return yaml.load(value)
+        return yaml.safe_load(value)
 
 formatters.register('json', JSONFormatter)
 formatters.register('jsonp', JSONPFormatter)
