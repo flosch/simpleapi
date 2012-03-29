@@ -1,10 +1,15 @@
 simpleapi changelog
 ===================
 
-Version 0.0.9
--------------
+Version 0.1
+-----------
 
 [current development version]
+
+
+
+Version 0.0.9
+-------------
 
 - various bugfixes
 - added RouteManager (RouteMgr-class) for managing multiple Routes via an
@@ -15,6 +20,7 @@ Version 0.0.9
   request)
 - added before_request/after_request support for Namespaces (works like Features
   but for custom Namespaces for which the Feature-support is unnecessary)
+- added support for newer Flask versions
 
 Version 0.0.8
 -------------

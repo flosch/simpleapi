@@ -2,7 +2,8 @@
 simpleapi
 =========
 
-:version: 0.0.9
+:latest dev version: 0.1
+:latest stable: 0.0.9
 :author: Florian Schlachter (http://www.fs-tools.de)
 :license: MIT-license / see LICENSE file for more
 :website: http://simpleapi.florian-schlachter.de
@@ -55,13 +56,6 @@ Dependencies
 * sphinx (optional, for the docs)
 
 (see requirements.txt as well)
-
-Screencasts
-===========
-
-You should watch the screencasts in full screen.
-
-:Contact-app: http://vimeo.com/11280195 (good quality: http://bit.ly/cUdogY)
 
 Examples
 ========
