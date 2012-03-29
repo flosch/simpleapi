@@ -12,3 +12,6 @@ docs/impressum.rst
 bible.txt
 *.profile
 *.egg
+.project
+.pydevproject
+/.settings/org.eclipse.core.resources.prefs
