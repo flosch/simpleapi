@@ -4,9 +4,9 @@ simpleapi
 
 :dev-version: 0.1
 :latest stable: 0.0.9
-:author: Florian Schlachter (http://www.fs-tools.de)
+:author: Florian Schlachter <flori@n-schlachter.de>
+:website: http://www.florian-schlachter.de
 :license: MIT-license / see LICENSE file for more
-:website: http://simpleapi.florian-schlachter.de
 :mailinglist: subscribe: simpleapi@librelist.com
 
 An almost complete documentation is still work in progress and will be published at http://simpleapi.florian-schlachter.de soon.
