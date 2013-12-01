@@ -2,12 +2,14 @@
 
 try:
     from django.http import HttpResponse as DjangoHttpResponse
+
     has_django = True
 except:
     has_django = False
 
 try:
     from flask import Response as FlaskResponse
+
     has_flask = True
 except ImportError:
     has_flask = False
@@ -17,16 +19,18 @@ from preformat import Preformatter
 
 __all__ = ('Response', 'ResponseMerger', 'ResponseException', 'UnformattedResponse')
 
+
 class UnformattedResponse(object):
     def __init__(self, content, mimetype="text/html"):
         self.content = content
         self.mimetype = mimetype
 
+
 class ResponseMerger(object):
     def __init__(self, sapi_request, responses):
         self.sapi_request = sapi_request
         self.responses = responses
-    
+
     def build(self):
         if len(self.responses) == 1:
             return self.responses[0].build()
@@ -54,9 +58,11 @@ class ResponseMerger(object):
                 }
             )
 
-class ResponseException(object): pass
-class Response(object):
 
+class ResponseException(object): pass
+
+
+class Response(object):
     def __init__(self, sapi_request, namespace=None, output_formatter=None,
                  wrapper=None, errors=None, result=None, mimetype=None,
                  callback=None, function=None):
@@ -75,7 +81,7 @@ class Response(object):
         self.mimetype = mimetype or self.output_formatter.__mime__
 
         self.session = self.sapi_request.session
-    
+
     def has_errors(self):
         return self.errors is not None
 
@@ -83,7 +89,7 @@ class Response(object):
         if self.errors is None:
             self.errors = [errmsg, ]
         else:
-            if isinstance(errors, list):
+            if isinstance(self.errors, list):
                 self.errors.append(errmsg)
             elif isinstance(self.errors, basestring):
                 self.errors = [self.errors, errmsg]
@@ -101,7 +107,7 @@ class Response(object):
             namespace_instance = self.session._internal.namespace['instance']
             if hasattr(namespace_instance, 'after_request'):
                 getattr(namespace_instance, 'after_request')(self, self.session)
-        
+
         # call feature: handle_response
         if self.namespace and not skip_features:
             for feature in self.namespace['features']:
@@ -137,7 +143,7 @@ class Response(object):
             return result
         else:
             return self._build_response_obj(self.sapi_request, result)
-    
+
     @staticmethod
     def _build_response_obj(sapi_request, response):
         if sapi_request.route.is_flask():
@@ -152,7 +158,7 @@ class Response(object):
                 'Django is required (or change framework Route-setting)'
             return DjangoHttpResponse(
                 response['result'],
-                mimetype=response['mimetype']
+                content_type=response['mimetype']
             )
         else:
             return response
