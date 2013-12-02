@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import warnings
 import tempfile
 import pprint
 try:
@@ -107,7 +106,7 @@ class Request(object):
                                         '\'value\'.')
             try:
                 request_items = self.input_formatter.kwargs(data, 'parse')
-            except ValueError, e:
+            except ValueError, _:
                 raise RequestException(u'Data couldn\'t be decoded. ' \
                                         'Please check _input and your _data')
             else:
@@ -140,7 +139,7 @@ class Request(object):
             for key, value in request_items.iteritems():
                 try:
                     new_request_items[str(key)] = self.input_formatter.kwargs(value, 'parse')
-                except ValueError, e:
+                except ValueError, _:
                     raise
                     raise RequestException(u'Value for %s couldn\'t be decoded.' % \
                         key)

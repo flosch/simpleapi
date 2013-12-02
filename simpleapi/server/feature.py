@@ -2,23 +2,26 @@
 
 import cPickle
 import hashlib
-import warnings
 
-from simpleapi.message import formatters, Formatter
 from simpleapi.message.common import SAException
 
 try:
     from django.core.cache import cache
+
     has_django = True
 except:
     has_django = False
 
 __all__ = ('__features__', 'Feature', 'FeatureException', 'FeatureContentResponse')
 
-class FeatureException(SAException): pass
-class FeatureContentResponse(FeatureException): pass
-class Feature(object):
 
+class FeatureException(SAException): pass
+
+
+class FeatureContentResponse(FeatureException): pass
+
+
+class Feature(object):
     def __init__(self, ns_config):
         self.ns_config = ns_config
         self.setup()
@@ -95,12 +98,17 @@ class Feature(object):
         if self.is_triggered(response):
             self.handle_response(response)
 
-    def setup(self): pass
-    def handle_request(self, request): pass
-    def handle_response(self, response): pass
+    def setup(self):
+        pass
+
+    def handle_request(self, request):
+        pass
+
+    def handle_response(self, response):
+        pass
+
 
 class CachingFeature(Feature):
-
     __config__ = ('caching', (dict, bool))
 
     def setup(self):
@@ -113,7 +121,7 @@ class CachingFeature(Feature):
             arg_signature = hashlib.md5(cPickle.dumps(
                 request.session.arguments)).hexdigest()
 
-            timeout = 60*60
+            timeout = 60 * 60
             prefix = None
 
             if isinstance(caching_config, dict):
@@ -145,8 +153,8 @@ class CachingFeature(Feature):
                 response.session.cache_timeout
             )
 
-class ThrottlingFeature(Feature):
 
+class ThrottlingFeature(Feature):
     __config__ = ('throttling', dict)
 
     def setup(self):
@@ -199,7 +207,8 @@ class ThrottlingFeature(Feature):
                 try:
                     cache.incr(rph_key)
                 except ValueError:
-                    cache.set(rph_key, 1, 60*60)
+                    cache.set(rph_key, 1, 60 * 60)
+
 
 __features__ = {
     'caching': CachingFeature,

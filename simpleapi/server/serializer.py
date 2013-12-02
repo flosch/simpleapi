@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import re
-
 try:
     from django.db.models import Model
     from django.db.models.query import QuerySet

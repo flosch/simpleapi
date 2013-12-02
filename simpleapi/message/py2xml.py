@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from xml.etree import cElementTree as ET
-import base64
 from dateutil.parser import parse
 
 __all__ = ('PythonToXML',)

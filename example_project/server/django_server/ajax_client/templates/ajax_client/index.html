@@ -14,12 +14,12 @@
                 var way = $("input[name=way1]:checked").val();
                 var data = {_call: method, _access_key: key, a: a, b: b};
                 
-                var callback_fn = function(result) {
-                    if(result.success)
+                var callback_fn = function (result) {
+                    if (result.success)
                         $("#example1 #result").html("Result of calculation is: " + result.result);
                     else
                         alert(result.errors);
-                }
+                };
                 
                 if (way == 'ajax')
                     $.get("/api/calculator/one/", data, callback_fn);
@@ -44,12 +44,12 @@
                     'b': b
                 })};
                 
-                var callback_fn = function(result) {
-                    if(result.success)
+                var callback_fn = function (result) {
+                    if (result.success)
                         $("#example2 #result").html("Result of calculation is: " + result.result);
                     else
                         alert(result.errors);
-                }
+                };
                 
                 if (way == 'ajax')
                     $.get("/api/calculator/one/", data, callback_fn);

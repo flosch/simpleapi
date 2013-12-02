@@ -25,7 +25,7 @@ class Calculator(Namespace):
     fun = True
     
     def get_access_keys(self):
-        return (self.__authentication__, self.session.access_key)
+        return self.__authentication__, self.session.access_key
     get_access_keys.published = True
     
     def multiply(self, a, b):

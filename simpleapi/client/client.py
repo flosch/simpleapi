@@ -70,7 +70,7 @@ class Client(object):
 
             try:
                 response = formatter.parse(response_buffer)
-            except (cPickle.UnpicklingError, EOFError), e:
+            except (cPickle.UnpicklingError, EOFError), _:
                 raise ClientException(
                     u'Couldn\'t unpickle response ' \
                     'data. Did you added "pickle" to the namespace\'s' \
