@@ -8,8 +8,7 @@ simpleapi
 :website: http://www.florian-schlachter.de
 :license: MIT-license / see LICENSE file for more
 :mailinglist: subscribe: simpleapi@librelist.com
-
-An almost complete documentation is still work in progress and will be published at http://simpleapi.florian-schlachter.de soon.
+:documentation: http://simpleapi.readthedocs.org
 
 About
 =====
