@@ -1,5 +1,11 @@
 .. image:: https://travis-ci.org/flosch/simpleapi.svg?branch=master
     :target: https://travis-ci.org/flosch/simpleapi
+.. image:: http://img.shields.io/pypi/dm/simpleapi.svg
+    :target: https://pypi.python.org/pypi/simpleapi
+.. image:: http://img.shields.io/pypi/v/simpleapi.svg
+    :target: https://pypi.python.org/pypi/simpleapi
+.. image:: http://img.shields.io/badge/gittip-support%20simpleapi-brightgreen.svg
+    :target: https://www.gittip.com/flosch/
 
 =========
 simpleapi
